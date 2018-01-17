@@ -1,7 +1,7 @@
-#ifndef globals_h
-#define globals_h
+#ifndef secrets_h
+#define secrets_h
 
-#define TOKEN ""  // Add here your Ubidots TOKEN
-#define BLYNK_AUTH "" // Blynk authentication token
+#define TOKEN "xxx"  // Add here your Ubidots TOKEN
+#define BLYNK_AUTH "xxx" // Blynk authentication token
 
 #endif

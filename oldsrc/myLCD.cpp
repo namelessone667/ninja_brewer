@@ -20,7 +20,7 @@ uint8_t backslash[8] = {
 
 void initLCD()
 {
-  lcd.init();
+  //lcd.init();
   lcd.begin(16,2);
   lcd.backlight();
   lcd.createChar(0, backslash);

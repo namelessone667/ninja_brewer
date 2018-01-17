@@ -4,6 +4,7 @@
 #include "globals.h"
 #include "MENWIZ.h"
 #include "LiquidCrystal_I2C.h"
+#include "probe.h"
 
 #ifndef theApp_h
 #define theApp_h
@@ -24,9 +25,9 @@ class theApp
         static Button _btn_right;
         static Encoder _encoder;
         static LiquidCrystal_I2C _lcd;
-        static menwiz _menu;
+        static menwiz _manimenu;
         static long _encoder_position;
-        static bool _menuActive = false;
+        static bool _menuActive;
 
         static int scanNavButtons();
 };

@@ -8,7 +8,7 @@
 #include "PID_v1.h"
 #include "probe.h"
 #include "fridge.h"
-#include "myLCD.h"
+//#include "myLCD.h"
 
 SYSTEM_THREAD(ENABLED);
 SYSTEM_MODE(SEMI_AUTOMATIC);
@@ -73,7 +73,7 @@ bool setup_failed = false;
 bool sensor_failure = false;
 bool discoverDevicesFlg = false;
 int probeFailureCounter = 0;
-ApplicationWatchdog wd(60000, wd_reboot, 1024);
+
 
 void publishStatus()
 {
@@ -189,16 +189,6 @@ void EEPROMReadSettings() {  // read settings from EEPROM
   EEPROM.get(140, heatPIDMode);
 }
 
-int setPIDModeManual(String arg)
-{
-    return setPIDMode(arg, PID_MANUAL);
-}
-
-int setPIDModeAuto(String arg)
-{
-    return setPIDMode(arg, PID_AUTOMATIC);
-}
-
 int setPIDMode(String arg, int mode)
 {
     double newSetPoint = strtod(arg, NULL);
@@ -213,6 +203,16 @@ int setPIDMode(String arg, int mode)
     }
     return -1;
 
+}
+
+int setPIDModeManual(String arg)
+{
+    return setPIDMode(arg, PID_MANUAL);
+}
+
+int setPIDModeAuto(String arg)
+{
+    return setPIDMode(arg, PID_AUTOMATIC);
 }
 
 int setHeatPIDManual(String arg)
@@ -258,18 +258,20 @@ void initPIDs()
     digitalWrite(LED_BUILTIN, LOW);
 }
 
-void wd_reboot()
-{
-    controledFermentation = false;
-    reboot("");
-}
-
 int reboot(String arg)
 {
     EEPROMWriteSettings();
     System.reset();
     return 1;
 }
+
+void wd_reboot()
+{
+    controledFermentation = false;
+    reboot("");
+}
+
+ApplicationWatchdog wd(60000, wd_reboot, 1024);
 
 int setPIDKp(String arg)
 {
@@ -348,7 +350,7 @@ int saveState(String arg)
 
 int reinitLCD(String arg)
 {
-    initLCD();
+    //initLCD();
     return 1;
 }
 
@@ -435,7 +437,7 @@ void setup()
 
     Blynk.config(auth);
 
-    initLCD();
+    //initLCD();
     initUbidots();
 
     theApp::drawUsrScreen("Initializing...\n");
