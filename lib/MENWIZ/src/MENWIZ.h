@@ -26,8 +26,8 @@
 #ifndef MENWIZ_h
 #define MENWIZ_h
 
-#define EEPROM_SUPPORT     //uncomment if you want to use the readEeprom and writeEeprom methods!
-#define BUTTON_SUPPORT     //uncomment if you want to use the readEeprom and writeEeprom methods!
+//#define EEPROM_SUPPORT     //uncomment if you want to use the readEeprom and writeEeprom methods!
+//#define BUTTON_SUPPORT     //uncomment if you want to use the readEeprom and writeEeprom methods!
 
 #include <Wire.h>
 #include <LCD.h>
@@ -62,6 +62,7 @@ extern const char MW_ver[];
 #define MW_ACTION      	17  //FIRE AN ACTION WHEN CONFIRM BUTTON IS PUSHED
 #define MW_EDIT_INT    	18  //not implemented yet
 #define MW_EDIT_FLOAT  	19  //not implemented yet
+#define MW_AUTO_DOUBLE  23
 
 // NODE TYPES
 // ---------------------------------------------------------------------------
@@ -91,6 +92,7 @@ extern const char MW_ver[];
 #define VINT(a)     *(int*)a
 #define VBYTE(a)    *(byte*)a
 #define VFLOAT(a)   *(float*)a
+#define VDOUBLE(a)  *(double*)a
 #define VFUNC(a)    (* a)
 
 // FLAGS CLASS MENWIZ
@@ -161,6 +163,7 @@ public:
   void     addVar(MW_TYPE, int*);
   void     addVar(MW_TYPE, int*, int, int, int);
   void     addVar(MW_TYPE, float*, float, float, float);
+  void     addVar(MW_TYPE, double*, double, double, double);
   void     addVar(MW_TYPE, byte*,byte ,byte ,byte);
   void     addVar(MW_TYPE, boolean*);
   void     addVar(MW_TYPE, void (*f)());

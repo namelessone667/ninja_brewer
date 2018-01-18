@@ -220,6 +220,25 @@ void _menu::addVar(MW_TYPE t, float* v, float low, float up, float incr){
   else{ERROR(110);}
   }
 
+	void _menu::addVar(MW_TYPE t, double* v, double low, double up, double incr){
+
+	  ERROR(0);
+	  if (t!=MW_AUTO_DOUBLE)
+	    ERROR(120);
+	  else if(type==MW_VAR){
+	    flags=0;
+	    var=(_var*)malloc(sizeof(_var));if(var==NULL){ERROR(900); return;}
+	    var->type=MW_AUTO_DOUBLE;
+	    var->val=v;
+	    var->lower=malloc(sizeof(double)); if(var->lower!=NULL) VDOUBLE(var->lower)=low; else {ERROR(900); return;}
+	    var->upper=malloc(sizeof(double)); if(var->upper!=NULL) VDOUBLE(var->upper)=up; else {ERROR(900); return;}
+	    var->incr=malloc(sizeof(double));  if(var->incr!=NULL) VDOUBLE(var->incr)=incr; else {ERROR(900); return;}
+	    var->old=malloc(sizeof(double));   if(var->old!=NULL) VDOUBLE(var->old)=VDOUBLE(var->val); else {ERROR(900); return;}
+	    }
+	// ERROR
+	  else{ERROR(110);}
+	  }
+
 void _menu::addVar(MW_TYPE t, byte* v, byte low, byte up, byte incr){
 
   ERROR(0);
@@ -434,6 +453,12 @@ void menwiz::drawMenu(_menu *mc){
                 else {strcat(sbuf,":");dtostrf(VFLOAT(mn->var->val),0,MW_FLOAT_DEC,buf);strcat(sbuf,buf);}
                 break;
 
+				case MW_AUTO_DOUBLE:
+				        if (fl) {strcat(sbuf,":["); dtostrf(VDOUBLE(mn->var->val),0,MW_FLOAT_DEC,buf); strcat(sbuf,buf);strcat(sbuf,"]");}
+				        else {strcat(sbuf,":");dtostrf(VDOUBLE(mn->var->val),0,MW_FLOAT_DEC,buf);strcat(sbuf,buf);}
+				        break;
+
+
 	      case MW_AUTO_BYTE:
                 if (fl) {strcat(sbuf,":[");strcat(sbuf,itoa(VBYTE(mn->var->val),buf,10));strcat(sbuf,"]");}
                 else {strcat(sbuf,":");strcat(sbuf,itoa(VBYTE(mn->var->val),buf,10));}
@@ -547,6 +572,17 @@ void menwiz::drawVar(_menu *mc){
       lcd->print(F("] "));
       lcd->print(dtostrf(VFLOAT(mc->var->upper),0,MW_FLOAT_DEC,buf));
       break;
+		case MW_AUTO_DOUBLE:
+	     for(i=2;i<row;i++){
+	       BLANKLINE(buf,i,col);
+	       }
+	     lcd->setCursor(0,1);
+	     lcd->print(dtostrf(VDOUBLE(mc->var->lower),0,MW_FLOAT_DEC,buf));
+	     lcd->print(F(" ["));
+	     lcd->print(dtostrf(VDOUBLE(mc->var->val),0,MW_FLOAT_DEC,buf));
+	     lcd->print(F("] "));
+	     lcd->print(dtostrf(VDOUBLE(mc->var->upper),0,MW_FLOAT_DEC,buf));
+	     break;
     case MW_BOOLEAN:
       for(i=2;i<row;i++){
         BLANKLINE(buf,i,col);
@@ -746,6 +782,8 @@ void menwiz::actBTL(){
     VINT(cm->var->val)=max((VINT(cm->var->val)-VINT(cm->var->incr)),VINT(cm->var->lower));}
   else if(cm->var->type==MW_AUTO_FLOAT){
     VFLOAT(cm->var->val)=max((VFLOAT(cm->var->val)-VFLOAT(cm->var->incr)),VFLOAT(cm->var->lower));}
+	else if(cm->var->type==MW_AUTO_DOUBLE){
+	  VDOUBLE(cm->var->val)=max((VDOUBLE(cm->var->val)-VDOUBLE(cm->var->incr)),VDOUBLE(cm->var->lower));}
   else if(cm->var->type==MW_BOOLEAN){
     VBOOL(cm->var->val)=!VBOOL(cm->var->val);}
   else if((cm->var->type==MW_LIST)&& MW_invar)
@@ -767,6 +805,8 @@ void menwiz::actBTR(){
     VBYTE(cm->var->val)=min((VBYTE(cm->var->val)+VBYTE(cm->var->incr)),VBYTE(cm->var->upper));}
   else if(cm->var->type==MW_AUTO_FLOAT){
     VFLOAT(cm->var->val)=min((VFLOAT(cm->var->val)+VFLOAT(cm->var->incr)),VFLOAT(cm->var->upper));}
+	else if(cm->var->type==MW_AUTO_DOUBLE){
+		VDOUBLE(cm->var->val)=min((VDOUBLE(cm->var->val)+VDOUBLE(cm->var->incr)),VDOUBLE(cm->var->upper));}
   else if(cm->var->type==MW_BOOLEAN){
     VBOOL(cm->var->val)=!VBOOL(cm->var->val);}
   else if((cm->var->type==MW_LIST)&&MW_invar)
@@ -785,6 +825,8 @@ void menwiz::actBTE(){
       VINT(cm->var->val)=VINT(cm->var->old);}
     else if(cm->var->type==MW_AUTO_FLOAT){
       VFLOAT(cm->var->val)=VFLOAT(cm->var->old);}
+		else if(cm->var->type==MW_AUTO_DOUBLE){
+	    VDOUBLE(cm->var->val)=VDOUBLE(cm->var->old);}
     else if(cm->var->type==MW_AUTO_BYTE){
       VBYTE(cm->var->val)=VBYTE(cm->var->old);}
     else if(cm->var->type==MW_BOOLEAN){
@@ -842,6 +884,8 @@ void menwiz::actBTC(){
       VINT(cur_menu->var->old)=VINT(cur_menu->var->val);}
     else if(cur_menu->var->type==MW_AUTO_FLOAT){
       VFLOAT(cur_menu->var->old)=VFLOAT(cur_menu->var->val);}
+		else if(cur_menu->var->type==MW_AUTO_DOUBLE){
+	    VDOUBLE(cur_menu->var->old)=VDOUBLE(cur_menu->var->val);}
     else if(cur_menu->var->type==MW_AUTO_BYTE){
       VBYTE(cur_menu->var->old)=VBYTE(cur_menu->var->val);}
     else if(cur_menu->var->type==MW_BOOLEAN){
