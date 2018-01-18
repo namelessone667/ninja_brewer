@@ -9,27 +9,28 @@
 #ifndef theApp_h
 #define theApp_h
 
-extern probe* fridge;
-extern probe* beer;
-extern double Output, heatOutput;
-
 class theApp
 {
     public:
-        static void init();
-        static void run();
-        static void drawUsrScreen(char *text);
-        static void draw();
+        theApp();
+        void init();
+        void run();
     private:
-        static Button _btn_left;
-        static Button _btn_right;
-        static Encoder _encoder;
-        static LiquidCrystal_I2C _lcd;
-        static menwiz _manimenu;
-        static long _encoder_position;
-        static bool _menuActive;
-
-        static int scanNavButtons();
+        class theAppUI
+        {
+          public:
+              static void init();
+              static int scanNavButtons();
+              static void draw();
+          private:
+              static Button _btn_left;
+              static Button _btn_right;
+              static Encoder _encoder;
+              static LiquidCrystal_I2C _lcd;
+              static menwiz _manimenu;
+              static long _encoder_position;
+              static bool _menuActive;
+        };
 };
 
 #endif
