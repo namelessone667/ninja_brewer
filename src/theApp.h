@@ -6,6 +6,8 @@
 #include "probe.h"
 #include "Model.h"
 #include "theAppUI.h"
+#include "OneWire.h"
+#include "DallasTemperatureProxy.h"
 
 class theApp
 {
@@ -16,11 +18,14 @@ class theApp
         void init();
         void run();
         AppConfig getAppConfigValues();
+        AppState getAppStateValues();
         void setNewAppConfigValues(AppConfig newAppConfig);
     private:
         theApp();
         Model _model;
         theAppUI _view;
+        OneWire _oneWire;
+        DallasTemperatureProxy _tempProxy;
 };
 
 #endif

@@ -25,4 +25,6 @@
 #define ENCODER_PIN_A D3
 #define ENCODER_PIN_B D4
 
+#define ONE_WIRE_BUS_PIN D6
+
 #endif
