@@ -1,43 +1,26 @@
-#include "application.h"
-#include "buttons.h"
-#include <Encoder.h>
-#include "globals.h"
-#include "MENWIZ.h"
-#include "LiquidCrystal_I2C.h"
-#include "probe.h"
-#include "Model.h"
-
 #ifndef theApp_h
 #define theApp_h
+
+#include "application.h"
+#include "globals.h"
+#include "probe.h"
+#include "Model.h"
+#include "theAppUI.h"
 
 class theApp
 {
     public:
-        theApp();
+        static theApp& getInstance();
+        theApp(theApp const&)               = delete;
+        void operator=(theApp const&)       = delete;
         void init();
         void run();
+        AppConfig getAppConfigValues();
+        void setNewAppConfigValues(AppConfig newAppConfig);
     private:
+        theApp();
         Model _model;
-        class theAppUI
-        {
-          public:
-              static void init();
-              static int scanNavButtons();
-              static void draw();
-              static void enterMainMenu();
-              static void setMenuConfigValues(AppConfig app_config);
-              static AppConfig getMenuConfigValues();
-          private:
-              static void buildMenu();
-              static AppConfig _tempConfig;
-              static Button _btn_left;
-              static Button _btn_right;
-              static Encoder _encoder;
-              static LiquidCrystal_I2C _lcd;
-              static menwiz _mainmenu;
-              static long _encoder_position;
-              static bool _menuActive;
-        };
+        theAppUI _view;
 };
 
 #endif

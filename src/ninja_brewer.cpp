@@ -7,8 +7,6 @@ SYSTEM_THREAD(ENABLED);
 SYSTEM_MODE(SEMI_AUTOMATIC);
 STARTUP(WiFi.selectAntenna(ANT_AUTO));
 
-theApp theApplication;
-
 void wd_reboot()
 {
     System.reset();
@@ -18,13 +16,13 @@ ApplicationWatchdog wd(60000, wd_reboot, 1024);
 
 void setup()
 {
-    theApplication.init();
+    theApp::getInstance().init();
 
     wd.checkin();
 }
 
 void loop()
 {
-  theApplication.run();
+  theApp::getInstance().run();
   wd.checkin();
 }

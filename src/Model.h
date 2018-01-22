@@ -1,3 +1,6 @@
+#ifndef Model_h
+#define Model_h
+
 #include "application.h"
 #include "PID_v1.h"
 
@@ -67,7 +70,10 @@ class Model
     AppState getApplicationState();
     AppConfig getApplicationConfig();
     void setApplicationState(ApplicationState);
+    void setApplicationConfig(AppConfig newAppConfig);
   private:
     AppState _appState;
     AppConfig _appConfig;
 };
+
+#endif

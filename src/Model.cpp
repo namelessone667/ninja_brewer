@@ -41,3 +41,8 @@ void Model::setApplicationState(ApplicationState newAppState)
 {
   _appState.app_state = newAppState;
 }
+
+void Model::setApplicationConfig(AppConfig newAppConfig)
+{
+  _appConfig = newAppConfig;
+}
