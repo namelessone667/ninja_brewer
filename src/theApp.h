@@ -17,9 +17,10 @@ class theApp
         void operator=(theApp const&)       = delete;
         void init();
         void run();
-        AppConfig getAppConfigValues();
-        AppState getAppStateValues();
-        void setNewAppConfigValues(AppConfig newAppConfig);
+        //AppConfig getAppConfigValues();
+        //AppState getAppStateValues();
+        //void setNewAppConfigValues(AppConfig newAppConfig);
+        Model& getModel();
     private:
         theApp();
         Model _model;

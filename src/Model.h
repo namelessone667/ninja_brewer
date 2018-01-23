@@ -67,13 +67,14 @@ class Model
     Model();
     void loadAppConfigFromEEPROM();
     void saveAppConfigToEEPROM();
-    AppState getApplicationState();
-    AppConfig getApplicationConfig();
-    void setApplicationState(ApplicationState);
-    void setApplicationConfig(AppConfig newAppConfig);
-  private:
+    //AppState getApplicationState();
+    //AppConfig getApplicationConfig();
+    //void setApplicationState(ApplicationState);
+    //void setApplicationConfig(AppConfig newAppConfig);
     AppState _appState;
     AppConfig _appConfig;
+  private:
+
 };
 
 #endif

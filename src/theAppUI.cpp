@@ -88,12 +88,15 @@ void theAppUI::draw()
         return;
     }
 
-    //_mainmenu.drawUsrScreen("Running...\n\n");
-    AppState appState = _controller->getAppStateValues();
-    AppConfig appConfig = _controller->getAppConfigValues();
     //construct the text
     char lcd_text[34];
-    sprintf(lcd_text, "F:%4.1fC B:%4.1fC\nT:%4.1fC H:%2f%%%c%c\n", appState.fridgeTemp, appState.beerTemp, appConfig.setpoint, 15.0, 'I', '-');
+    sprintf(lcd_text, "F:%4.1fC B:%4.1fC\nT:%4.1fC H:%2f%%%c%c\n",
+      _controller->getModel()._appState.fridgeTemp,
+      _controller->getModel()._appState.beerTemp,
+      _controller->getModel()._appConfig.setpoint,
+      15.0,
+      'I',
+      '-');
     _mainmenu.drawUsrScreen(lcd_text);
   }
 }
@@ -119,7 +122,7 @@ void theAppUI::enterMainMenu()
     _encoder_position = _encoder.read();
     _btn_left.check();
     _btn_right.check();
-    _tempConfig = _controller->getAppConfigValues();
+    _tempConfig = _controller->getModel()._appConfig;
     _mainmenu.cur_menu = _mainmenu.root;
     _mainmenu.draw();
 }
@@ -153,7 +156,7 @@ int theAppUI::scanNavButtons()
 
 void theAppUI::saveAndExitMenu()
 {
-  _controller->setNewAppConfigValues(_tempConfig);
+  _controller->getModel()._appConfig = _tempConfig;
   _menuActive = false;
 }
 

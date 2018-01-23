@@ -27,7 +27,7 @@ void Model::saveAppConfigToEEPROM()
   EEPROM.put(APP_CONFIG_ADDR, _appConfig);
 }
 
-AppState Model::getApplicationState()
+/*AppState Model::getApplicationState()
 {
   return _appState;
 }
@@ -45,4 +45,4 @@ void Model::setApplicationState(ApplicationState newAppState)
 void Model::setApplicationConfig(AppConfig newAppConfig)
 {
   _appConfig = newAppConfig;
-}
+}*/

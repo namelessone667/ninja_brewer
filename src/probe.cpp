@@ -67,16 +67,16 @@ bool probe::init() {
       if(failed_count > 4)
         return false;
   }*/
-  _myWire->reset();
-  _myWire->select(_address);
-  _myWire->write(0x44);
+  //_myWire->reset();
+  //_myWire->select(_address);
+  //_myWire->write(0x44);
 
-  delay(1000);
+  //delay(1000);
 
-  if(_updateTemp() == false)
-    return false;
-  _temperature[1] = _temperature[2] = _temperature[3] = _temperature[0];
-  _filter[0] = _filter[1] = _filter[2] = _filter[3] = _temperature[0];
+  //if(_updateTemp() == false)
+  //  return false;
+  //_temperature[1] = _temperature[2] = _temperature[3] = _temperature[0];
+  //_filter[0] = _filter[1] = _filter[2] = _filter[3] = _temperature[0];
   return true;
 }
 
@@ -200,6 +200,12 @@ boolean probe::_updateTemp() {  // read OneWire device temperature
   double rawRange = rawHigh - rawLow;
 
    _temperature[0] = (((rawtemp - rawLow) * refRange) / rawRange) + refLow;
+   if(firstRead)
+   {
+     _temperature[1] = _temperature[2] = _temperature[3] = _temperature[0];
+     _filter[0] = _filter[1] = _filter[2] = _filter[3] = _temperature[0];
+     firstRead = false;
+   }
   //zpu end - get calibrated temp
     #if DEBUG == true
       Serial.print(F("Temperature:"));

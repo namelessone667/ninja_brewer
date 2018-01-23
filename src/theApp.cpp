@@ -19,18 +19,26 @@ theApp& theApp::getInstance()
 void theApp::init()
 {
   _model.loadAppConfigFromEEPROM();
-  _model.setApplicationState(INIT);
+  getModel()._appState.app_state = INIT;
   _view.init();
+  _tempProxy.Init();
 
-  _model.setApplicationState(RUNNING);
+  getModel()._appState.app_state = INIT;
 }
 
 void theApp::run()
 {
+  _tempProxy.ReadTemperatures();
+  //TODO: save temperatures to model
   _view.draw();
 }
 
-AppConfig theApp::getAppConfigValues()
+Model& theApp::getModel()
+{
+  return _model;
+}
+
+/*AppConfig theApp::getAppConfigValues()
 {
   return _model.getApplicationConfig();
 }
@@ -44,4 +52,4 @@ void theApp::setNewAppConfigValues(AppConfig newAppConfig)
 AppState theApp::getAppStateValues()
 {
   return _model.getApplicationState();
-}
+}*/

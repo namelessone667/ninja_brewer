@@ -6,6 +6,7 @@
 #include <OneWire.h>
 
 #define ONE_WIRE_BUS_PIN D6
+#define TEMP_ERROR -999
 
 class probe {
     static OneWire* _myWire;
@@ -28,6 +29,7 @@ class probe {
 		double calibrationPointHigh;
 		double calibrationValueLow;
 		double calibrationValueHigh;
+    bool firstRead = true;
 
   public:
     probe(OneWire* onewire);
@@ -36,8 +38,8 @@ class probe {
     bool init();
     bool update();
     boolean peakDetect();
-    double getTemp() { return _temperature[0]; }
-    double getFilter() { return _filter[0]; }
+    double getTemp() { return firstRead ? TEMP_ERROR : _temperature[0]; }
+    double getFilter() { return firstRead ? TEMP_ERROR : _filter[0]; }
 
     //static bool getFailedFlag();
     static void setSampleHz(double hz) { _sampleHz = hz; }

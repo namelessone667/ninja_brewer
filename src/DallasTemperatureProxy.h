@@ -14,6 +14,9 @@ class DallasTemperatureProxy
   public:
     DallasTemperatureProxy(OneWire *oneWire);
     void Init();
+    void ReadTemperatures();
+    double GetTemperature(DallasTemperatureProbeAssignment probe_assignment);
+    double GetFilteredTemperature(DallasTemperatureProbeAssignment probe_assignment);
   private:
     OneWire *_oneWire;
     std::map<String, DallasTemperatureProbeAssignment> _devicesAddressMap;
