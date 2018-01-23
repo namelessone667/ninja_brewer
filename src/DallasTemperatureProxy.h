@@ -14,7 +14,7 @@ class DallasTemperatureProxy
   public:
     DallasTemperatureProxy(OneWire *oneWire);
     void Init();
-    void ReadTemperatures();
+    int ReadTemperatures();
     double GetTemperature(DallasTemperatureProbeAssignment probe_assignment);
     double GetFilteredTemperature(DallasTemperatureProbeAssignment probe_assignment);
   private:

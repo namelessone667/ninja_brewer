@@ -39,7 +39,7 @@ void DallasTemperatureProxy::Init()
   probe::startConv();
 }
 
-void DallasTemperatureProxy::ReadTemperatures()
+int DallasTemperatureProxy::ReadTemperatures()
 {
   if(probe::isReady())
   {
@@ -50,7 +50,9 @@ void DallasTemperatureProxy::ReadTemperatures()
     }
 
     probe::startConv();
+    return 1;
   }
+  return 0;
 }
 double DallasTemperatureProxy::GetTemperature(DallasTemperatureProbeAssignment probe_assignment)
 {

@@ -2,11 +2,12 @@
 #define PROBE_H
 
 #include "application.h"
+#include "math.h"
 //#include <avr/wdt.h>
 #include <OneWire.h>
 
 #define ONE_WIRE_BUS_PIN D6
-#define TEMP_ERROR -999
+#define TEMP_ERROR NAN
 
 class probe {
     static OneWire* _myWire;

@@ -28,8 +28,12 @@ void theApp::init()
 
 void theApp::run()
 {
-  _tempProxy.ReadTemperatures();
-  //TODO: save temperatures to model
+  if(_tempProxy.ReadTemperatures() == 1)
+  {
+    getModel()._appState.fridgeTemp = _tempProxy.GetFilteredTemperature(FRIDGE_TEMPERATURE);
+    getModel()._appState.beerTemp = _tempProxy.GetFilteredTemperature(BEER_TEMPERATURE);
+  }
+
   _view.draw();
 }
 
