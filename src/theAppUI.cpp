@@ -75,30 +75,50 @@ void theAppUI::buildMenu()
 
 void theAppUI::draw()
 {
-  if(_menuActive)
-  {
-    _mainmenu.draw();
-  }
-  else
-  {
-    // check if button was pressed, if yes -> enter menu
-    if(_btn_left.check()==ON)
-    {
-        enterMainMenu();
-        return;
-    }
+  char lcd_text[34];
 
-    //construct the text
-    char lcd_text[34];
-    sprintf(lcd_text, "F:%4.1fC B:%4.1fC\nT:%4.1fC H:%2f%%%c%c\n",
-      _controller->getModel()._appState.fridgeTemp,
-      _controller->getModel()._appState.beerTemp,
-      _controller->getModel()._appConfig.setpoint,
-      15.0,
-      'I',
-      '-');
-    _mainmenu.drawUsrScreen(lcd_text);
+  switch(_controller->getModel()._appState.app_state)
+  {
+    case INIT:
+      sprintf(lcd_text, "%s\n\n", "Initializing...");
+      _mainmenu.drawUsrScreen(lcd_text);
+      break;
+    case RUNNING:
+      if(_menuActive)
+      {
+        _mainmenu.draw();
+      }
+      else
+      {
+        // check if button was pressed, if yes -> enter menu
+        if(_btn_left.check()==ON)
+        {
+            enterMainMenu();
+            return;
+        }
+
+        //construct the text
+
+        sprintf(lcd_text, "F:%4.1fC B:%4.1fC\nT:%4.1fC H:%2f%%%c%c\n",
+          _controller->getModel()._appState.fridgeTemp,
+          _controller->getModel()._appState.beerTemp,
+          _controller->getModel()._appConfig.setpoint,
+          15.0,
+          'I',
+          '-');
+        _mainmenu.drawUsrScreen(lcd_text);
+      }
+      break;
+    case UNDEFINED:
+      sprintf(lcd_text, "%s\n%s\n", "ERROR", "UNDEFINED STATE");
+      _mainmenu.drawUsrScreen(lcd_text);
+      break;
+    case IN_ERROR:
+      sprintf(lcd_text, "%s\n%s\n", "ERROR", _controller->getErrorMessage().substring(0, 15));
+      _mainmenu.drawUsrScreen(lcd_text);
+      break;
   }
+
 }
 
 void theAppUI::discardChangesAndExitMenuHelper()
@@ -156,7 +176,7 @@ int theAppUI::scanNavButtons()
 
 void theAppUI::saveAndExitMenu()
 {
-  _controller->getModel()._appConfig = _tempConfig;
+  _controller->setNewAppConfigValues(_tempConfig);
   _menuActive = false;
 }
 

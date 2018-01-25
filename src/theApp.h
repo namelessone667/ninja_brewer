@@ -17,16 +17,17 @@ class theApp
         void operator=(theApp const&)       = delete;
         void init();
         void run();
-        //AppConfig getAppConfigValues();
-        //AppState getAppStateValues();
-        //void setNewAppConfigValues(AppConfig newAppConfig);
-        Model& getModel();
+        void setNewAppConfigValues(AppConfig newAppConfig);
+        const Model& getModel();
+        void setErrorState(String error_message);
+        String getErrorMessage(); 
     private:
         theApp();
         Model _model;
         theAppUI _view;
         OneWire _oneWire;
         DallasTemperatureProxy _tempProxy;
+        String _error;
 };
 
 #endif

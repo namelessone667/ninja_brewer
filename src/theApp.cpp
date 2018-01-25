@@ -18,42 +18,63 @@ theApp& theApp::getInstance()
 
 void theApp::init()
 {
-  _model.loadAppConfigFromEEPROM();
-  getModel()._appState.app_state = INIT;
-  _view.init();
-  _tempProxy.Init();
+  Particle.connect();
 
-  getModel()._appState.app_state = INIT;
+  _model.loadAppConfigFromEEPROM();
+  _model._appState.app_state = INIT;
+  _view.init();
+
+  if(_tempProxy.Init() < 0)
+  {
+      setErrorState("Sensor init fail");
+      return;
+  }
+
+  _model._appState.app_state = RUNNING;
 }
 
 void theApp::run()
 {
-  if(_tempProxy.ReadTemperatures() == 1)
+  switch(_model._appState.app_state)
   {
-    getModel()._appState.fridgeTemp = _tempProxy.GetFilteredTemperature(FRIDGE_TEMPERATURE);
-    getModel()._appState.beerTemp = _tempProxy.GetFilteredTemperature(BEER_TEMPERATURE);
+    case RUNNING:
+      {
+        int result = _tempProxy.ReadTemperatures();
+        if(result < 0)
+        {
+          setErrorState(String::format("Sensor fail:%d", result));
+        }
+        else if(result == 1)
+        {
+          _model._appState.fridgeTemp = _tempProxy.GetFilteredTemperature(FRIDGE_TEMPERATURE);
+          _model._appState.beerTemp = _tempProxy.GetFilteredTemperature(BEER_TEMPERATURE);
+        }
+      }
+    default:
+      _view.draw();
+      break;
   }
 
-  _view.draw();
 }
 
-Model& theApp::getModel()
+const Model& theApp::getModel()
 {
   return _model;
 }
 
-/*AppConfig theApp::getAppConfigValues()
-{
-  return _model.getApplicationConfig();
-}
-
 void theApp::setNewAppConfigValues(AppConfig newAppConfig)
 {
-  _model.setApplicationConfig(newAppConfig);
+  _model._appConfig = newAppConfig;
   _model.saveAppConfigToEEPROM();
 }
 
-AppState theApp::getAppStateValues()
+void theApp::setErrorState(String error_message)
 {
-  return _model.getApplicationState();
-}*/
+  _error = error_message;
+  _model._appState.app_state = IN_ERROR;
+}
+
+String theApp::getErrorMessage()
+{
+  return _error;
+}

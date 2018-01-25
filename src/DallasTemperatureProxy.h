@@ -4,6 +4,8 @@
 #include "probe.h"
 #include <map>
 
+#define TEMP_READ_RETRY_COUNT 5
+
 enum DallasTemperatureProbeAssignment {
   FRIDGE_TEMPERATURE,
   BEER_TEMPERATURE
@@ -13,7 +15,7 @@ class DallasTemperatureProxy
 {
   public:
     DallasTemperatureProxy(OneWire *oneWire);
-    void Init();
+    int Init();
     int ReadTemperatures();
     double GetTemperature(DallasTemperatureProbeAssignment probe_assignment);
     double GetFilteredTemperature(DallasTemperatureProbeAssignment probe_assignment);

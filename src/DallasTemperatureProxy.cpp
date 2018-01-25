@@ -8,11 +8,16 @@ DallasTemperatureProxy::DallasTemperatureProxy(OneWire *oneWire)
   _devicesAddressMap["0x28,0x78,0x28,0x85,0x8,0x0,0x0,0x9c"] = BEER_TEMPERATURE;
 }
 
-void DallasTemperatureProxy::Init()
+int DallasTemperatureProxy::Init()
 {
   byte address[8];
   String addressString;
   probe *new_probe;
+
+  //check for device presence on bus
+  if(_oneWire->reset() == 0)
+    return -1;
+
   _oneWire->reset_search();
 
   while(_oneWire->search(address) == 1)
@@ -32,21 +37,35 @@ void DallasTemperatureProxy::Init()
   }
 
   for (auto it = _devicesMap.begin(); it != _devicesMap.end(); ++it) {
-    it->second->init();
-    //TODO: handle if init returns false
+    //check device on bus by reading scratchpad on devices address and performing CRC check
+    if(it->second->init() == false)
+      return -2;
   }
 
   probe::startConv();
+
+  return 0;
 }
 
 int DallasTemperatureProxy::ReadTemperatures()
 {
   if(probe::isReady())
   {
-    //TODO: call _oneWire->reset == 0 to check for devices on bus
+    //check for device presence on bus
+    if(_oneWire->reset() == 0)
+      return -1;
+
     for (auto it = _devicesMap.begin(); it != _devicesMap.end(); ++it) {
-      it->second->update();
-      //TODO: handle if update returns false
+      int i = 0;
+      while(true)
+      {
+        //if CRC check return false, retry
+        if(it->second->update() == true)
+          break;
+        // if number of retries to read temp is more (or equal) than TEMP_READ_RETRY_COUNT, return -2
+        if(i++ >= TEMP_READ_RETRY_COUNT)
+          return -2;
+      }
     }
 
     probe::startConv();
