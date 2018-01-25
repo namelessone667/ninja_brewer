@@ -18,19 +18,26 @@ theApp& theApp::getInstance()
 
 void theApp::init()
 {
+  Log.trace("initializing...");
+  Log.trace("connecting to Cloud");
   Particle.connect();
 
+  Log.trace("loading configuration from EEPROM");
   _model.loadAppConfigFromEEPROM();
   _model._appState.app_state = INIT;
+  Log.trace("initializing UI");
   _view.init();
-
-  if(_tempProxy.Init() < 0)
+  Log.trace("initializing sensors");
+  int result = _tempProxy.Init();
+  if(result < 0)
   {
+      Log.code(result).error("failed to initialize OneWire sensors");
       setErrorState("Sensor init fail");
       return;
   }
 
   _model._appState.app_state = RUNNING;
+  Log.trace("initialization complete");
 }
 
 void theApp::run()
@@ -42,6 +49,7 @@ void theApp::run()
         int result = _tempProxy.ReadTemperatures();
         if(result < 0)
         {
+          Log.code(result).error("failed to read temperature from sensors");
           setErrorState(String::format("Sensor fail:%d", result));
         }
         else if(result == 1)
@@ -64,6 +72,7 @@ const Model& theApp::getModel()
 
 void theApp::setNewAppConfigValues(AppConfig newAppConfig)
 {
+  Log.trace("saving new configuration to EEPROM");
   _model._appConfig = newAppConfig;
   _model.saveAppConfigToEEPROM();
 }

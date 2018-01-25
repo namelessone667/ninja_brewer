@@ -27,4 +27,7 @@
 
 #define ONE_WIRE_BUS_PIN D6
 
+#define PAPERTAIL_SERVER "logs.papertrailapp.com"
+#define LOG_LEVEL LOG_LEVEL_ALL
+
 #endif
