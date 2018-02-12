@@ -7,6 +7,8 @@
 #include "MENWIZ.h"
 #include "LiquidCrystal_I2C.h"
 
+#define PROGRESS_BAR_INTERVAL 200
+
 class theApp;
 
 class theAppUI
@@ -23,6 +25,7 @@ class theAppUI
       void saveAndExitMenu();
       int scanNavButtons();
       void discardChangesAndExitMenu();
+      char getProgressbarSymbol();
 
       static void discardChangesAndExitMenuHelper();
       static void saveAndExitMenuHelper();

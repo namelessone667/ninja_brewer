@@ -30,4 +30,6 @@
 #define PAPERTAIL_SERVER "logs.papertrailapp.com"
 #define LOG_LEVEL LOG_LEVEL_ALL
 
+#define TEMP_ERR_INTERVAL 600000
+
 #endif

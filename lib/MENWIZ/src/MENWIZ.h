@@ -146,6 +146,7 @@ typedef struct{
   void*    lower;
   void*    upper;
   void*    incr;
+  int      prec;
 }_var;
 
 class _option{
@@ -163,7 +164,7 @@ public:
   void     addVar(MW_TYPE, int*);
   void     addVar(MW_TYPE, int*, int, int, int);
   void     addVar(MW_TYPE, float*, float, float, float);
-  void     addVar(MW_TYPE, double*, double, double, double);
+  void     addVar(MW_TYPE, double*, double, double, double, int);
   void     addVar(MW_TYPE, byte*,byte ,byte ,byte);
   void     addVar(MW_TYPE, boolean*);
   void     addVar(MW_TYPE, void (*f)());

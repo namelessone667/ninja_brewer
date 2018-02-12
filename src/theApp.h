@@ -20,7 +20,8 @@ class theApp
         void setNewAppConfigValues(AppConfig newAppConfig);
         const Model& getModel();
         void setErrorState(String error_message);
-        String getErrorMessage(); 
+        String getErrorMessage();
+        const Logger& getLogger();
     private:
         theApp();
         Model _model;
@@ -28,6 +29,8 @@ class theApp
         OneWire _oneWire;
         DallasTemperatureProxy _tempProxy;
         String _error;
+        Logger _log;
+        bool readSensors();
 };
 
 #endif

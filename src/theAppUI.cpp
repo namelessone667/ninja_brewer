@@ -2,6 +2,17 @@
 #include "globals.h"
 #include "theApp.h"
 
+uint8_t backslash_char[8] = {
+    0b00000,
+    0b10000,
+    0b01000,
+    0b00100,
+    0b00010,
+    0b00001,
+    0b00000,
+    0b00000
+};
+
 theAppUI *theAppUI::_helperInstance;
 
 theAppUI::theAppUI(theApp *controller) :
@@ -35,6 +46,7 @@ void theAppUI::init()
 
     // init LCD
     _mainmenu.begin(&_lcd,16,2);
+    _lcd.createChar(2, backslash_char);
     _mainmenu.drawUsrScreen("Initializing...\n\n");
 
     theAppUI::buildMenu();
@@ -47,24 +59,24 @@ void theAppUI::buildMenu()
     // add menu root item
     r = _mainmenu.addMenu(MW_ROOT,NULL,F("Settings"));
 
-    _mainmenu.addMenu(MW_VAR, r, F("Target temp"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.setpoint,0,30,0.1);
+    _mainmenu.addMenu(MW_VAR, r, F("Target temp"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.setpoint,0,30,0.1,1);
 
     s1 = _mainmenu.addMenu(MW_SUBMENU, r, F("PID param"));
-    _mainmenu.addMenu(MW_VAR,s1, F("PID Kp"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.pid_Kp,0,10,0.5);
-    _mainmenu.addMenu(MW_VAR,s1, F("PID Ki"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.pid_Ki,0,0.01,0.00001);
+    _mainmenu.addMenu(MW_VAR,s1, F("PID Kp"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.pid_Kp,0,10,0.5,1);
+    _mainmenu.addMenu(MW_VAR,s1, F("PID Ki"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.pid_Ki,0,0.01,0.00001,5);
     s2 = _mainmenu.addMenu(MW_VAR,s1, F("PID Mode"));
       s2->addVar(MW_LIST,&_tempConfig.pid_mode);
       s2->addItem(MW_LIST, F("MANUAL"));
       s2->addItem(MW_LIST, F("AUTO"));
 
     s1 = _mainmenu.addMenu(MW_SUBMENU, r, F("Heat PID param"));
-    _mainmenu.addMenu(MW_VAR,s1, F("Heat PID Kp"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.heatpid_Kd,0,10,0.5);
-    _mainmenu.addMenu(MW_VAR,s1, F("Heat PID Ki"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.heatpid_Ki,0,0.1,0.0001);
+    _mainmenu.addMenu(MW_VAR,s1, F("Heat PID Kp"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.heatpid_Kd,0,10,0.5,1);
+    _mainmenu.addMenu(MW_VAR,s1, F("Heat PID Ki"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.heatpid_Ki,0,0.1,0.0001,4);
     s2=_mainmenu.addMenu(MW_VAR,s1, F("Heat PID Mode"));
       s2->addVar(MW_LIST,&_tempConfig.heatpid_mode);
       s2->addItem(MW_LIST, F("MANUAL"));
       s2->addItem(MW_LIST, F("AUTO"));
-    _mainmenu.addMenu(MW_VAR,s1, F("Manual Output"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.heatOutput,0,25,0.5);
+    _mainmenu.addMenu(MW_VAR,s1, F("Manual Output"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.heatOutput,0,25,0.5,1);
 
     _mainmenu.addMenu(MW_VAR, r, F("Save & Exit"))->addVar(MW_ACTION,saveAndExitMenuHelper);
     _mainmenu.addMenu(MW_VAR, r, F("Discard changes"))->addVar(MW_ACTION,discardChangesAndExitMenuHelper);
@@ -97,15 +109,19 @@ void theAppUI::draw()
             return;
         }
 
-        //construct the text
+        String text = String::format("F:%4.1fC B:%4.1fC", _controller->getModel()._appState.fridgeTemp, _controller->getModel()._appState.beerTemp)
+                        .substring(0,16);
+        text.concat("\n");
+        String text2 = String::format("T:%4.1fC", _controller->getModel()._appConfig.setpoint).substring(0, 16);
+        while(text2.length() < 15)
+          text2.concat(' ');
 
-        sprintf(lcd_text, "F:%4.1fC B:%4.1fC\nT:%4.1fC H:%2f%%%c%c\n",
-          _controller->getModel()._appState.fridgeTemp,
-          _controller->getModel()._appState.beerTemp,
-          _controller->getModel()._appConfig.setpoint,
-          15.0,
-          'I',
-          '-');
+        text2.concat(getProgressbarSymbol());
+        //text2.setCharAt(10, getProgressbarSymbol());
+        text.concat(text2);
+        text.concat("\n");
+        text.toCharArray(lcd_text, 34);
+
         _mainmenu.drawUsrScreen(lcd_text);
       }
       break;
@@ -114,7 +130,9 @@ void theAppUI::draw()
       _mainmenu.drawUsrScreen(lcd_text);
       break;
     case IN_ERROR:
-      sprintf(lcd_text, "%s\n%s\n", "ERROR", _controller->getErrorMessage().substring(0, 15));
+      char err[16];
+      _controller->getErrorMessage().toCharArray(err, 16);
+      sprintf(lcd_text, "%s\n%s\n", "ERROR", err);
       _mainmenu.drawUsrScreen(lcd_text);
       break;
   }
@@ -123,7 +141,7 @@ void theAppUI::draw()
 
 void theAppUI::discardChangesAndExitMenuHelper()
 {
-  _helperInstance->discardChangesAndExitMenuHelper();
+  _helperInstance->discardChangesAndExitMenu();
 }
 
 void theAppUI::saveAndExitMenuHelper()
@@ -144,6 +162,7 @@ void theAppUI::enterMainMenu()
     _btn_right.check();
     _tempConfig = _controller->getModel()._appConfig;
     _mainmenu.cur_menu = _mainmenu.root;
+    _mainmenu.cur_menu->cur_item = 0;
     _mainmenu.draw();
 }
 
@@ -183,4 +202,28 @@ void theAppUI::saveAndExitMenu()
 void theAppUI::discardChangesAndExitMenu()
 {
   _menuActive = false;
+}
+
+char theAppUI::getProgressbarSymbol()
+{
+  int progress = (millis() / PROGRESS_BAR_INTERVAL) % 4;
+
+  switch(progress)
+  {
+    case 0:
+      return 45;
+      break;
+    case 1:
+      return 2;
+      break;
+    case 2:
+      return 124;
+      break;
+    case 3:
+      return 47;
+      break;
+    default:
+      return 47;
+      break;
+  }
 }

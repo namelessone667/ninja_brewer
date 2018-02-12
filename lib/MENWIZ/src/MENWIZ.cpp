@@ -34,6 +34,7 @@
 // GLOBAL VARIABLES
 // ---------------------------------------------------------------------------
 int MW_FLOAT_DEC=1;  //decimal digits in float screen representation
+int MW_DOUBLE_DEC=4;
 static char *buf;
 const char MW_ver[]={"1.2.0"};
 char tmp[6];
@@ -220,7 +221,7 @@ void _menu::addVar(MW_TYPE t, float* v, float low, float up, float incr){
   else{ERROR(110);}
   }
 
-	void _menu::addVar(MW_TYPE t, double* v, double low, double up, double incr){
+	void _menu::addVar(MW_TYPE t, double* v, double low, double up, double incr, int precision){
 
 	  ERROR(0);
 	  if (t!=MW_AUTO_DOUBLE)
@@ -234,6 +235,7 @@ void _menu::addVar(MW_TYPE t, float* v, float low, float up, float incr){
 	    var->upper=malloc(sizeof(double)); if(var->upper!=NULL) VDOUBLE(var->upper)=up; else {ERROR(900); return;}
 	    var->incr=malloc(sizeof(double));  if(var->incr!=NULL) VDOUBLE(var->incr)=incr; else {ERROR(900); return;}
 	    var->old=malloc(sizeof(double));   if(var->old!=NULL) VDOUBLE(var->old)=VDOUBLE(var->val); else {ERROR(900); return;}
+			var->prec = precision;
 	    }
 	// ERROR
 	  else{ERROR(110);}
@@ -577,11 +579,17 @@ void menwiz::drawVar(_menu *mc){
 	       BLANKLINE(buf,i,col);
 	       }
 	     lcd->setCursor(0,1);
-	     lcd->print(dtostrf(VDOUBLE(mc->var->lower),0,MW_FLOAT_DEC,buf));
+			 if(mc->var->prec <= 1)
+	     	lcd->print(dtostrf(VDOUBLE(mc->var->lower),0,mc->var->prec,buf));
+
 	     lcd->print(F(" ["));
-	     lcd->print(dtostrf(VDOUBLE(mc->var->val),0,MW_FLOAT_DEC,buf));
+			 sprintf(buf, "%.*f",mc->var->prec, VDOUBLE(mc->var->val));
+			 lcd->print(buf);
+	     //lcd->print(dtostrf(VDOUBLE(mc->var->val),6,2,buf));
 	     lcd->print(F("] "));
-	     lcd->print(dtostrf(VDOUBLE(mc->var->upper),0,MW_FLOAT_DEC,buf));
+
+			 if(mc->var->prec <= 1)
+	     	lcd->print(dtostrf(VDOUBLE(mc->var->upper),0,mc->var->prec,buf));
 	     break;
     case MW_BOOLEAN:
       for(i=2;i<row;i++){

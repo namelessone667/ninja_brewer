@@ -19,10 +19,12 @@ class DallasTemperatureProxy
     int ReadTemperatures();
     double GetTemperature(DallasTemperatureProbeAssignment probe_assignment);
     double GetFilteredTemperature(DallasTemperatureProbeAssignment probe_assignment);
+    int GetValidDataAge();
   private:
     OneWire *_oneWire;
     std::map<String, DallasTemperatureProbeAssignment> _devicesAddressMap;
     std::map<DallasTemperatureProbeAssignment, probe*> _devicesMap;
+    long _lastValidDataTimestamp;
 };
 
 #endif

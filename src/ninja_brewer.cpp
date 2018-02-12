@@ -6,9 +6,10 @@
 
 SYSTEM_THREAD(ENABLED);
 SYSTEM_MODE(SEMI_AUTOMATIC);
-STARTUP(WiFi.selectAntenna(ANT_AUTO));
+//STARTUP(WiFi.selectAntenna(ANT_AUTO));
 
 PapertrailLogHandler papertailHandler(PAPERTAIL_SERVER, PAPERTAIL_PORT, "ninja_brewer_2", System.deviceID(), LOG_LEVEL);
+SerialLogHandler logHandler1;
 
 void wd_reboot()
 {
@@ -21,7 +22,7 @@ void setup()
 {
     WiFi.connect();
     // wait for WiFi to connect (to be able to log to Papertail)
-    while(WiFi.connecting());
+    while(!WiFi.ready());
 
     theApp::getInstance().init();
 
