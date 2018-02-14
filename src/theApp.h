@@ -8,6 +8,7 @@
 #include "theAppUI.h"
 #include "OneWire.h"
 #include "DallasTemperatureProxy.h"
+#include "PublisherProxy.h"
 
 class theApp
 {
@@ -28,8 +29,10 @@ class theApp
         theAppUI _view;
         OneWire _oneWire;
         DallasTemperatureProxy _tempProxy;
+        PublisherProxy _publisherProxy;
         String _error;
         Logger _log;
+
         bool readSensors();
 };
 

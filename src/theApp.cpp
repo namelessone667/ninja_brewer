@@ -43,6 +43,8 @@ void theApp::init()
     return;
   }
 
+  _publisherProxy.init(_model);
+
   getLogger().info("initialization complete");
 }
 
@@ -65,6 +67,7 @@ void theApp::run()
           getLogger().error(String::format("failed to read valid temperature for %d miliseconds", TEMP_ERR_INTERVAL));
           setErrorState("Sensor failure");
         }
+        _publisherProxy.publish(_model);
       }
     default:
       _view.draw();
