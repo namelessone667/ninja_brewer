@@ -1,17 +1,20 @@
 #include "PublisherProxy.h"
 #include "ParticlePublisher.h"
+#include "UbidotsPublisher.h"
 
 void PublisherProxy::init(const Model &model)
 {
-  ParticlePublisher *p1 = new ParticlePublisher();
-  p1->init(model);
-  _publishers.push_back(p1);
+  _publishers.push_back(new ParticlePublisher());
+  _publishers.push_back(new UbidotsPublisher());
+
+  for (BasePublisher *p : _publishers) {
+      p->init(model);
+  }
 }
 
 void PublisherProxy::publish(const Model &model)
 {
-  // Iterate and print values of the list
-    for (BasePublisher *p : _publishers) {
-        p->publish(model);
-    }
+  for (BasePublisher *p : _publishers) {
+      p->publish(model);
+  }
 }
