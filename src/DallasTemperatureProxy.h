@@ -20,6 +20,7 @@ class DallasTemperatureProxy
     double GetTemperature(DallasTemperatureProbeAssignment probe_assignment);
     double GetFilteredTemperature(DallasTemperatureProbeAssignment probe_assignment);
     int GetValidDataAge();
+    bool PeakDetect(DallasTemperatureProbeAssignment probe_assignment);
   private:
     OneWire *_oneWire;
     std::map<String, DallasTemperatureProbeAssignment> _devicesAddressMap;

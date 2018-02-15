@@ -3,6 +3,7 @@
 
 #include "application.h"
 #include "PID_v1.h"
+#include "CoolerHeaterContoller.h"
 
 enum ApplicationState
 {
@@ -35,13 +36,14 @@ struct AppState
   double fridgeTemp; //also input for heatPID
   double beerTemp; //also Input for mainPID
   ApplicationState app_state;
+  opState controller_state;
 };
 
 const struct AppConfig defaultAppConfig =
 {
   .setpoint = 18.0, // target beer temp
   .output = 18.0, // main PID output temperature, also setpoint for heatPID
-  .peakEstimator = 5.0,
+  .peakEstimator = 30.0,
   .pid_Kp = 3.0,
   .pid_Ki = 5.0E-4,
   .pid_Kd = 0.0,
@@ -58,7 +60,8 @@ const struct AppState defaultAppState =
 {
   .fridgeTemp = -127.0, //also input for heatPID
   .beerTemp = -127.0, //also Input for mainPID
-  .app_state = UNDEFINED
+  .app_state = UNDEFINED,
+  .controller_state = IDLE
 };
 
 class Model

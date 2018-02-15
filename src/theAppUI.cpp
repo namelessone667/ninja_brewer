@@ -113,9 +113,24 @@ void theAppUI::draw()
                         .substring(0,16);
         text.concat("\n");
         String text2 = String::format("T:%4.1fC", _controller->getModel()._appConfig.setpoint).substring(0, 16);
-        while(text2.length() < 15)
+        while(text2.length() < 14)
           text2.concat(' ');
 
+        switch(_controller->getModel()._appState.controller_state)
+        {
+          case IDLE:
+            text2.concat('I');
+            break;
+          case COOL:
+            text2.concat('C');
+            break;
+          case HEAT:
+            text2.concat('H');
+            break;
+          default:
+            text2.concat('X');
+            break;
+        }
         text2.concat(getProgressbarSymbol());
         //text2.setCharAt(10, getProgressbarSymbol());
         text.concat(text2);

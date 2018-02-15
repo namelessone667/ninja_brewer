@@ -112,3 +112,11 @@ int DallasTemperatureProxy::GetValidDataAge()
   }
   else return -1;
 }
+
+bool DallasTemperatureProxy::PeakDetect(DallasTemperatureProbeAssignment probe_assignment)
+{
+  if(_devicesMap.count(probe_assignment) == 0)
+    return false;
+  else
+    return _devicesMap[probe_assignment]->peakDetect();
+}

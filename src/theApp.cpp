@@ -4,7 +4,7 @@
 //TODO implement dynamic onewire device discovery and initialization
 //TODO implement capability to add new onewire devices throug menu
 
-theApp::theApp() : _view(this), _oneWire(ONE_WIRE_BUS_PIN), _tempProxy(&_oneWire), _log("ninja_brewer")
+theApp::theApp() : _view(this), _oneWire(ONE_WIRE_BUS_PIN), _tempProxy(&_oneWire), _log("ninja_brewer"), _controller(COOLER_SSR_PIN, HEATER_SSR_PIN)
 {
 
 }
@@ -57,6 +57,7 @@ void theApp::run()
       if(readSensors())
       {
         _model._appState.app_state = RUNNING;
+        _controller.Activate();
       }
       break;
     case RUNNING:
@@ -67,6 +68,8 @@ void theApp::run()
           getLogger().error(String::format("failed to read valid temperature for %d miliseconds", TEMP_ERR_INTERVAL));
           setErrorState("Sensor failure");
         }
+        _controller.Update(_model._appState.fridgeTemp, _model._appConfig.output, _model._appConfig.heatOutput, _tempProxy.PeakDetect(FRIDGE_TEMPERATURE));
+        _model._appState.controller_state = _controller.GetState();
         _publisherProxy.publish(_model);
       }
     default:

@@ -32,4 +32,7 @@
 
 #define TEMP_ERR_INTERVAL 600000
 
+#define COOLER_SSR_PIN A1
+#define HEATER_SSR_PIN A2
+
 #endif

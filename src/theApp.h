@@ -9,6 +9,7 @@
 #include "OneWire.h"
 #include "DallasTemperatureProxy.h"
 #include "PublisherProxy.h"
+#include "CoolerHeaterContoller.h"
 
 class theApp
 {
@@ -32,6 +33,7 @@ class theApp
         PublisherProxy _publisherProxy;
         String _error;
         Logger _log;
+        CoolerHeaterContoller _controller;
 
         bool readSensors();
 };
