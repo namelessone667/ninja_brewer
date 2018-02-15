@@ -39,7 +39,7 @@ struct AppConfig
   unsigned int peakMaxWait; // maximum wait on peak, seconds (30 min)
   unsigned int heatMinOff;  // minimum HEAT off time, seconds (5 min)
   unsigned long heatWindow; // window size for HEAT time proportioning, ms (5 min)
-  unsigned long minIdleTime;// minimum idle time between cool -> heat or heat -> cool
+  unsigned int minIdleTime;// minimum idle time between cool -> heat or heat -> cool
   double no_heat_below;     // dont turn on heating when tempretare is bellow this
   double no_cool_above;     // dont turn on cooling when tempretare is abowe this
   opMode controller_mode;

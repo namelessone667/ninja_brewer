@@ -10,9 +10,9 @@
 //TODO: save peakestimator to eeprom when state changes from IDLE, COOL -> IDLE, IDLE
 
 enum opMode {
-  COOLER_HEATER,
-  COOLER_ONLY,
-  HEATER_ONLY
+  COOLER_HEATER = 0,
+  COOLER_ONLY = 1,
+  HEATER_ONLY = 2
 };
 
 enum opState {  // fridge operation states
@@ -45,7 +45,7 @@ class CoolerHeaterContoller
     unsigned int peakMaxWait = 1800;   // maximum wait on peak, seconds (30 min)
     unsigned int heatMinOff = 600;     // minimum HEAT off time, seconds (5 min)
     unsigned long heatWindow = 60000;  // window size for HEAT time proportioning, ms (5 min)
-    unsigned long minIdleTime = 120; // minimum idle time between cool -> heat or heat -> cool
+    unsigned int minIdleTime = 120; // minimum idle time between cool -> heat or heat -> cool
     double no_heat_below = 10;
     double no_cool_above = 25;
 

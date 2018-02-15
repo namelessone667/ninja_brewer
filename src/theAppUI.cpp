@@ -78,6 +78,25 @@ void theAppUI::buildMenu()
       s2->addItem(MW_LIST, F("AUTO"));
     _mainmenu.addMenu(MW_VAR,s1, F("Manual Output"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.heatOutput,0,25,0.5,1);
 
+    s1 = _mainmenu.addMenu(MW_SUBMENU, r, F("Controller param"));
+    _mainmenu.addMenu(MW_VAR,s1, F("Idle Diff"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.idleDiff,0,5,0.1,1);
+    _mainmenu.addMenu(MW_VAR,s1, F("Peak Diff"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.peakDiff,0,1,0.01,2);
+    _mainmenu.addMenu(MW_VAR,s1, F("Cool Min ON"))->addVar(MW_AUTO_INT,&_tempConfig.coolMinOn,120,600,10);
+    _mainmenu.addMenu(MW_VAR,s1, F("Cool Min OFF"))->addVar(MW_AUTO_INT,&_tempConfig.coolMinOff,120,600,10);
+    _mainmenu.addMenu(MW_VAR,s1, F("Cool Max ON"))->addVar(MW_AUTO_INT,&_tempConfig.coolMaxOn,600,7200,60);
+    _mainmenu.addMenu(MW_VAR,s1, F("Peak Max Time"))->addVar(MW_AUTO_INT,&_tempConfig.peakMaxTime,60,3600,60);
+    _mainmenu.addMenu(MW_VAR,s1, F("Peak Max Wait"))->addVar(MW_AUTO_INT,&_tempConfig.peakMaxWait,60,3600,60);
+    _mainmenu.addMenu(MW_VAR,s1, F("Heat Min OFF"))->addVar(MW_AUTO_INT,&_tempConfig.heatMinOff,0,3600,10);
+    _mainmenu.addMenu(MW_VAR,s1, F("Heat Window"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.heatWindow,0,5,0.1,1);
+    _mainmenu.addMenu(MW_VAR,s1, F("Idle Min ON"))->addVar(MW_AUTO_INT,&_tempConfig.minIdleTime,0,3600,10);
+    _mainmenu.addMenu(MW_VAR,s1, F("No Heat Below"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.no_heat_below,-10,50,1,1);
+    _mainmenu.addMenu(MW_VAR,s1, F("No Cool Above"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.no_cool_above,-10,50,1,1);
+    s2 = _mainmenu.addMenu(MW_VAR,s1, F("Mode"));
+      s2->addVar(MW_LIST,&_tempConfig.controller_mode);
+      s2->addItem(MW_LIST, F("COOL\HEAT"));
+      s2->addItem(MW_LIST, F("COOL ONLY"));
+      s2->addItem(MW_LIST, F("HEAT ONLY"));
+
     _mainmenu.addMenu(MW_VAR, r, F("Save & Exit"))->addVar(MW_ACTION,saveAndExitMenuHelper);
     _mainmenu.addMenu(MW_VAR, r, F("Discard changes"))->addVar(MW_ACTION,discardChangesAndExitMenuHelper);
 
