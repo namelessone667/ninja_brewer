@@ -32,14 +32,14 @@ struct AppConfig
 
   double idleDiff;          // constrain fridge temperature to +/- 0.5 deg C (0.9 deg F) differential
   double peakDiff;          // constrain allowed peak error to +/- 0.25 deg C (0.45 deg F) differential
-  unsigned int coolMinOff;  // minimum compressor off time, seconds (5 min)
-  unsigned int coolMinOn;   // minimum compressor on time, seconds (1.5 min)
-  unsigned int coolMaxOn;   // maximum compressor on time, seconds (45 min)
-  unsigned int peakMaxTime; // maximum runTime to consider for peak estimation, seconds (20 min)
-  unsigned int peakMaxWait; // maximum wait on peak, seconds (30 min)
-  unsigned int heatMinOff;  // minimum HEAT off time, seconds (5 min)
-  unsigned long heatWindow; // window size for HEAT time proportioning, ms (5 min)
-  unsigned int minIdleTime;// minimum idle time between cool -> heat or heat -> cool
+  int coolMinOff;  // minimum compressor off time, seconds (5 min)
+  int coolMinOn;   // minimum compressor on time, seconds (1.5 min)
+  int coolMaxOn;   // maximum compressor on time, seconds (45 min)
+  int peakMaxTime; // maximum runTime to consider for peak estimation, seconds (20 min)
+  int peakMaxWait; // maximum wait on peak, seconds (30 min)
+  int heatMinOff;  // minimum HEAT off time, seconds (5 min)
+  int heatWindow; // window size for HEAT time proportioning, ms (5 min)
+  int minIdleTime;// minimum idle time between cool -> heat or heat -> cool
   double no_heat_below;     // dont turn on heating when tempretare is bellow this
   double no_cool_above;     // dont turn on cooling when tempretare is abowe this
   opMode controller_mode;
@@ -77,7 +77,7 @@ const struct AppConfig defaultAppConfig =
   .peakMaxTime = 1200,   // maximum runTime to consider for peak estimation, seconds (20 min)
   .peakMaxWait = 1800,   // maximum wait on peak, seconds (30 min)
   .heatMinOff = 600,     // minimum HEAT off time, seconds (5 min)
-  .heatWindow = 60000,  // window size for HEAT time proportioning, ms (5 min)
+  .heatWindow = 60,  // window size for HEAT time proportioning, ms (5 min)
   .minIdleTime = 120, // minimum idle time between cool -> heat or heat -> cool
   .no_heat_below = 10,
   .no_cool_above = 25,

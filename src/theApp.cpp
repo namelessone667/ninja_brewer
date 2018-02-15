@@ -75,7 +75,7 @@ void theApp::run()
         else
           _controller.Activate();
 
-        _controller.Update(_model._appState.fridgeTemp, _model._appConfig.output, _model._appConfig.heatOutput, _tempProxy.PeakDetect(FRIDGE_TEMPERATURE));
+        _controller.Update(_model._appState.fridgeTemp, _model._appConfig.setpoint, _model._appConfig.heatOutput, _tempProxy.PeakDetect(FRIDGE_TEMPERATURE));
         _model._appState.controller_state = _controller.GetState();
         _publisherProxy.publish(_model);
       }

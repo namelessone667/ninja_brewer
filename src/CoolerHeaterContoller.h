@@ -36,18 +36,18 @@ class CoolerHeaterContoller
     int _cool_pin;
     int _heat_pin;
 
-    double idleDiff = 0.5;     // constrain fridge temperature to +/- 0.5 deg C (0.9 deg F) differential
-    double peakDiff = 0.25;      // constrain allowed peak error to +/- 0.25 deg C (0.45 deg F) differential
-    unsigned int coolMinOff = 600;     // minimum compressor off time, seconds (5 min)
-    unsigned int coolMinOn = 60;    // minimum compressor on time, seconds (1.5 min)
-    unsigned int coolMaxOn = 2700;     // maximum compressor on time, seconds (45 min)
-    unsigned int peakMaxTime = 1200;   // maximum runTime to consider for peak estimation, seconds (20 min)
-    unsigned int peakMaxWait = 1800;   // maximum wait on peak, seconds (30 min)
-    unsigned int heatMinOff = 600;     // minimum HEAT off time, seconds (5 min)
-    unsigned long heatWindow = 60000;  // window size for HEAT time proportioning, ms (5 min)
-    unsigned int minIdleTime = 120; // minimum idle time between cool -> heat or heat -> cool
-    double no_heat_below = 10;
-    double no_cool_above = 25;
+    double idleDiff;     // constrain fridge temperature to +/- 0.5 deg C (0.9 deg F) differential
+    double peakDiff;      // constrain allowed peak error to +/- 0.25 deg C (0.45 deg F) differential
+    int coolMinOff;     // minimum compressor off time, seconds (5 min)
+    int coolMinOn;    // minimum compressor on time, seconds (1.5 min)
+    int coolMaxOn;     // maximum compressor on time, seconds (45 min)
+    int peakMaxTime;   // maximum runTime to consider for peak estimation, seconds (20 min)
+    int peakMaxWait;   // maximum wait on peak, seconds (30 min)
+    int heatMinOff;     // minimum HEAT off time, seconds (5 min)
+    int heatWindow;  // window size for HEAT time proportioning, seconds (5 min)
+    int minIdleTime; // minimum idle time between cool -> heat or heat -> cool
+    double no_heat_below;
+    double no_cool_above;
 
     double peakEstimator;
     double peakEstimate;      // to determine prediction error = (estimate - actual)
@@ -59,6 +59,7 @@ class CoolerHeaterContoller
     unsigned long stopTime;
 
     bool isActive;
+    bool isConfigured;
 
     void updatecontrollerState(byte);
     void updatecontrollerState(byte, byte);

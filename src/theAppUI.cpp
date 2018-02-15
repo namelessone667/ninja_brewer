@@ -87,15 +87,16 @@ void theAppUI::buildMenu()
     _mainmenu.addMenu(MW_VAR,s1, F("Peak Max Time"))->addVar(MW_AUTO_INT,&_tempConfig.peakMaxTime,60,3600,60);
     _mainmenu.addMenu(MW_VAR,s1, F("Peak Max Wait"))->addVar(MW_AUTO_INT,&_tempConfig.peakMaxWait,60,3600,60);
     _mainmenu.addMenu(MW_VAR,s1, F("Heat Min OFF"))->addVar(MW_AUTO_INT,&_tempConfig.heatMinOff,0,3600,10);
-    _mainmenu.addMenu(MW_VAR,s1, F("Heat Window"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.heatWindow,0,5,0.1,1);
+    _mainmenu.addMenu(MW_VAR,s1, F("Heat Window"))->addVar(MW_AUTO_INT,&_tempConfig.heatWindow,5,600,1);
     _mainmenu.addMenu(MW_VAR,s1, F("Idle Min ON"))->addVar(MW_AUTO_INT,&_tempConfig.minIdleTime,0,3600,10);
     _mainmenu.addMenu(MW_VAR,s1, F("No Heat Below"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.no_heat_below,-10,50,1,1);
     _mainmenu.addMenu(MW_VAR,s1, F("No Cool Above"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.no_cool_above,-10,50,1,1);
     s2 = _mainmenu.addMenu(MW_VAR,s1, F("Mode"));
-      s2->addVar(MW_LIST,&_tempConfig.controller_mode);
-      s2->addItem(MW_LIST, F("COOL\HEAT"));
+      s2->addVar(MW_LIST,(int*)(&_tempConfig.controller_mode));
+      s2->addItem(MW_LIST, F("COOL\\HEAT"));
       s2->addItem(MW_LIST, F("COOL ONLY"));
       s2->addItem(MW_LIST, F("HEAT ONLY"));
+    _mainmenu.addMenu(MW_VAR,s1, F("Stand By"))->addVar(MW_BOOLEAN,&_tempConfig.standBy);
 
     _mainmenu.addMenu(MW_VAR, r, F("Save & Exit"))->addVar(MW_ACTION,saveAndExitMenuHelper);
     _mainmenu.addMenu(MW_VAR, r, F("Discard changes"))->addVar(MW_ACTION,discardChangesAndExitMenuHelper);

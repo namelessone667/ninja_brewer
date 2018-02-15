@@ -15,6 +15,7 @@ CoolerHeaterContoller::CoolerHeaterContoller(int cooling_ssr_pin, int heating_ss
   peakEstimate = 0;
 
   isActive = false;
+  isConfigured = false;
 
   pinMode(_cool_pin, OUTPUT);  // configure relay pins and write default HIGH (relay open)
   pinMode(_heat_pin, OUTPUT);
@@ -40,10 +41,15 @@ void CoolerHeaterContoller::Configure(const AppConfig& config)
   no_heat_below = config.no_heat_below;
   no_cool_above = config.no_cool_above;
   peakEstimator = config.peakEstimator;
+
+  isConfigured = true;
 }
 
 void CoolerHeaterContoller::Update(double currentTemp, double setTemp, double heatOutput, bool peakDetected)
 {
+  if(!isConfigured)
+    return;
+
   if(!isActive)
   {
     gotoIdle();
@@ -54,18 +60,18 @@ void CoolerHeaterContoller::Update(double currentTemp, double setTemp, double he
     default:
     case IDLE:
       //if we are in IDLE state less than minIdleTime second, stay IDLE
-      if((unsigned long)((millis() - stopTime) / 1000) < minIdleTime)
+      if((long)((millis() - stopTime) / 1000) < minIdleTime)
         break;
 
       if (controllerState[1] == IDLE) {   // only switch to HEAT/COOL if not waiting for COOL peak
-        if ((currentTemp > setTemp + idleDiff) && (((unsigned long)((millis() - stopTime) / 1000) > coolMinOff) || stopTime == 0) &&
+        if ((currentTemp > setTemp + idleDiff) && (((long)((millis() - stopTime) / 1000) > coolMinOff) || stopTime == 0) &&
             (currentTemp < no_cool_above) && controllerMode != HEATER_ONLY) {  // switch to COOL only if temp exceeds IDLE range and min off time met
           updatecontrollerState(COOL);    // update current fridge status and t - 1 history
           digitalWrite(_cool_pin, /*LOW*/HIGH);  // close relay 1; supply power to fridge compressor
           //digitalWrite(LED_BUILTIN, HIGH);
           startTime = millis();       // record COOLing start time
         }
-        else if ((currentTemp < setTemp - idleDiff) && (((unsigned long)((millis() - stopTime) / 1000) > heatMinOff) || stopTime == 0) &&
+        else if ((currentTemp < setTemp - idleDiff) && (((long)((millis() - stopTime) / 1000) > heatMinOff) || stopTime == 0) &&
             (currentTemp > no_heat_below) && controllerMode != COOLER_ONLY) {  // switch to HEAT only if temp below IDLE range and min off time met
           updatecontrollerState(HEAT);
           //if (programState & 0b010000) heatSetpoint = setTemp;  // update heat PID setpoint if in automatic mode
@@ -81,7 +87,7 @@ void CoolerHeaterContoller::Update(double currentTemp, double setTemp, double he
           controllerState[1] = IDLE;          // stop peak detection until next COOL cycle completes
         }
         else {                                                               // no peak detected
-          double offTime = (unsigned long)(millis() - stopTime) / 1000;      // IDLE time in seconds
+          double offTime = (long)(millis() - stopTime) / 1000;      // IDLE time in seconds
           if (offTime < peakMaxWait) break;                                  // keep waiting for filter confirmed peak if too soon
           peakEstimator = tuneEstimator(peakEstimator, peakEstimate - currentTemp);  // temp is drifting in the right direction, but too slowly; update estimator
           controllerState[1] = IDLE;                                             // stop peak detection
@@ -90,7 +96,7 @@ void CoolerHeaterContoller::Update(double currentTemp, double setTemp, double he
       break;
 
     case COOL:  // run compressor until peak predictor lands on controller setTemp
-      { double runTime = (unsigned long)(millis() - startTime) / 1000;  // runtime in seconds
+      { double runTime = (long)(millis() - startTime) / 1000;  // runtime in seconds
       if (runTime < coolMinOn) break;     // ensure minimum compressor runtime
       if (currentTemp < setTemp - idleDiff) {  // temp already below output - idle differential: most likely cause is change in setpoint or long minimum runtime
         updatecontrollerState(IDLE, IDLE);    // go IDLE, ignore peaks
@@ -121,13 +127,13 @@ void CoolerHeaterContoller::Update(double currentTemp, double setTemp, double he
         //heatPID.Compute();
 
         double runTime = millis() - startTime;  // runtime in ms
-        while(runTime > heatWindow)
+        while(runTime > heatWindow*1000)
         {
-            startTime += heatWindow;
-            runTime -= heatWindow;
+            startTime += heatWindow*1000;
+            runTime -= heatWindow*1000;
         }
         //double heatOutput2 = heatOutput < 2 ? 0 : heatOutput;
-        double heatOutputTime = heatWindow*heatOutput/(double)100;
+        double heatOutputTime = heatWindow*heatOutput*10;
         //Serial.println("---HEAT START---");
         //Serial.print("runtime:");
         //Serial.println(runTime);
