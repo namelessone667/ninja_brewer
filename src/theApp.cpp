@@ -45,6 +45,8 @@ void theApp::init()
 
   _publisherProxy.init(_model);
 
+  _controller.Configure(_model._appConfig);
+
   getLogger().info("initialization complete");
 }
 
@@ -57,7 +59,6 @@ void theApp::run()
       if(readSensors())
       {
         _model._appState.app_state = RUNNING;
-        _controller.Activate();
       }
       break;
     case RUNNING:
@@ -68,6 +69,12 @@ void theApp::run()
           getLogger().error(String::format("failed to read valid temperature for %d miliseconds", TEMP_ERR_INTERVAL));
           setErrorState("Sensor failure");
         }
+
+        if(_model._appConfig.standBy)
+          _controller.Disable();
+        else
+          _controller.Activate();
+
         _controller.Update(_model._appState.fridgeTemp, _model._appConfig.output, _model._appConfig.heatOutput, _tempProxy.PeakDetect(FRIDGE_TEMPERATURE));
         _model._appState.controller_state = _controller.GetState();
         _publisherProxy.publish(_model);

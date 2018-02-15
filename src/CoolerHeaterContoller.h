@@ -7,6 +7,7 @@
 //TODO: create separate classes for SSR actuators
 //TODO: set heat PID I-term to 0 when goig to IDLE from HEAT
 //TODO: notify the app somehow when controllerState changes
+//TODO: save peakestimator to eeprom when state changes from IDLE, COOL -> IDLE, IDLE
 
 enum opMode {
   COOLER_HEATER,
@@ -20,6 +21,8 @@ enum opState {  // fridge operation states
   HEAT,
 };
 
+struct AppConfig;
+
 class CoolerHeaterContoller
 {
   public:
@@ -28,6 +31,7 @@ class CoolerHeaterContoller
     void Activate();
     void Disable();
     opState GetState();
+    void Configure(const AppConfig&);
   private:
     int _cool_pin;
     int _heat_pin;

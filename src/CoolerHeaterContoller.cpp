@@ -1,4 +1,5 @@
 #include "CoolerHeaterContoller.h"
+#include "Model.h"
 
 CoolerHeaterContoller::CoolerHeaterContoller(int cooling_ssr_pin, int heating_ssr_pin)
 {
@@ -21,6 +22,24 @@ CoolerHeaterContoller::CoolerHeaterContoller(int cooling_ssr_pin, int heating_ss
   digitalWrite(_cool_pin, LOW);
   digitalWrite(_heat_pin, LOW);
 
+}
+
+void CoolerHeaterContoller::Configure(const AppConfig& config)
+{
+  controllerMode = config.controller_mode;
+  idleDiff = config.idleDiff;     // constrain fridge temperature to +/- 0.5 deg C (0.9 deg F) differential
+  peakDiff = config.peakDiff;      // constrain allowed peak error to +/- 0.25 deg C (0.45 deg F) differential
+  coolMinOff = config.coolMinOff;     // minimum compressor off time, seconds (5 min)
+  coolMinOn = config.coolMinOn;    // minimum compressor on time, seconds (1.5 min)
+  coolMaxOn = config.coolMaxOn;     // maximum compressor on time, seconds (45 min)
+  peakMaxTime = config.peakMaxTime;   // maximum runTime to consider for peak estimation, seconds (20 min)
+  peakMaxWait = config.peakMaxWait;   // maximum wait on peak, seconds (30 min)
+  heatMinOff = config.heatMinOff;     // minimum HEAT off time, seconds (5 min)
+  heatWindow = config.heatWindow;  // window size for HEAT time proportioning, ms (5 min)
+  minIdleTime = config.minIdleTime; // minimum idle time between cool -> heat or heat -> cool
+  no_heat_below = config.no_heat_below;
+  no_cool_above = config.no_cool_above;
+  peakEstimator = config.peakEstimator;
 }
 
 void CoolerHeaterContoller::Update(double currentTemp, double setTemp, double heatOutput, bool peakDetected)

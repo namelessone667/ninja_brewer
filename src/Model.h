@@ -29,6 +29,20 @@ struct AppConfig
   double heatpid_Kd;
   int heatpid_mode;
   bool standBy;
+
+  double idleDiff;          // constrain fridge temperature to +/- 0.5 deg C (0.9 deg F) differential
+  double peakDiff;          // constrain allowed peak error to +/- 0.25 deg C (0.45 deg F) differential
+  unsigned int coolMinOff;  // minimum compressor off time, seconds (5 min)
+  unsigned int coolMinOn;   // minimum compressor on time, seconds (1.5 min)
+  unsigned int coolMaxOn;   // maximum compressor on time, seconds (45 min)
+  unsigned int peakMaxTime; // maximum runTime to consider for peak estimation, seconds (20 min)
+  unsigned int peakMaxWait; // maximum wait on peak, seconds (30 min)
+  unsigned int heatMinOff;  // minimum HEAT off time, seconds (5 min)
+  unsigned long heatWindow; // window size for HEAT time proportioning, ms (5 min)
+  unsigned long minIdleTime;// minimum idle time between cool -> heat or heat -> cool
+  double no_heat_below;     // dont turn on heating when tempretare is bellow this
+  double no_cool_above;     // dont turn on cooling when tempretare is abowe this
+  opMode controller_mode;
 };
 
 struct AppState
@@ -53,7 +67,21 @@ const struct AppConfig defaultAppConfig =
   .heatpid_Ki = 0.0025,
   .heatpid_Kd = 0.0,
   .heatpid_mode = PID_MANUAL,
-  .standBy = true
+  .standBy = true,
+
+  .idleDiff = 0.5,     // constrain fridge temperature to +/- 0.5 deg C (0.9 deg F) differential
+  .peakDiff = 0.25,      // constrain allowed peak error to +/- 0.25 deg C (0.45 deg F) differential
+  .coolMinOff = 600,     // minimum compressor off time, seconds (5 min)
+  .coolMinOn = 60,  // minimum compressor on time, seconds (1.5 min)
+  .coolMaxOn = 2700,     // maximum compressor on time, seconds (45 min)
+  .peakMaxTime = 1200,   // maximum runTime to consider for peak estimation, seconds (20 min)
+  .peakMaxWait = 1800,   // maximum wait on peak, seconds (30 min)
+  .heatMinOff = 600,     // minimum HEAT off time, seconds (5 min)
+  .heatWindow = 60000,  // window size for HEAT time proportioning, ms (5 min)
+  .minIdleTime = 120, // minimum idle time between cool -> heat or heat -> cool
+  .no_heat_below = 10,
+  .no_cool_above = 25,
+  .controller_mode = COOLER_HEATER
 };
 
 const struct AppState defaultAppState =

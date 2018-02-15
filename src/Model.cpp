@@ -1,7 +1,7 @@
 #include "Model.h"
 #include "EEPROM_MAP.h"
 
-const int EEPROM_VER = 2;
+const int EEPROM_VER = 3;
 
 Model::Model()
 {
