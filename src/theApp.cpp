@@ -102,6 +102,9 @@ void theApp::run()
         {
           _controller.Activate();
 
+          if(_mainPID.GetMode() == PID_MANUAL)
+            _model._appConfig.output = _model._appConfig.setpoint;
+
           _mainPID.Compute();
           _heatPID.Compute();
         }
