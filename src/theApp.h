@@ -30,6 +30,9 @@ class theApp
         void setPID(int, double);
         void setHeatPID(int, double);
         void setNewTargetTemp(double);
+        void reboot();
+        void reinitLCD();
+        void saveState();
     private:
         theApp();
         Model _model;
@@ -44,6 +47,8 @@ class theApp
         PID _heatPID;
 
         long _pid_log_timestamp;
+
+        bool _reboot;
 
         bool readSensors();
 };

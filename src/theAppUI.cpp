@@ -19,7 +19,8 @@ theAppUI::theAppUI(theApp *controller) :
   _encoder(ENCODER_PIN_A, ENCODER_PIN_B),
   _lcd(0x38, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE),
   _tempConfig(defaultAppConfig),
-  _menuActive(false)
+  _menuActive(false),
+  _reinitLCD(false)
 {
   _helperInstance = this;
   _controller = controller;
@@ -107,6 +108,12 @@ void theAppUI::buildMenu()
 
 void theAppUI::draw()
 {
+  if(_reinitLCD)
+  {
+    _lcd.begin(16,2);
+    _reinitLCD = false;
+  }
+
   char lcd_text[34];
 
   switch(_controller->getModel()._appState.app_state)
@@ -261,4 +268,9 @@ char theAppUI::getProgressbarSymbol()
       return 47;
       break;
   }
+}
+
+void theAppUI::reinitLCD()
+{
+  _reinitLCD = true;
 }

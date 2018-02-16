@@ -27,7 +27,6 @@ void ParticlePublisher::init(const Model &model)
     Particle.function("startControl", startControl);
     Particle.function("stopControl", stopControl);
     Particle.function("saveState", saveState);
-    Particle.function("getDevices", getOneWireDevices);
     Particle.function("reinitLCD", reinitLCD);
 }
 
@@ -81,7 +80,8 @@ int ParticlePublisher::setHeatPIDAuto(String args)
 
 int ParticlePublisher::reboot(String args)
 {
-  return 0;
+  theApp::getInstance().reboot();
+  return 1;
 }
 
 int ParticlePublisher::startControl(String args)
@@ -98,15 +98,12 @@ int ParticlePublisher::stopControl(String args)
 
 int ParticlePublisher::saveState(String args)
 {
-  return 0;
-}
-
-int ParticlePublisher::getOneWireDevices(String args)
-{
-  return 0;
+  theApp::getInstance().saveState();
+  return 1;
 }
 
 int ParticlePublisher::reinitLCD(String args)
 {
-  return 0;
+  theApp::getInstance().reinitLCD();
+  return 1;
 }

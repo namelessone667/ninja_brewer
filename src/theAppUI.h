@@ -20,6 +20,7 @@ class theAppUI
       //void setMenuConfigValues(AppConfig app_config);
       //AppConfig getMenuConfigValues();
       void enterMainMenu();
+      void reinitLCD();
   private:
       void buildMenu();
       void saveAndExitMenu();
@@ -42,6 +43,7 @@ class theAppUI
       menwiz _mainmenu;
       long _encoder_position;
       bool _menuActive;
+      bool _reinitLCD;
 };
 
 #endif

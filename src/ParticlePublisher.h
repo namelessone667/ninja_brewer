@@ -18,7 +18,6 @@ class ParticlePublisher : public BasePublisher
     static int startControl(String);
     static int stopControl(String);
     static int saveState(String);
-    static int getOneWireDevices(String);
     static int reinitLCD(String);
 };
 

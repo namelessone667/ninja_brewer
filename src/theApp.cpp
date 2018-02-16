@@ -12,7 +12,8 @@ theApp::theApp()
     _log("ninja_brewer"),
     _controller(COOLER_SSR_PIN, HEATER_SSR_PIN),
     _mainPID(&_model._appState.fridgeTemp, &_model._appConfig.output, &_model._appConfig.setpoint, 0, 0, 0, PID_DIRECT),
-    _heatPID(&_model._appState.fridgeTemp, &_model._appConfig.heatOutput, &_model._appConfig.output, 0, 0, 0, PID_DIRECT)
+    _heatPID(&_model._appState.fridgeTemp, &_model._appConfig.heatOutput, &_model._appConfig.output, 0, 0, 0, PID_DIRECT),
+    _reboot(false)
 {
 
 }
@@ -75,6 +76,9 @@ void theApp::init()
 
 void theApp::run()
 {
+  if(_reboot)
+    System.reset();
+    
   switch(_model._appState.app_state)
   {
     case INIT:
@@ -176,13 +180,13 @@ String theApp::getErrorMessage()
 void theApp::ActivateController()
 {
   _model._appConfig.standBy = false;
-  _model.saveAppConfigToEEPROM();
+  saveState();
 }
 
 void theApp::DisableController()
 {
   _model._appConfig.standBy = true;
-  _model.saveAppConfigToEEPROM();
+  saveState();
 }
 
 void theApp::setPID(int pid_mode, double new_output)
@@ -191,7 +195,7 @@ void theApp::setPID(int pid_mode, double new_output)
   if(pid_mode == PID_MANUAL)
   {
     _model._appConfig.output = new_output;
-    _model.saveAppConfigToEEPROM();
+    saveState();
   }
 
 }
@@ -202,12 +206,27 @@ void theApp::setHeatPID(int pid_mode, double new_output)
   if(pid_mode == PID_MANUAL)
   {
     _model._appConfig.heatOutput = new_output;
-    _model.saveAppConfigToEEPROM();
+    saveState();
   }
 }
 
 void theApp::setNewTargetTemp(double new_setpoint)
 {
   _model._appConfig.setpoint = new_setpoint;
+  saveState();
+}
+
+void theApp::reboot()
+{
+  _reboot = true;
+}
+
+void theApp::reinitLCD()
+{
+  _view.reinitLCD();
+}
+
+void theApp::saveState()
+{
   _model.saveAppConfigToEEPROM();
 }

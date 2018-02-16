@@ -13,6 +13,7 @@ SerialLogHandler logHandler1;
 
 void wd_reboot()
 {
+    theApp::getInstance().saveState();
     System.reset();
 }
 
