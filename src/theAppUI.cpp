@@ -60,6 +60,7 @@ void theAppUI::buildMenu()
     r = _mainmenu.addMenu(MW_ROOT,NULL,F("Settings"));
 
     _mainmenu.addMenu(MW_VAR, r, F("Target temp"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.setpoint,0,30,0.1,1);
+    _mainmenu.addMenu(MW_VAR, r, F("Stand By"))->addVar(MW_BOOLEAN,&_tempConfig.standBy);
 
     s1 = _mainmenu.addMenu(MW_SUBMENU, r, F("PID param"));
     _mainmenu.addMenu(MW_VAR,s1, F("PID Kp"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.pid_Kp,0,10,0.5,1);
@@ -93,10 +94,9 @@ void theAppUI::buildMenu()
     _mainmenu.addMenu(MW_VAR,s1, F("No Cool Above"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.no_cool_above,-10,50,1,1);
     s2 = _mainmenu.addMenu(MW_VAR,s1, F("Mode"));
       s2->addVar(MW_LIST,(int*)(&_tempConfig.controller_mode));
-      s2->addItem(MW_LIST, F("COOL\\HEAT"));
+      s2->addItem(MW_LIST, F("COOL/HEAT"));
       s2->addItem(MW_LIST, F("COOL ONLY"));
       s2->addItem(MW_LIST, F("HEAT ONLY"));
-    _mainmenu.addMenu(MW_VAR,s1, F("Stand By"))->addVar(MW_BOOLEAN,&_tempConfig.standBy);
 
     _mainmenu.addMenu(MW_VAR, r, F("Save & Exit"))->addVar(MW_ACTION,saveAndExitMenuHelper);
     _mainmenu.addMenu(MW_VAR, r, F("Discard changes"))->addVar(MW_ACTION,discardChangesAndExitMenuHelper);

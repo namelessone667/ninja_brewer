@@ -10,6 +10,7 @@
 #include "DallasTemperatureProxy.h"
 #include "PublisherProxy.h"
 #include "CoolerHeaterContoller.h"
+#include "PID_v1.h"
 
 class theApp
 {
@@ -24,6 +25,11 @@ class theApp
         void setErrorState(String error_message);
         String getErrorMessage();
         const Logger& getLogger();
+        void ActivateController();
+        void DisableController();
+        void setPID(int, double);
+        void setHeatPID(int, double);
+        void setNewTargetTemp(double);
     private:
         theApp();
         Model _model;
@@ -34,6 +40,10 @@ class theApp
         String _error;
         Logger _log;
         CoolerHeaterContoller _controller;
+        PID _mainPID;
+        PID _heatPID;
+
+        long _pid_log_timestamp;
 
         bool readSensors();
 };

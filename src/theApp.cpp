@@ -4,7 +4,15 @@
 //TODO implement dynamic onewire device discovery and initialization
 //TODO implement capability to add new onewire devices throug menu
 
-theApp::theApp() : _view(this), _oneWire(ONE_WIRE_BUS_PIN), _tempProxy(&_oneWire), _log("ninja_brewer"), _controller(COOLER_SSR_PIN, HEATER_SSR_PIN)
+theApp::theApp()
+  : _model(),
+    _view(this),
+    _oneWire(ONE_WIRE_BUS_PIN),
+    _tempProxy(&_oneWire),
+    _log("ninja_brewer"),
+    _controller(COOLER_SSR_PIN, HEATER_SSR_PIN),
+    _mainPID(&_model._appState.fridgeTemp, &_model._appConfig.output, &_model._appConfig.setpoint, 0, 0, 0, PID_DIRECT),
+    _heatPID(&_model._appState.fridgeTemp, &_model._appConfig.heatOutput, &_model._appConfig.output, 0, 0, 0, PID_DIRECT)
 {
 
 }
@@ -43,6 +51,21 @@ void theApp::init()
     return;
   }
 
+  _mainPID.SetTunings(_model._appConfig.pid_Kp, _model._appConfig.pid_Ki, _model._appConfig.pid_Kd);    // set tuning params
+  _mainPID.SetSampleTime(1000);       // (ms) matches sample rate (1 hz)
+  _mainPID.SetOutputLimits(MIN_FRIDGE_TEMP, MAX_FRIDE_TEMP);  // deg C (~32.5 - ~100 deg F)
+  _mainPID.setOutputType(PID_FILTERED);
+  _mainPID.setFilterConstant(1000);
+  _mainPID.initHistory();
+  _mainPID.SetMode(_model._appConfig.pid_mode);  // set man/auto
+  _mainPID.SetITerm(_model._appConfig.setpoint);
+
+  _heatPID.SetTunings(_model._appConfig.heatpid_Kp, _model._appConfig.heatpid_Ki, _model._appConfig.heatpid_Kd);
+  _heatPID.SetSampleTime(1000);       // sampletime = time proportioning window length
+  _heatPID.SetOutputLimits(HEAT_MIN_PERCENT, HEAT_MAX_PERCENT);  // _heatPID output = duty time per window
+  _heatPID.SetMode(_model._appConfig.heatpid_mode);
+  _heatPID.SetITerm(0);
+
   _publisherProxy.init(_model);
 
   _controller.Configure(_model._appConfig);
@@ -59,6 +82,7 @@ void theApp::run()
       if(readSensors())
       {
         _model._appState.app_state = RUNNING;
+        _pid_log_timestamp = millis();
       }
       break;
     case RUNNING:
@@ -71,9 +95,23 @@ void theApp::run()
         }
 
         if(_model._appConfig.standBy)
+        {
           _controller.Disable();
+        }
         else
+        {
           _controller.Activate();
+
+          _mainPID.Compute();
+          _heatPID.Compute();
+        }
+
+        if(millis() - _pid_log_timestamp > 60000)
+        {
+          _pid_log_timestamp = millis();
+          getLogger().info(String::format("PID p-term: %.4f, PID i-term: %.4f", _mainPID.GetPTerm(), _mainPID.GetITerm()));
+          getLogger().info(String::format("Heat PID p-term: %.4f, Heat PID i-term: %.4f", _heatPID.GetPTerm(), _heatPID.GetITerm()));
+        }
 
         _controller.Update(_model._appState.fridgeTemp, _model._appConfig.setpoint, _model._appConfig.heatOutput, _tempProxy.PeakDetect(FRIDGE_TEMPERATURE));
         _model._appState.controller_state = _controller.GetState();
@@ -130,4 +168,43 @@ void theApp::setErrorState(String error_message)
 String theApp::getErrorMessage()
 {
   return _error;
+}
+
+void theApp::ActivateController()
+{
+  _model._appConfig.standBy = false;
+  _model.saveAppConfigToEEPROM();
+}
+
+void theApp::DisableController()
+{
+  _model._appConfig.standBy = true;
+  _model.saveAppConfigToEEPROM();
+}
+
+void theApp::setPID(int pid_mode, double new_output)
+{
+  _mainPID.SetMode(pid_mode);
+  if(pid_mode == PID_MANUAL)
+  {
+    _model._appConfig.output = new_output;
+    _model.saveAppConfigToEEPROM();
+  }
+
+}
+
+void theApp::setHeatPID(int pid_mode, double new_output)
+{
+  _heatPID.SetMode(pid_mode);
+  if(pid_mode == PID_MANUAL)
+  {
+    _model._appConfig.heatOutput = new_output;
+    _model.saveAppConfigToEEPROM();
+  }
+}
+
+void theApp::setNewTargetTemp(double new_setpoint)
+{
+  _model._appConfig.setpoint = new_setpoint;
+  _model.saveAppConfigToEEPROM();
 }
