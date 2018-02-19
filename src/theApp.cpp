@@ -11,7 +11,7 @@ theApp::theApp()
     _tempProxy(&_oneWire),
     _log("ninja_brewer"),
     _controller(COOLER_SSR_PIN, HEATER_SSR_PIN),
-    _mainPID(&_model._appState.fridgeTemp, &_model._appConfig.output, &_model._appConfig.setpoint, 0, 0, 0, PID_DIRECT),
+    _mainPID(&_model._appState.beerTemp, &_model._appConfig.output, &_model._appConfig.setpoint, 0, 0, 0, PID_DIRECT),
     _heatPID(&_model._appState.fridgeTemp, &_model._appConfig.heatOutput, &_model._appConfig.output, 0, 0, 0, PID_DIRECT),
     _reboot(false)
 {
@@ -78,7 +78,7 @@ void theApp::run()
 {
   if(_reboot)
     System.reset();
-    
+
   switch(_model._appState.app_state)
   {
     case INIT:
