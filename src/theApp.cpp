@@ -192,22 +192,24 @@ void theApp::DisableController()
 void theApp::setPID(int pid_mode, double new_output)
 {
   _mainPID.SetMode(pid_mode);
+  _model._appConfig.pid_mode = pid_mode;
   if(pid_mode == PID_MANUAL)
   {
     _model._appConfig.output = new_output;
-    saveState();
-  }
 
+  }
+  saveState();
 }
 
 void theApp::setHeatPID(int pid_mode, double new_output)
 {
   _heatPID.SetMode(pid_mode);
+  _model._appConfig.heatpid_mode = pid_mode;
   if(pid_mode == PID_MANUAL)
   {
     _model._appConfig.heatOutput = new_output;
-    saveState();
   }
+  saveState();
 }
 
 void theApp::setNewTargetTemp(double new_setpoint)

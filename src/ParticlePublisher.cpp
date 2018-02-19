@@ -17,6 +17,9 @@ void ParticlePublisher::init(const Model &model)
     Particle.variable("heatPidKp", model._appConfig.heatpid_Kp);
     Particle.variable("heatPidKi", model._appConfig.heatpid_Ki);
     Particle.variable("heatPidKd", model._appConfig.heatpid_Kd);
+    Particle.variable("pidMode", model._appConfig.pid_mode);
+    Particle.variable("heatPidMode", model._appConfig.heatpid_mode);
+    Particle.variable("standBy", model._appConfig.standBy);
 
     Particle.function("setSetPoint", setNewSetPoint);
     Particle.function("setPIDAuto", setPIDModeAuto);
