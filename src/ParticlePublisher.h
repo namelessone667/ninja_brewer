@@ -6,8 +6,8 @@
 class ParticlePublisher : public BasePublisher
 {
   public:
-    void init(const Model&);
-    void publish(const Model&);
+    void init(const NinjaModel&);
+    void publish(const NinjaModel&);
 
     static int setNewSetPoint(String);
     static int setPIDModeAuto(String);

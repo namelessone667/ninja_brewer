@@ -3,7 +3,7 @@
 #include "UbidotsPublisher.h"
 #include "BlynkPublisher.h"
 
-void PublisherProxy::init(const Model &model)
+void PublisherProxy::init(const NinjaModel &model)
 {
   _publishers.push_back(new ParticlePublisher());
   _publishers.push_back(new UbidotsPublisher());
@@ -14,7 +14,7 @@ void PublisherProxy::init(const Model &model)
   }
 }
 
-void PublisherProxy::publish(const Model &model)
+void PublisherProxy::publish(const NinjaModel &model)
 {
   for (BasePublisher *p : _publishers) {
       p->publish(model);

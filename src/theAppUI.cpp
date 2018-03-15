@@ -19,6 +19,7 @@ theAppUI::theAppUI(theApp *controller) :
   _encoder(ENCODER_PIN_A, ENCODER_PIN_B),
   _lcd(0x38, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE),
   _tempConfig(defaultAppConfig),
+  _ninjaMenu(&_lcd, 16,2, this),
   _menuActive(false),
   _reinitLCD(false)
 {
@@ -55,6 +56,13 @@ void theAppUI::init()
 
 void theAppUI::buildMenu()
 {
+    /* NINJA MENU */
+    SubNinjaMenuItem* rootMenuItem = new SubNinjaMenuItem(F("Settings"));
+    rootMenuItem->AddSubMenu((new SubNinjaMenuItem(F("PID param")))->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("PID Kp"), _controller->getModel().PID_Kp, 0, 10, 0.1)));
+    rootMenuItem->AddSubMenu(new SubNinjaMenuItem(F("Heat PID param")));
+    rootMenuItem->AddSubMenu(new SubNinjaMenuItem(F("Controller param")));
+    _ninjaMenu.SetRootMenuItem(rootMenuItem);
+    /* NINJA MENU */
     _menu *r,*s1,*s2;
 
     // add menu root item
@@ -116,7 +124,7 @@ void theAppUI::draw()
 
   char lcd_text[34];
 
-  switch(_controller->getModel()._appState.app_state)
+  switch(_controller->getModel().AppState)
   {
     case INIT:
       sprintf(lcd_text, "%s\n\n", "Initializing...");
@@ -136,14 +144,14 @@ void theAppUI::draw()
             return;
         }
 
-        String text = String::format("F:%4.1fC B:%4.1fC", _controller->getModel()._appState.fridgeTemp, _controller->getModel()._appState.beerTemp)
+        String text = String::format("F:%4.1fC B:%4.1fC", _controller->getModel().FridgeTemp, _controller->getModel().BeerTemp)
                         .substring(0,16);
         text.concat("\n");
-        String text2 = String::format("T:%4.1fC", _controller->getModel()._appConfig.setpoint).substring(0, 16);
+        String text2 = String::format("T:%4.1fC", _controller->getModel().SetPoint).substring(0, 16);
         while(text2.length() < 14)
           text2.concat(' ');
 
-        switch(_controller->getModel()._appState.controller_state)
+        switch(_controller->getModel().ControllerState)
         {
           case IDLE:
             text2.concat('I');
@@ -202,10 +210,36 @@ void theAppUI::enterMainMenu()
     _encoder_position = _encoder.read();
     _btn_left.check();
     _btn_right.check();
-    _tempConfig = _controller->getModel()._appConfig;
+    //_tempConfig = _controller->getModel()._appConfig;
     _mainmenu.cur_menu = _mainmenu.root;
     _mainmenu.cur_menu->cur_item = 0;
     _mainmenu.draw();
+}
+
+NinjaMenuNavigation theAppUI::ScanNavigationButtons()
+{
+  long newPosition = _encoder.read();
+
+   if(newPosition > _encoder_position+3)
+   {
+      _encoder_position += 4;
+      return NINJAMENU_LEFT;
+   }
+   if(newPosition < _encoder_position-3)
+   {
+      _encoder_position -= 4;
+      return NINJAMENU_RIGHT;
+   }
+   if(_btn_left.check()==ON)
+   {
+      return NINJAMENU_ENTER;
+   }
+   if(_btn_right.check()==ON)
+   {
+      return NINJAMENU_BACK;
+   }
+
+   return NINJAMENU_NONE;
 }
 
 int theAppUI::scanNavButtons()

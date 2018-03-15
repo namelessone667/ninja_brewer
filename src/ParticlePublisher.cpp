@@ -2,24 +2,24 @@
 #include "theApp.h"
 #include "application.h"
 
-void ParticlePublisher::init(const Model &model)
+void ParticlePublisher::init(const NinjaModel &model)
 {
     Particle.connect();
 
-    Particle.variable("beerTemp", model._appState.beerTemp);
-    Particle.variable("fridgeTemp", model._appState.fridgeTemp);
-    Particle.variable("setpoint", model._appConfig.setpoint);
-    Particle.variable("output", model._appConfig.output);
-    Particle.variable("heat-output", model._appConfig.heatOutput);
-    Particle.variable("pidKp", model._appConfig.pid_Kp);
-    Particle.variable("pidKi", model._appConfig.pid_Ki);
-    Particle.variable("pidKd", model._appConfig.pid_Kd);
-    Particle.variable("heatPidKp", model._appConfig.heatpid_Kp);
-    Particle.variable("heatPidKi", model._appConfig.heatpid_Ki);
-    Particle.variable("heatPidKd", model._appConfig.heatpid_Kd);
-    Particle.variable("pidMode", model._appConfig.pid_mode);
-    Particle.variable("heatPidMode", model._appConfig.heatpid_mode);
-    Particle.variable("standBy", model._appConfig.standBy);
+    Particle.variable("beerTemp", model.BeerTemp.Get());
+    Particle.variable("fridgeTemp", model.FridgeTemp);
+    Particle.variable("setpoint", model.SetPoint);
+    Particle.variable("output", model.Output);
+    Particle.variable("heat-output", model.HeatOutput);
+    Particle.variable("pidKp", model.PID_Kp);
+    Particle.variable("pidKi", model.PID_Ki);
+    Particle.variable("pidKd", model.PID_Kd);
+    Particle.variable("heatPidKp", model.HeatPID_Kp);
+    Particle.variable("heatPidKi", model.HeatPID_Ki);
+    Particle.variable("heatPidKd", model.HeatPID_Kd);
+    Particle.variable("pidMode", model.PIDMode);
+    Particle.variable("heatPidMode", model.HeatPIDMode);
+    Particle.variable("standBy", model.StandBy);
 
     Particle.function("setSetPoint", setNewSetPoint);
     Particle.function("setPIDAuto", setPIDModeAuto);
@@ -33,7 +33,7 @@ void ParticlePublisher::init(const Model &model)
     Particle.function("reinitLCD", reinitLCD);
 }
 
-void ParticlePublisher::publish(const Model &model)
+void ParticlePublisher::publish(const NinjaModel &model)
 {
 
 }

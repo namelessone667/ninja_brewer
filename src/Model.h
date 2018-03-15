@@ -4,15 +4,8 @@
 #include "application.h"
 #include "PID_v1.h"
 #include "CoolerHeaterContoller.h"
-
-enum ApplicationState
-{
-  INIT,
-  RUNNING,
-  STAND_BY,
-  IN_ERROR,
-  UNDEFINED = -1
-};
+#include "EventHandler.h"
+#include "enum.h"
 
 struct AppConfig
 {

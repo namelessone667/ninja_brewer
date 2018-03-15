@@ -1,5 +1,4 @@
 #include "CoolerHeaterContoller.h"
-#include "Model.h"
 
 CoolerHeaterContoller::CoolerHeaterContoller(int cooling_ssr_pin, int heating_ssr_pin)
 {
@@ -25,22 +24,22 @@ CoolerHeaterContoller::CoolerHeaterContoller(int cooling_ssr_pin, int heating_ss
 
 }
 
-void CoolerHeaterContoller::Configure(const AppConfig& config)
+void CoolerHeaterContoller::Configure(const NinjaModel& config)
 {
-  controllerMode = config.controller_mode;
-  idleDiff = config.idleDiff;     // constrain fridge temperature to +/- 0.5 deg C (0.9 deg F) differential
-  peakDiff = config.peakDiff;      // constrain allowed peak error to +/- 0.25 deg C (0.45 deg F) differential
-  coolMinOff = config.coolMinOff;     // minimum compressor off time, seconds (5 min)
-  coolMinOn = config.coolMinOn;    // minimum compressor on time, seconds (1.5 min)
-  coolMaxOn = config.coolMaxOn;     // maximum compressor on time, seconds (45 min)
-  peakMaxTime = config.peakMaxTime;   // maximum runTime to consider for peak estimation, seconds (20 min)
-  peakMaxWait = config.peakMaxWait;   // maximum wait on peak, seconds (30 min)
-  heatMinOff = config.heatMinOff;     // minimum HEAT off time, seconds (5 min)
-  heatWindow = config.heatWindow;  // window size for HEAT time proportioning, ms (5 min)
-  minIdleTime = config.minIdleTime; // minimum idle time between cool -> heat or heat -> cool
-  no_heat_below = config.no_heat_below;
-  no_cool_above = config.no_cool_above;
-  peakEstimator = config.peakEstimator;
+  controllerMode = config.ControllerMode;
+  idleDiff = config.IdleDiff;     // constrain fridge temperature to +/- 0.5 deg C (0.9 deg F) differential
+  peakDiff = config.PeakDiff;      // constrain allowed peak error to +/- 0.25 deg C (0.45 deg F) differential
+  coolMinOff = config.CoolMinOff;     // minimum compressor off time, seconds (5 min)
+  coolMinOn = config.CoolMinOn;    // minimum compressor on time, seconds (1.5 min)
+  coolMaxOn = config.CoolMaxOn;     // maximum compressor on time, seconds (45 min)
+  peakMaxTime = config.PeakMaxTime;   // maximum runTime to consider for peak estimation, seconds (20 min)
+  peakMaxWait = config.PeakMaxWait;   // maximum wait on peak, seconds (30 min)
+  heatMinOff = config.HeatMinOff;     // minimum HEAT off time, seconds (5 min)
+  heatWindow = config.HeatWindow;  // window size for HEAT time proportioning, ms (5 min)
+  minIdleTime = config.MinIdleTime; // minimum idle time between cool -> heat or heat -> cool
+  no_heat_below = config.NoHeatBelow;
+  no_cool_above = config.NoCoolAbove;
+  peakEstimator = config.PeakEstimator;
 
   isConfigured = true;
 }

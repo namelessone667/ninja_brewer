@@ -2,26 +2,14 @@
 #define CoolerHeaterContoller_h
 
 #include "application.h"
+#include "NinjaModel.h"
+#include "enum.h"
 
 //TODO: refactor peakDetect to separate function that will be called from app when a peak is detected
 //TODO: create separate classes for SSR actuators
 //TODO: set heat PID I-term to 0 when goig to IDLE from HEAT
 //TODO: notify the app somehow when controllerState changes
 //TODO: save peakestimator to eeprom when state changes from IDLE, COOL -> IDLE, IDLE
-
-enum opMode {
-  COOLER_HEATER = 0,
-  COOLER_ONLY = 1,
-  HEATER_ONLY = 2
-};
-
-enum opState {  // fridge operation states
-  IDLE,
-  COOL,
-  HEAT,
-};
-
-struct AppConfig;
 
 class CoolerHeaterContoller
 {
@@ -31,7 +19,7 @@ class CoolerHeaterContoller
     void Activate();
     void Disable();
     opState GetState();
-    void Configure(const AppConfig&);
+    void Configure(const NinjaModel&);
   private:
     int _cool_pin;
     int _heat_pin;

@@ -13,8 +13,8 @@ class UbidotsPublisher : public BasePublisher
 {
   public:
     UbidotsPublisher();
-    void init(const Model&);
-    void publish(const Model&);
+    void init(const NinjaModel&);
+    void publish(const NinjaModel&);
   private:
     long _lastPublishTimestamp;
     Ubidots _ubidots;

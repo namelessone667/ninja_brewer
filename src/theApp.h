@@ -10,7 +10,8 @@
 #include "DallasTemperatureProxy.h"
 #include "PublisherProxy.h"
 #include "CoolerHeaterContoller.h"
-#include "PID_v1.h"
+#include "PIDProxy.h"
+#include "NinjaModel.h"
 
 class theApp
 {
@@ -21,7 +22,7 @@ class theApp
         void init();
         void run();
         void setNewAppConfigValues(AppConfig newAppConfig);
-        const Model& getModel();
+        const NinjaModel& getModel();
         void setErrorState(String error_message);
         String getErrorMessage();
         const Logger& getLogger();
@@ -35,7 +36,8 @@ class theApp
         void saveState();
     private:
         theApp();
-        Model _model;
+        //Model _model;
+        NinjaModel _model;
         theAppUI _view;
         OneWire _oneWire;
         DallasTemperatureProxy _tempProxy;
@@ -43,8 +45,8 @@ class theApp
         String _error;
         Logger _log;
         CoolerHeaterContoller _controller;
-        PID _mainPID;
-        PID _heatPID;
+        PIDProxy _mainPID;
+        PIDProxy _heatPID;
 
         long _pid_log_timestamp;
 

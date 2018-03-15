@@ -7,8 +7,8 @@
 class PublisherProxy
 {
   public:
-    void init(const Model&);
-    void publish(const Model&);
+    void init(const NinjaModel&);
+    void publish(const NinjaModel&);
   private:
     std::list<BasePublisher*> _publishers;
 };

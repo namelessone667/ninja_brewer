@@ -1,18 +1,21 @@
 #include "theApp.h"
+#include "DefaultNinjaModelSerializer.h"
+#include "EEPROMNinjaModelSerializer.h"
 
 //TODO create structures to store onewire device addresses
 //TODO implement dynamic onewire device discovery and initialization
 //TODO implement capability to add new onewire devices throug menu
 
 theApp::theApp()
-  : _model(),
+  :
+    _model(),
     _view(this),
     _oneWire(ONE_WIRE_BUS_PIN),
     _tempProxy(&_oneWire),
     _log("ninja_brewer"),
     _controller(COOLER_SSR_PIN, HEATER_SSR_PIN),
-    _mainPID(&_model._appState.beerTemp, &_model._appConfig.output, &_model._appConfig.setpoint, 0, 0, 0, PID_DIRECT),
-    _heatPID(&_model._appState.fridgeTemp, &_model._appConfig.heatOutput, &_model._appConfig.output, 0, 0, 0, PID_DIRECT),
+    _mainPID(_model.BeerTemp, _model.Output, _model.SetPoint, 0, 0, 0, PID_DIRECT),
+    _heatPID(_model.FridgeTemp, _model.HeatOutput, _model.Output, 0, 0, 0, PID_DIRECT),
     _reboot(false)
 {
 
@@ -32,8 +35,15 @@ void theApp::init()
   Particle.connect();
 
   getLogger().info("loading configuration from EEPROM");
-  _model.loadAppConfigFromEEPROM();
-  _model._appState.app_state = INIT;
+  EEPROMNinjaModelSerializer eepromSerializer;
+  DefaultNinjaModelSerializer defaultSerializer;
+
+  if(eepromSerializer.Load(_model) == false)
+  {
+    getLogger().info("loading configuration from EEPROM failed, loading default configuration");
+    defaultSerializer.Load(_model);
+  }
+  _model.AppState = INIT;
   getLogger().info("initializing UI");
   _view.init();
   getLogger().info("initializing sensors");
@@ -52,24 +62,24 @@ void theApp::init()
     return;
   }
 
-  _mainPID.SetTunings(_model._appConfig.pid_Kp, _model._appConfig.pid_Ki, _model._appConfig.pid_Kd);    // set tuning params
+  _mainPID.SetTunings(_model.PID_Kp, _model.PID_Ki, _model.PID_Kd);    // set tuning params
   _mainPID.SetSampleTime(1000);       // (ms) matches sample rate (1 hz)
   _mainPID.SetOutputLimits(MIN_FRIDGE_TEMP, MAX_FRIDE_TEMP);  // deg C (~32.5 - ~100 deg F)
   _mainPID.setOutputType(PID_FILTERED);
   _mainPID.setFilterConstant(1000);
   _mainPID.initHistory();
-  _mainPID.SetMode(_model._appConfig.pid_mode);  // set man/auto
-  _mainPID.SetITerm(_model._appConfig.setpoint);
+  _mainPID.SetMode(_model.PIDMode);  // set man/auto
+  _mainPID.SetITerm(_model.SetPoint);
 
-  _heatPID.SetTunings(_model._appConfig.heatpid_Kp, _model._appConfig.heatpid_Ki, _model._appConfig.heatpid_Kd);
+  _heatPID.SetTunings(_model.HeatPID_Kp, _model.HeatPID_Ki, _model.HeatPID_Kd);
   _heatPID.SetSampleTime(1000);       // sampletime = time proportioning window length
   _heatPID.SetOutputLimits(HEAT_MIN_PERCENT, HEAT_MAX_PERCENT);  // _heatPID output = duty time per window
-  _heatPID.SetMode(_model._appConfig.heatpid_mode);
+  _heatPID.SetMode(_model.HeatPIDMode);
   _heatPID.SetITerm(0);
 
   _publisherProxy.init(_model);
 
-  _controller.Configure(_model._appConfig);
+  _controller.Configure(_model);
 
   getLogger().info("initialization complete");
 }
@@ -79,13 +89,13 @@ void theApp::run()
   if(_reboot)
     System.reset();
 
-  switch(_model._appState.app_state)
+  switch(_model.AppState)
   {
     case INIT:
       //try to read valid temperatures from sensors, when succes set application state to RUNNING
       if(readSensors())
       {
-        _model._appState.app_state = RUNNING;
+        _model.AppState = RUNNING;
         _pid_log_timestamp = millis();
       }
       break;
@@ -98,7 +108,7 @@ void theApp::run()
           setErrorState("Sensor failure");
         }
 
-        if(_model._appConfig.standBy)
+        if(_model.StandBy)
         {
           _controller.Disable();
         }
@@ -107,7 +117,7 @@ void theApp::run()
           _controller.Activate();
 
           if(_mainPID.GetMode() == PID_MANUAL)
-            _model._appConfig.output = _model._appConfig.setpoint;
+            _model.Output = _model.SetPoint;
 
           _mainPID.Compute();
           _heatPID.Compute();
@@ -120,8 +130,8 @@ void theApp::run()
           getLogger().info(String::format("Heat PID p-term: %.4f, Heat PID i-term: %.4f", _heatPID.GetPTerm(), _heatPID.GetITerm()));
         }
 
-        _controller.Update(_model._appState.fridgeTemp, _model._appConfig.setpoint, _model._appConfig.heatOutput, _tempProxy.PeakDetect(FRIDGE_TEMPERATURE));
-        _model._appState.controller_state = _controller.GetState();
+        _controller.Update(_model.FridgeTemp, _model.SetPoint, _model.HeatOutput, _tempProxy.PeakDetect(FRIDGE_TEMPERATURE));
+        _model.ControllerState = _controller.GetState();
         _publisherProxy.publish(_model);
       }
     default:
@@ -142,14 +152,14 @@ bool theApp::readSensors()
   }
   else if(result == 1)
   {
-    _model._appState.fridgeTemp = _tempProxy.GetFilteredTemperature(FRIDGE_TEMPERATURE);
-    _model._appState.beerTemp = _tempProxy.GetFilteredTemperature(BEER_TEMPERATURE);
+    _model.FridgeTemp = _tempProxy.GetFilteredTemperature(FRIDGE_TEMPERATURE);
+    _model.BeerTemp = _tempProxy.GetFilteredTemperature(BEER_TEMPERATURE);
     return true;
   }
   return false;
 }
 
-const Model& theApp::getModel()
+const NinjaModel& theApp::getModel()
 {
   return _model;
 }
@@ -162,14 +172,14 @@ const Logger& theApp::getLogger()
 void theApp::setNewAppConfigValues(AppConfig newAppConfig)
 {
   getLogger().info("saving new configuration to EEPROM");
-  _model._appConfig = newAppConfig;
-  _model.saveAppConfigToEEPROM();
+  //_model._appConfig = newAppConfig;
+  //_model.saveAppConfigToEEPROM();
 }
 
 void theApp::setErrorState(String error_message)
 {
   _error = error_message;
-  _model._appState.app_state = IN_ERROR;
+  _model.AppState = IN_ERROR;
 }
 
 String theApp::getErrorMessage()
@@ -179,23 +189,23 @@ String theApp::getErrorMessage()
 
 void theApp::ActivateController()
 {
-  _model._appConfig.standBy = false;
+  _model.StandBy = false;
   saveState();
 }
 
 void theApp::DisableController()
 {
-  _model._appConfig.standBy = true;
+  _model.StandBy = true;
   saveState();
 }
 
 void theApp::setPID(int pid_mode, double new_output)
 {
   _mainPID.SetMode(pid_mode);
-  _model._appConfig.pid_mode = pid_mode;
+  _model.PIDMode = pid_mode;
   if(pid_mode == PID_MANUAL)
   {
-    _model._appConfig.output = new_output;
+    _model.Output = new_output;
 
   }
   saveState();
@@ -204,17 +214,17 @@ void theApp::setPID(int pid_mode, double new_output)
 void theApp::setHeatPID(int pid_mode, double new_output)
 {
   _heatPID.SetMode(pid_mode);
-  _model._appConfig.heatpid_mode = pid_mode;
+  _model.HeatPIDMode = pid_mode;
   if(pid_mode == PID_MANUAL)
   {
-    _model._appConfig.heatOutput = new_output;
+    _model.HeatOutput = new_output;
   }
   saveState();
 }
 
 void theApp::setNewTargetTemp(double new_setpoint)
 {
-  _model._appConfig.setpoint = new_setpoint;
+  _model.SetPoint = new_setpoint;
   saveState();
 }
 
@@ -230,5 +240,6 @@ void theApp::reinitLCD()
 
 void theApp::saveState()
 {
-  _model.saveAppConfigToEEPROM();
+  EEPROMNinjaModelSerializer serializer;
+  serializer.Save(_model);
 }
