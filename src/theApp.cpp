@@ -159,7 +159,7 @@ bool theApp::readSensors()
   return false;
 }
 
-const NinjaModel& theApp::getModel()
+NinjaModel& theApp::getModel()
 {
   return _model;
 }

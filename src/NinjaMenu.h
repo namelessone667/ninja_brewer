@@ -23,6 +23,8 @@ class NinjaMenuItem
 public:
   virtual void DrawMenuItem(String& buffer) = 0;
   virtual NinjaMenuItem* ExecuteAction(NinjaMenuNavigation navigationStep) = 0;
+  virtual void SaveChanges() = 0;
+  virtual void DiscardChanges() = 0;
 
   NinjaMenuItem(MENU_LABEL menuItemLabel)
   {
@@ -97,8 +99,9 @@ public:
     if(menuItem == NULL)
       return this;
 
-    if(m_current == NULL)
+    if(m_first == NULL)
     {
+      m_first = menuItem;
       m_current = menuItem;
     }
     else
@@ -149,15 +152,37 @@ public:
       buffer.concat('\n');
     }
   }
+
+  void SaveChanges()
+  {
+    NinjaMenuItem* iterator = m_first;
+    while(iterator != NULL)
+    {
+      iterator->SaveChanges();
+      iterator = iterator->GetNextItem();
+    }
+  }
+
+  void DiscardChanges()
+  {
+    NinjaMenuItem* iterator = m_first;
+    while(iterator != NULL)
+    {
+      iterator->DiscardChanges();
+      iterator = iterator->GetNextItem();
+    }
+  }
 private:
   NinjaMenuItem* m_current = NULL;
+  NinjaMenuItem* m_first = NULL;
 };
 
 template<typename T>
 class BindedPropertyNinjaMenuItem : public NinjaMenuItem
 {
+  static_assert(std::is_arithmetic<T>::value, "BindedPropertyNinjaMenuItem can be used only with arithmetic types");
 public:
-  BindedPropertyNinjaMenuItem(MENU_LABEL menuItemLabel, const Property<T>& property, T minValue, T maxValue, T step)
+  BindedPropertyNinjaMenuItem(MENU_LABEL menuItemLabel, Property<T>& property, T minValue, T maxValue, T step)
   : NinjaMenuItem(menuItemLabel), m_bindedProperty(property)
   {
     m_value = property.Get();
@@ -197,19 +222,84 @@ public:
     buffer.concat('\n');
     buffer.concat('[');
     buffer.concat(m_minValue);
-    buffer.concat('] ');
+    buffer.concat("] ");
     buffer.concat(m_value);
-    buffer.concat(' [');
+    buffer.concat(" [");
     buffer.concat(m_maxValue);
     buffer.concat(']');
     buffer.concat('\n');
   }
+
+  void SaveChanges()
+  {
+    m_bindedProperty.Set(m_value);
+  }
+
+  void DiscardChanges()
+  {
+    m_value = m_bindedProperty.Get();
+  }
+
 private:
-  const Property<T>& m_bindedProperty;
+  Property<T>& m_bindedProperty;
   T m_value;
   T m_minValue;
   T m_maxValue;
   T m_step;
+};
+
+template<>
+class BindedPropertyNinjaMenuItem<bool> : public NinjaMenuItem
+{
+public:
+  BindedPropertyNinjaMenuItem(MENU_LABEL menuItemLabel, Property<bool>& property)
+  : NinjaMenuItem(menuItemLabel), m_bindedProperty(property)
+  {
+    m_value = property.Get();
+  }
+
+  NinjaMenuItem* ExecuteAction(NinjaMenuNavigation navigationStep)
+  {
+    switch(navigationStep)
+    {
+      case NINJAMENU_LEFT:
+      case NINJAMENU_RIGHT:
+        m_value = !m_value;
+        return this;
+      case NINJAMENU_ENTER:
+      case NINJAMENU_BACK:
+        if(navigationStep == NINJAMENU_BACK)
+          m_value = m_bindedProperty.Get();
+        if(m_parent != NULL)
+          return m_parent;
+        else
+          return this;
+      default:
+        return this;
+    }
+  }
+
+  void SaveChanges()
+  {
+    m_bindedProperty.Set(m_value);
+  }
+
+  void DiscardChanges()
+  {
+    m_value = m_bindedProperty.Get();
+  }
+
+  void DrawMenuItem(String& buffer)
+  {
+    buffer.concat(m_label);
+    buffer.concat('\n');
+    buffer.concat(m_value ? "ON" : "OFF");
+    buffer.concat('\n');
+  }
+
+private:
+  Property<bool>& m_bindedProperty;
+  bool m_value;
 };
 
 class NinjaMenu
@@ -242,35 +332,58 @@ public:
         return;
       }
 
-      unsigned int current_row = 0;
       String buffer;
       m_current->DrawMenuItem(buffer);
-      m_lcd->setCursor(0,0);
-      while(current_row < m_rows)
-      {
-        int lineEnd = buffer.indexOf('\n');
-        if(lineEnd == -1)
-        {
-          m_lcd->println("----");
-        }
-        else
-        {
-          m_lcd->println(buffer.substring(0, lineEnd < (int)m_cols ? lineEnd : m_cols - 1));
-          buffer = buffer.substring(lineEnd+1);
-        }
-        current_row++;
-      }
 
+      DrawUsrScreen(buffer);
   }
 
   void NavigateMenu(NinjaMenuNavigation navigationStep)
   {
-    m_current = m_current->ExecuteAction(navigationStep);
+    if(m_current != NULL)
+      m_current = m_current->ExecuteAction(navigationStep);
   }
 
   void SetRootMenuItem(SubNinjaMenuItem* rootMenuItem)
   {
       m_current = m_root = rootMenuItem;
+  }
+
+  void DrawUsrScreen(String buffer)
+  {
+    unsigned int current_row = 0;
+    m_lcd->setCursor(0,0);
+    while(current_row < m_rows)
+    {
+      int lineEnd = buffer.indexOf('\n');
+      if(lineEnd == -1)
+      {
+        m_lcd->println("----");
+      }
+      else
+      {
+        m_lcd->println(buffer.substring(0, lineEnd < (int)m_cols ? lineEnd : m_cols - 1));
+        buffer = buffer.substring(lineEnd+1);
+      }
+      current_row++;
+    }
+  }
+
+  void SaveChanges()
+  {
+    if(m_root != NULL)
+      m_root->SaveChanges();
+  }
+
+  void DiscardChanges()
+  {
+    if(m_root != NULL)
+      m_root->DiscardChanges();
+  }
+
+  void Reset()
+  {
+    m_current = m_root;
   }
 private:
   NinjaMenuItem* m_root = NULL;

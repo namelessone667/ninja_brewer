@@ -37,10 +37,8 @@ class theAppUI : public INinjaMenuNavigationHandler
       theApp *_controller;
       Encoder _encoder;
       LiquidCrystal_I2C _lcd;
-      AppConfig _tempConfig;
       Button _btn_left;
       Button _btn_right;
-      menwiz _mainmenu;
       NinjaMenu _ninjaMenu;
       long _encoder_position;
       bool _menuActive;

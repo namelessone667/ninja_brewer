@@ -18,7 +18,6 @@ theAppUI *theAppUI::_helperInstance;
 theAppUI::theAppUI(theApp *controller) :
   _encoder(ENCODER_PIN_A, ENCODER_PIN_B),
   _lcd(0x38, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE),
-  _tempConfig(defaultAppConfig),
   _ninjaMenu(&_lcd, 16,2, this),
   _menuActive(false),
   _reinitLCD(false)
@@ -47,23 +46,26 @@ void theAppUI::init()
     _encoder_position = _encoder.read();
 
     // init LCD
-    _mainmenu.begin(&_lcd,16,2);
+    _ninjaMenu.Begin();
     _lcd.createChar(2, backslash_char);
-    _mainmenu.drawUsrScreen("Initializing...\n\n");
+    _ninjaMenu.DrawUsrScreen("Initializing...\n\n");
 
     theAppUI::buildMenu();
 }
 
 void theAppUI::buildMenu()
 {
+
     /* NINJA MENU */
     SubNinjaMenuItem* rootMenuItem = new SubNinjaMenuItem(F("Settings"));
-    rootMenuItem->AddSubMenu((new SubNinjaMenuItem(F("PID param")))->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("PID Kp"), _controller->getModel().PID_Kp, 0, 10, 0.1)));
+    rootMenuItem->AddSubMenu((new SubNinjaMenuItem(F("PID param")))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("PID Kp"), _controller->getModel().PID_Kp, 0, 10, 0.1)));
     rootMenuItem->AddSubMenu(new SubNinjaMenuItem(F("Heat PID param")));
     rootMenuItem->AddSubMenu(new SubNinjaMenuItem(F("Controller param")));
+    rootMenuItem->AddSubMenu(new BindedPropertyNinjaMenuItem<bool>(F("Stand By"), _controller->getModel().StandBy));
     _ninjaMenu.SetRootMenuItem(rootMenuItem);
     /* NINJA MENU */
-    _menu *r,*s1,*s2;
+    /*_menu *r,*s1,*s2;
 
     // add menu root item
     r = _mainmenu.addMenu(MW_ROOT,NULL,F("Settings"));
@@ -111,7 +113,7 @@ void theAppUI::buildMenu()
     _mainmenu.addMenu(MW_VAR, r, F("Discard changes"))->addVar(MW_ACTION,discardChangesAndExitMenuHelper);
 
     // override menu navigation
-    _mainmenu.addUsrNav(scanNavButtonsHelper, 4);
+    _mainmenu.addUsrNav(scanNavButtonsHelper, 4);*/
 }
 
 void theAppUI::draw()
@@ -128,12 +130,12 @@ void theAppUI::draw()
   {
     case INIT:
       sprintf(lcd_text, "%s\n\n", "Initializing...");
-      _mainmenu.drawUsrScreen(lcd_text);
+      _ninjaMenu.DrawUsrScreen(lcd_text);
       break;
     case RUNNING:
       if(_menuActive)
       {
-        _mainmenu.draw();
+        _ninjaMenu.DrawMenu();
       }
       else
       {
@@ -172,18 +174,18 @@ void theAppUI::draw()
         text.concat("\n");
         text.toCharArray(lcd_text, 34);
 
-        _mainmenu.drawUsrScreen(lcd_text);
+        _ninjaMenu.DrawUsrScreen(lcd_text);
       }
       break;
     case UNDEFINED:
       sprintf(lcd_text, "%s\n%s\n", "ERROR", "UNDEFINED STATE");
-      _mainmenu.drawUsrScreen(lcd_text);
+      _ninjaMenu.DrawUsrScreen(lcd_text);
       break;
     case IN_ERROR:
       char err[16];
       _controller->getErrorMessage().toCharArray(err, 16);
       sprintf(lcd_text, "%s\n%s\n", "ERROR", err);
-      _mainmenu.drawUsrScreen(lcd_text);
+      _ninjaMenu.DrawUsrScreen(lcd_text);
       break;
   }
 
@@ -210,10 +212,9 @@ void theAppUI::enterMainMenu()
     _encoder_position = _encoder.read();
     _btn_left.check();
     _btn_right.check();
-    //_tempConfig = _controller->getModel()._appConfig;
-    _mainmenu.cur_menu = _mainmenu.root;
-    _mainmenu.cur_menu->cur_item = 0;
-    _mainmenu.draw();
+
+    _ninjaMenu.Reset();
+    _ninjaMenu.DrawMenu();
 }
 
 NinjaMenuNavigation theAppUI::ScanNavigationButtons()
@@ -271,12 +272,13 @@ int theAppUI::scanNavButtons()
 
 void theAppUI::saveAndExitMenu()
 {
-  _controller->setNewAppConfigValues(_tempConfig);
+  _ninjaMenu.SaveChanges();
   _menuActive = false;
 }
 
 void theAppUI::discardChangesAndExitMenu()
 {
+  _ninjaMenu.DiscardChanges();
   _menuActive = false;
 }
 

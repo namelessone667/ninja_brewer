@@ -22,7 +22,7 @@ class theApp
         void init();
         void run();
         void setNewAppConfigValues(AppConfig newAppConfig);
-        const NinjaModel& getModel();
+        NinjaModel& getModel();
         void setErrorState(String error_message);
         String getErrorMessage();
         const Logger& getLogger();
