@@ -120,7 +120,7 @@ void theApp::run()
           getLogger().info(String::format("Heat PID p-term: %.4f, Heat PID i-term: %.4f", _heatPID.GetPTerm(), _heatPID.GetITerm()));
         }
 
-        _controller.Update(_model._appState.fridgeTemp, _model._appConfig.setpoint, _model._appConfig.heatOutput, _tempProxy.PeakDetect(FRIDGE_TEMPERATURE));
+        _controller.Update(_model._appState.fridgeTemp, _model._appConfig.output, _model._appConfig.heatOutput, _tempProxy.PeakDetect(FRIDGE_TEMPERATURE));
         _model._appState.controller_state = _controller.GetState();
         _publisherProxy.publish(_model);
       }
