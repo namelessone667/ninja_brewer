@@ -7,19 +7,19 @@ void ParticlePublisher::init(const NinjaModel &model)
     Particle.connect();
 
     Particle.variable("beerTemp", model.BeerTemp.Get());
-    Particle.variable("fridgeTemp", model.FridgeTemp);
-    Particle.variable("setpoint", model.SetPoint);
-    Particle.variable("output", model.Output);
-    Particle.variable("heat-output", model.HeatOutput);
-    Particle.variable("pidKp", model.PID_Kp);
-    Particle.variable("pidKi", model.PID_Ki);
-    Particle.variable("pidKd", model.PID_Kd);
-    Particle.variable("heatPidKp", model.HeatPID_Kp);
-    Particle.variable("heatPidKi", model.HeatPID_Ki);
-    Particle.variable("heatPidKd", model.HeatPID_Kd);
-    Particle.variable("pidMode", model.PIDMode);
-    Particle.variable("heatPidMode", model.HeatPIDMode);
-    Particle.variable("standBy", model.StandBy);
+    Particle.variable("fridgeTemp", model.FridgeTemp.Get());
+    Particle.variable("setpoint", model.SetPoint.Get());
+    Particle.variable("output", model.Output.Get());
+    Particle.variable("heatOutput", model.HeatOutput.Get());
+    Particle.variable("pidKp", model.PID_Kp.Get());
+    Particle.variable("pidKi", model.PID_Ki.Get());
+    Particle.variable("pidKd", model.PID_Kd.Get());
+    Particle.variable("heatPidKp", model.HeatPID_Kp.Get());
+    Particle.variable("heatPidKi", model.HeatPID_Ki.Get());
+    Particle.variable("heatPidKd", model.HeatPID_Kd.Get());
+    Particle.variable("pidMode", model.PIDMode.Get());
+    Particle.variable("heatPidMode", model.HeatPIDMode.Get());
+    Particle.variable("standBy", model.StandBy.Get());
 
     Particle.function("setSetPoint", setNewSetPoint);
     Particle.function("setPIDAuto", setPIDModeAuto);

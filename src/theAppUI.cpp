@@ -58,8 +58,15 @@ void theAppUI::buildMenu()
 
     /* NINJA MENU */
     SubNinjaMenuItem* rootMenuItem = new SubNinjaMenuItem(F("Settings"));
+
+
     rootMenuItem->AddSubMenu((new SubNinjaMenuItem(F("PID param")))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("PID Kp"), _controller->getModel().PID_Kp, 0, 10, 0.1)));
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("PID Kp"), _controller->getModel().PID_Kp, 0, 10, 0.1, 1))
+      ->AddSubMenu((new OptionsPropertyNinjaMenuItem(F("PID Mode"), _controller->getModel().PIDMode))
+        ->AddOption(PID_MANUAL, "MANUAL")
+        ->AddOption(PID_AUTOMATIC, "AUTOMATIC")
+      )
+    );
     rootMenuItem->AddSubMenu(new SubNinjaMenuItem(F("Heat PID param")));
     rootMenuItem->AddSubMenu(new SubNinjaMenuItem(F("Controller param")));
     rootMenuItem->AddSubMenu(new BindedPropertyNinjaMenuItem<bool>(F("Stand By"), _controller->getModel().StandBy));
@@ -124,13 +131,10 @@ void theAppUI::draw()
     _reinitLCD = false;
   }
 
-  char lcd_text[34];
-
   switch(_controller->getModel().AppState)
   {
     case INIT:
-      sprintf(lcd_text, "%s\n\n", "Initializing...");
-      _ninjaMenu.DrawUsrScreen(lcd_text);
+      _ninjaMenu.DrawUsrScreen("Initializing...\n");
       break;
     case RUNNING:
       if(_menuActive)
@@ -146,10 +150,10 @@ void theAppUI::draw()
             return;
         }
 
-        String text = String::format("F:%4.1fC B:%4.1fC", _controller->getModel().FridgeTemp, _controller->getModel().BeerTemp)
+        String text = String::format("F:%4.1fC B:%4.1fC", _controller->getModel().FridgeTemp.Get(), _controller->getModel().BeerTemp.Get())
                         .substring(0,16);
         text.concat("\n");
-        String text2 = String::format("T:%4.1fC", _controller->getModel().SetPoint).substring(0, 16);
+        String text2 = String::format("T:%4.1fC", _controller->getModel().SetPoint.Get()).substring(0, 16);
         while(text2.length() < 14)
           text2.concat(' ');
 
@@ -169,23 +173,17 @@ void theAppUI::draw()
             break;
         }
         text2.concat(getProgressbarSymbol());
-        //text2.setCharAt(10, getProgressbarSymbol());
         text.concat(text2);
         text.concat("\n");
-        text.toCharArray(lcd_text, 34);
 
-        _ninjaMenu.DrawUsrScreen(lcd_text);
+        _ninjaMenu.DrawUsrScreen(text);
       }
       break;
     case UNDEFINED:
-      sprintf(lcd_text, "%s\n%s\n", "ERROR", "UNDEFINED STATE");
-      _ninjaMenu.DrawUsrScreen(lcd_text);
+      _ninjaMenu.DrawUsrScreen("ERROR\nUNDEFINED STATE\n");
       break;
     case IN_ERROR:
-      char err[16];
-      _controller->getErrorMessage().toCharArray(err, 16);
-      sprintf(lcd_text, "%s\n%s\n", "ERROR", err);
-      _ninjaMenu.DrawUsrScreen(lcd_text);
+      _ninjaMenu.DrawUsrScreen("ERROR\n" +  _controller->getErrorMessage() + "\n");
       break;
   }
 

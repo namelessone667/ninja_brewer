@@ -169,13 +169,6 @@ const Logger& theApp::getLogger()
   return _log;
 }
 
-void theApp::setNewAppConfigValues(AppConfig newAppConfig)
-{
-  getLogger().info("saving new configuration to EEPROM");
-  //_model._appConfig = newAppConfig;
-  //_model.saveAppConfigToEEPROM();
-}
-
 void theApp::setErrorState(String error_message)
 {
   _error = error_message;

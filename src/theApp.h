@@ -21,7 +21,6 @@ class theApp
         void operator=(theApp const&)       = delete;
         void init();
         void run();
-        void setNewAppConfigValues(AppConfig newAppConfig);
         NinjaModel& getModel();
         void setErrorState(String error_message);
         String getErrorMessage();
@@ -36,7 +35,6 @@ class theApp
         void saveState();
     private:
         theApp();
-        //Model _model;
         NinjaModel _model;
         theAppUI _view;
         OneWire _oneWire;
