@@ -1,6 +1,8 @@
 #ifndef NinjaMenu_h
 #define NinjaMenu_h
 
+#include <list>
+
 #define MENU_LABEL       const __FlashStringHelper*
 
 enum NinjaMenuNavigation
@@ -25,6 +27,7 @@ public:
   virtual NinjaMenuItem* ExecuteAction(NinjaMenuNavigation navigationStep) = 0;
   virtual void SaveChanges() = 0;
   virtual void DiscardChanges() = 0;
+  virtual void Reset() = 0;
 
   NinjaMenuItem(MENU_LABEL menuItemLabel)
   {
@@ -172,6 +175,11 @@ public:
       iterator = iterator->GetNextItem();
     }
   }
+
+  void Reset()
+  {
+    m_current = m_first;
+  }
 private:
   NinjaMenuItem* m_current = NULL;
   NinjaMenuItem* m_first = NULL;
@@ -225,11 +233,11 @@ public:
     buffer.concat(m_label);
     buffer.concat('\n');
     buffer.concat('[');
-    buffer.concat(String::format("%.*f",m_precision, m_minValue));
+    DrawVariable(buffer, m_minValue);
     buffer.concat("] ");
-    buffer.concat(String::format("%.*f",m_precision, m_tempValue));
+    DrawVariable(buffer, m_tempValue);
     buffer.concat(" [");
-    buffer.concat(String::format("%.*f",m_precision, m_maxValue));
+    DrawVariable(buffer, m_maxValue);
     buffer.concat(']');
     buffer.concat('\n');
   }
@@ -245,7 +253,21 @@ public:
     m_tempValue = m_value;
   }
 
+  void Reset()
+  {
+    DiscardChanges();
+  }
+
 private:
+  void DrawVariable(String& buffer, int var)
+  {
+    buffer.concat(String::format("%.*d",m_precision, var));
+  }
+
+  void DrawVariable(String& buffer, double var)
+  {
+    buffer.concat(String::format("%.*f",m_precision, var));
+  }
   Property<T>& m_bindedProperty;
   T m_value;
   T m_tempValue;
@@ -299,6 +321,11 @@ public:
     m_tempValue = m_value;
   }
 
+  void Reset()
+  {
+    DiscardChanges();
+  }
+
   void DrawMenuItem(String& buffer)
   {
     buffer.concat(m_label);
@@ -313,21 +340,75 @@ private:
   bool m_tempValue;
 };
 
+template<class C>
+class CommandNinjaMenuItem : public NinjaMenuItem
+{
+public:
+  CommandNinjaMenuItem(MENU_LABEL menuItemLabel, C& command)
+  : NinjaMenuItem(menuItemLabel), m_command(command)
+  {
 
+  }
+
+  NinjaMenuItem* ExecuteAction(NinjaMenuNavigation navigationStep)
+  {
+    switch(navigationStep)
+    {
+      case NINJAMENU_LEFT:
+      case NINJAMENU_RIGHT:
+        return this;
+      case NINJAMENU_ENTER:
+        m_command.Execute();
+        return m_parent;
+      case NINJAMENU_BACK:
+        return m_parent;
+      default:
+        return this;
+    }
+  }
+
+  void SaveChanges()
+  {
+
+  }
+
+  void DiscardChanges()
+  {
+
+  }
+
+  void Reset()
+  {
+
+  }
+
+  void DrawMenuItem(String& buffer)
+  {
+    buffer.concat(m_label);
+    buffer.concat('\n');
+    buffer.concat("[Confirm] to run.");
+    buffer.concat('\n');
+  }
+
+private:
+  C& m_command;
+};
+
+template<typename T>
 class OptionsPropertyNinjaMenuItem : public NinjaMenuItem
 {
 public:
-  OptionsPropertyNinjaMenuItem(MENU_LABEL menuItemLabel, Property<int>& property)
+  OptionsPropertyNinjaMenuItem(MENU_LABEL menuItemLabel, Property<T>& property, T defaultValue)
   : NinjaMenuItem(menuItemLabel), m_bindedProperty(property)
   {
-    m_value = -1;
-    m_tempValue = -1;
+    m_value = defaultValue;
+    m_tempValue = defaultValue;
   }
 
-  OptionsPropertyNinjaMenuItem* AddOption(int option, String label)
+  OptionsPropertyNinjaMenuItem* AddOption(T option, String label)
   {
     m_options[option] = label;
-    if(m_value == -1 && m_bindedProperty.Get() == option)
+    if(m_bindedProperty.Get() == option)
     {
       m_value = option;
       m_tempValue = option;
@@ -342,7 +423,7 @@ public:
     {
       case NINJAMENU_LEFT:
       case NINJAMENU_RIGHT:
-        if(m_tempValue == -1)
+        if(i == m_options.end())
         {
           if(m_options.empty() == false)
             m_tempValue = m_options.begin()->first;
@@ -389,6 +470,11 @@ public:
     m_tempValue = m_value;
   }
 
+  void Reset()
+  {
+    DiscardChanges();
+  }
+
   void DrawMenuItem(String& buffer)
   {
     auto i = m_options.find(m_tempValue);
@@ -399,10 +485,10 @@ public:
   }
 
 private:
-  Property<int>& m_bindedProperty;
-  int m_value;
-  int m_tempValue;
-  std::map<int, String> m_options;
+  Property<T>& m_bindedProperty;
+  T m_value;
+  T m_tempValue;
+  std::map<T, String> m_options;
 };
 
 class NinjaMenu
@@ -483,6 +569,7 @@ public:
   void Reset()
   {
     m_current = m_root;
+    m_current->Reset();
   }
 private:
   void PrintLineToLCD(int lineNumber, const String& line)
@@ -500,6 +587,77 @@ private:
   LiquidCrystal_I2C* m_lcd;
   unsigned int m_cols;
   unsigned int m_rows;
+};
+
+class INinjaCommand
+{
+public:
+  virtual void Execute() = 0;
+};
+
+class NinjaMenuCommand : public INinjaCommand
+{
+public:
+  NinjaMenuCommand(NinjaMenu& menu) :
+    m_menu(menu)
+  {
+
+  }
+protected:
+  NinjaMenu& m_menu;
+};
+
+class SaveChangesNinjaMenuCommand : public NinjaMenuCommand
+{
+public:
+  SaveChangesNinjaMenuCommand(NinjaMenu& menu) : NinjaMenuCommand(menu)
+  {
+
+  }
+
+  void Execute()
+  {
+    m_menu.SaveChanges();
+  }
+};
+
+class DiscardChangesNinjaMenuCommand : public NinjaMenuCommand
+{
+public:
+  DiscardChangesNinjaMenuCommand(NinjaMenu& menu) : NinjaMenuCommand(menu)
+  {
+
+  }
+
+  void Execute()
+  {
+    m_menu.DiscardChanges();
+  }
+};
+
+class NinjaCommandChain : INinjaCommand
+{
+public:
+  NinjaCommandChain()
+  {
+
+  }
+
+  NinjaCommandChain* AddCommand(INinjaCommand* command)
+  {
+    m_commands.push_back(command);
+    return this;
+  }
+
+  void Execute()
+  {
+    for(auto it = m_commands.begin(); it != m_commands.end(); ++it)
+    {
+      (*it)->Execute();
+    }
+  }
+private:
+  std::list<INinjaCommand*> m_commands;
 };
 
 #endif

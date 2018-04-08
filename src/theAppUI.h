@@ -21,18 +21,13 @@ class theAppUI : public INinjaMenuNavigationHandler
       void enterMainMenu();
       void reinitLCD();
       NinjaMenuNavigation ScanNavigationButtons();
+      void ExitMenu();
   private:
       void buildMenu();
       void saveAndExitMenu();
       int scanNavButtons();
       void discardChangesAndExitMenu();
       char getProgressbarSymbol();
-
-      static void discardChangesAndExitMenuHelper();
-      static void saveAndExitMenuHelper();
-      static int scanNavButtonsHelper();
-
-      static theAppUI *_helperInstance;
 
       theApp *_controller;
       Encoder _encoder;
@@ -43,6 +38,22 @@ class theAppUI : public INinjaMenuNavigationHandler
       long _encoder_position;
       bool _menuActive;
       bool _reinitLCD;
+};
+
+class ExitMenuCommand : public INinjaCommand
+{
+public:
+  ExitMenuCommand(theAppUI& ui) : m_ui(ui)
+  {
+
+  }
+
+  void Execute()
+  {
+    m_ui.ExitMenu();
+  }
+private:
+  theAppUI& m_ui;
 };
 
 #endif

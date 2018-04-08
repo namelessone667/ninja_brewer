@@ -13,8 +13,6 @@ uint8_t backslash_char[8] = {
     0b00000
 };
 
-theAppUI *theAppUI::_helperInstance;
-
 theAppUI::theAppUI(theApp *controller) :
   _encoder(ENCODER_PIN_A, ENCODER_PIN_B),
   _lcd(0x38, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE),
@@ -22,7 +20,6 @@ theAppUI::theAppUI(theApp *controller) :
   _menuActive(false),
   _reinitLCD(false)
 {
-  _helperInstance = this;
   _controller = controller;
 }
 
@@ -59,68 +56,49 @@ void theAppUI::buildMenu()
     /* NINJA MENU */
     SubNinjaMenuItem* rootMenuItem = new SubNinjaMenuItem(F("Settings"));
 
+    rootMenuItem->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Target temp"), _controller->getModel().SetPoint, 0,30,0.1,1 ));
+    rootMenuItem->AddSubMenu(new BindedPropertyNinjaMenuItem<bool>(F("Stand By"), _controller->getModel().StandBy ));
 
     rootMenuItem->AddSubMenu((new SubNinjaMenuItem(F("PID param")))
       ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("PID Kp"), _controller->getModel().PID_Kp, 0, 10, 0.1, 1))
-      ->AddSubMenu((new OptionsPropertyNinjaMenuItem(F("PID Mode"), _controller->getModel().PIDMode))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("PID Ki"), _controller->getModel().PID_Ki, 0,0.01,0.00001,5))
+      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<int>(F("PID Mode"), _controller->getModel().PIDMode, PID_MANUAL))
         ->AddOption(PID_MANUAL, "MANUAL")
         ->AddOption(PID_AUTOMATIC, "AUTOMATIC")
       )
     );
-    rootMenuItem->AddSubMenu(new SubNinjaMenuItem(F("Heat PID param")));
-    rootMenuItem->AddSubMenu(new SubNinjaMenuItem(F("Controller param")));
-    rootMenuItem->AddSubMenu(new BindedPropertyNinjaMenuItem<bool>(F("Stand By"), _controller->getModel().StandBy));
+    rootMenuItem->AddSubMenu((new SubNinjaMenuItem(F("Heat PID param")))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Heat PID Kp"), _controller->getModel().HeatPID_Kp, 0, 10, 0.1, 1))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Heat PID Ki"), _controller->getModel().HeatPID_Ki, 0,0.1,0.0001,4))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Manual Output"), _controller->getModel().HeatOutput, 0,25,0.5,1))
+      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<int>(F("Heat PID Mode"), _controller->getModel().HeatPIDMode, PID_MANUAL))
+        ->AddOption(PID_MANUAL, "MANUAL")
+        ->AddOption(PID_AUTOMATIC, "AUTOMATIC")
+      )
+    );
+    rootMenuItem->AddSubMenu((new SubNinjaMenuItem(F("Controller param")))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Idle Diff"), _controller->getModel().IdleDiff, 0,5,0.1,1))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Peak Diff"), _controller->getModel().PeakDiff, 0,1,0.01,2))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Cool Min ON"), _controller->getModel().CoolMinOn, 120,600,10,0))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Cool Min OFF"), _controller->getModel().CoolMinOff, 120,600,10,0))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Cool Max ON"), _controller->getModel().CoolMaxOn, 600,7200,60,0))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Peak Max Time"), _controller->getModel().PeakMaxTime, 60,3600,60,0))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Peak Max Wait"), _controller->getModel().PeakMaxWait, 60,3600,60,0))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Heat Min OFF"), _controller->getModel().HeatMinOff, 0,3600,10,0))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Heat Window"), _controller->getModel().HeatWindow, 5,600,1,0))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Idle Min ON"), _controller->getModel().MinIdleTime, 0,3600,10,0))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("No Heat Below"), _controller->getModel().NoHeatBelow, -10,50,1,1))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("No Cool Above"), _controller->getModel().NoCoolAbove, -10,50,1,1))
+      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<opMode>(F("Mode"), _controller->getModel().ControllerMode, COOLER_HEATER))
+        ->AddOption(COOLER_HEATER, "COOL/HEAT")
+        ->AddOption(COOLER_ONLY, "COOL ONLY")
+        ->AddOption(HEATER_ONLY, "HEAT ONLY")
+      )
+    );
+
+    rootMenuItem->AddSubMenu(new CommandNinjaMenuItem<NinjaCommandChain>(F("Save changes"), *((new NinjaCommandChain())->AddCommand(new SaveChangesNinjaMenuCommand(_ninjaMenu))->AddCommand(new ExitMenuCommand(*this)))));
+    rootMenuItem->AddSubMenu(new CommandNinjaMenuItem<NinjaCommandChain>(F("Discard changes"), *((new NinjaCommandChain())->AddCommand(new DiscardChangesNinjaMenuCommand(_ninjaMenu))->AddCommand(new ExitMenuCommand(*this)))));
     _ninjaMenu.SetRootMenuItem(rootMenuItem);
-    /* NINJA MENU */
-    /*_menu *r,*s1,*s2;
-
-    // add menu root item
-    r = _mainmenu.addMenu(MW_ROOT,NULL,F("Settings"));
-
-    _mainmenu.addMenu(MW_VAR, r, F("Target temp"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.setpoint,0,30,0.1,1);
-    _mainmenu.addMenu(MW_VAR, r, F("Stand By"))->addVar(MW_BOOLEAN,&_tempConfig.standBy);
-
-    s1 = _mainmenu.addMenu(MW_SUBMENU, r, F("PID param"));
-    _mainmenu.addMenu(MW_VAR,s1, F("PID Kp"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.pid_Kp,0,10,0.5,1);
-    _mainmenu.addMenu(MW_VAR,s1, F("PID Ki"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.pid_Ki,0,0.01,0.00001,5);
-    s2 = _mainmenu.addMenu(MW_VAR,s1, F("PID Mode"));
-      s2->addVar(MW_LIST,&_tempConfig.pid_mode);
-      s2->addItem(MW_LIST, F("MANUAL"));
-      s2->addItem(MW_LIST, F("AUTO"));
-
-    s1 = _mainmenu.addMenu(MW_SUBMENU, r, F("Heat PID param"));
-    _mainmenu.addMenu(MW_VAR,s1, F("Heat PID Kp"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.heatpid_Kd,0,10,0.5,1);
-    _mainmenu.addMenu(MW_VAR,s1, F("Heat PID Ki"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.heatpid_Ki,0,0.1,0.0001,4);
-    s2=_mainmenu.addMenu(MW_VAR,s1, F("Heat PID Mode"));
-      s2->addVar(MW_LIST,&_tempConfig.heatpid_mode);
-      s2->addItem(MW_LIST, F("MANUAL"));
-      s2->addItem(MW_LIST, F("AUTO"));
-    _mainmenu.addMenu(MW_VAR,s1, F("Manual Output"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.heatOutput,0,25,0.5,1);
-
-    s1 = _mainmenu.addMenu(MW_SUBMENU, r, F("Controller param"));
-    _mainmenu.addMenu(MW_VAR,s1, F("Idle Diff"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.idleDiff,0,5,0.1,1);
-    _mainmenu.addMenu(MW_VAR,s1, F("Peak Diff"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.peakDiff,0,1,0.01,2);
-    _mainmenu.addMenu(MW_VAR,s1, F("Cool Min ON"))->addVar(MW_AUTO_INT,&_tempConfig.coolMinOn,120,600,10);
-    _mainmenu.addMenu(MW_VAR,s1, F("Cool Min OFF"))->addVar(MW_AUTO_INT,&_tempConfig.coolMinOff,120,600,10);
-    _mainmenu.addMenu(MW_VAR,s1, F("Cool Max ON"))->addVar(MW_AUTO_INT,&_tempConfig.coolMaxOn,600,7200,60);
-    _mainmenu.addMenu(MW_VAR,s1, F("Peak Max Time"))->addVar(MW_AUTO_INT,&_tempConfig.peakMaxTime,60,3600,60);
-    _mainmenu.addMenu(MW_VAR,s1, F("Peak Max Wait"))->addVar(MW_AUTO_INT,&_tempConfig.peakMaxWait,60,3600,60);
-    _mainmenu.addMenu(MW_VAR,s1, F("Heat Min OFF"))->addVar(MW_AUTO_INT,&_tempConfig.heatMinOff,0,3600,10);
-    _mainmenu.addMenu(MW_VAR,s1, F("Heat Window"))->addVar(MW_AUTO_INT,&_tempConfig.heatWindow,5,600,1);
-    _mainmenu.addMenu(MW_VAR,s1, F("Idle Min ON"))->addVar(MW_AUTO_INT,&_tempConfig.minIdleTime,0,3600,10);
-    _mainmenu.addMenu(MW_VAR,s1, F("No Heat Below"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.no_heat_below,-10,50,1,1);
-    _mainmenu.addMenu(MW_VAR,s1, F("No Cool Above"))->addVar(MW_AUTO_DOUBLE,&_tempConfig.no_cool_above,-10,50,1,1);
-    s2 = _mainmenu.addMenu(MW_VAR,s1, F("Mode"));
-      s2->addVar(MW_LIST,(int*)(&_tempConfig.controller_mode));
-      s2->addItem(MW_LIST, F("COOL/HEAT"));
-      s2->addItem(MW_LIST, F("COOL ONLY"));
-      s2->addItem(MW_LIST, F("HEAT ONLY"));
-
-    _mainmenu.addMenu(MW_VAR, r, F("Save & Exit"))->addVar(MW_ACTION,saveAndExitMenuHelper);
-    _mainmenu.addMenu(MW_VAR, r, F("Discard changes"))->addVar(MW_ACTION,discardChangesAndExitMenuHelper);
-
-    // override menu navigation
-    _mainmenu.addUsrNav(scanNavButtonsHelper, 4);*/
 }
 
 void theAppUI::draw()
@@ -189,21 +167,6 @@ void theAppUI::draw()
 
 }
 
-void theAppUI::discardChangesAndExitMenuHelper()
-{
-  _helperInstance->discardChangesAndExitMenu();
-}
-
-void theAppUI::saveAndExitMenuHelper()
-{
-  _helperInstance->saveAndExitMenu();
-}
-
-int theAppUI::scanNavButtonsHelper()
-{
-  return _helperInstance->scanNavButtons();
-}
-
 void theAppUI::enterMainMenu()
 {
     _menuActive = true;
@@ -213,6 +176,11 @@ void theAppUI::enterMainMenu()
 
     _ninjaMenu.Reset();
     _ninjaMenu.DrawMenu();
+}
+
+void theAppUI::ExitMenu()
+{
+  _menuActive = false;
 }
 
 NinjaMenuNavigation theAppUI::ScanNavigationButtons()
@@ -239,33 +207,6 @@ NinjaMenuNavigation theAppUI::ScanNavigationButtons()
    }
 
    return NINJAMENU_NONE;
-}
-
-int theAppUI::scanNavButtons()
-{
-
-    long newPosition = _encoder.read();
-
-     if(newPosition > _encoder_position+3)
-     {
-        _encoder_position += 4;
-        return MW_BTD;
-     }
-     if(newPosition < _encoder_position-3)
-     {
-        _encoder_position -= 4;
-        return MW_BTU;
-     }
-     if(_btn_left.check()==ON)
-     {
-        return MW_BTE;
-     }
-     if(_btn_right.check()==ON)
-     {
-        return MW_BTC;
-     }
-
-     return MW_BTNULL;
 }
 
 void theAppUI::saveAndExitMenu()
