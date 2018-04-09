@@ -4,7 +4,6 @@
 #include "application.h"
 #include "globals.h"
 #include "probe.h"
-#include "Model.h"
 #include "theAppUI.h"
 #include "OneWire.h"
 #include "DallasTemperatureProxy.h"

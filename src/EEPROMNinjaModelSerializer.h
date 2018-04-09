@@ -89,6 +89,7 @@ public:
 protected:
   template <typename T> int EEPROMPutInternal( int idx, const T &t )
   {
+    theApp::getInstance().getLogger().info("EEPROMPutInternal address:" + String(idx) + ", " + String(sizeof(T)) + " bytes written");
     EEPROM.put(idx, t);
     return idx + sizeof(T);
   }
@@ -98,6 +99,7 @@ protected:
     T value;
     EEPROM.get(idx, value);
     t = value;
+    theApp::getInstance().getLogger().info("EEPROMGetInternal address:" + String(idx) + ", " + String(sizeof(T)) + " bytes loaded, value: " + String(value));
     return idx + sizeof(T);
   }
 };

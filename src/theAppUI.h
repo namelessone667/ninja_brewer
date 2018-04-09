@@ -1,7 +1,6 @@
 #ifndef theAppUI_h
 #define theAppUI_h
 
-#include "Model.h"
 #include "Encoder.h"
 #include "Buttons.h"
 #include "MENWIZ.h"

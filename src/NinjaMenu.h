@@ -2,6 +2,7 @@
 #define NinjaMenu_h
 
 #include <list>
+#include "Property.h"
 
 #define MENU_LABEL       const __FlashStringHelper*
 

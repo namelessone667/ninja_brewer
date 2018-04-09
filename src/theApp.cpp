@@ -233,6 +233,8 @@ void theApp::reinitLCD()
 
 void theApp::saveState()
 {
+  getLogger().info("Saving state to EEPROM");
   EEPROMNinjaModelSerializer serializer;
   serializer.Save(_model);
+  getLogger().info("Save state to EEPROM - done");
 }
