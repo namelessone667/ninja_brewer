@@ -116,11 +116,15 @@ void theApp::run()
         {
           _controller.Activate();
 
-          if(_mainPID.GetMode() == PID_MANUAL)
-            _model.Output = _model.SetPoint;
-
           _mainPID.Compute();
           _heatPID.Compute();
+
+          //TODO Create Binding _mainPID.output -> _model.Output
+          //TODO Also for heat PID
+          if(_mainPID.GetMode() == PID_MANUAL)
+            _model.Output = _model.SetPoint;
+          else
+            _model.Output = _mainPID.GetOutput();
         }
 
         if(millis() - _pid_log_timestamp > 60000)
@@ -130,7 +134,7 @@ void theApp::run()
           getLogger().info(String::format("Heat PID p-term: %.4f, Heat PID i-term: %.4f", _heatPID.GetPTerm(), _heatPID.GetITerm()));
         }
 
-        _controller.Update(_model.FridgeTemp, _model.SetPoint, _model.HeatOutput, _tempProxy.PeakDetect(FRIDGE_TEMPERATURE));
+        _controller.Update(_model.FridgeTemp, _model.Output, _model.HeatOutput, _tempProxy.PeakDetect(FRIDGE_TEMPERATURE));
         _model.ControllerState = _controller.GetState();
         _publisherProxy.publish(_model);
       }
