@@ -125,6 +125,9 @@ void theApp::run()
             _model.Output = _model.SetPoint;
           else
             _model.Output = _mainPID.GetOutput();
+
+          if(_heatPID.GetMode() == PID_AUTOMATIC)
+            _model.HeatOutput = _heatPID.GetOutput();
         }
 
         if(millis() - _pid_log_timestamp > 60000)
