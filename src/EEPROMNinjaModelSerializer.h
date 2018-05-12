@@ -12,6 +12,8 @@ public:
     byte eeprom_ver = -1;
     EEPROM.get(APP_VERSION_ADDR, eeprom_ver);
 
+    theApp::getInstance().getLogger().info("EEPROM version: " + String(eeprom_ver));
+
     if(eeprom_ver != EEPROM_MAP_VER)
       return false;
 
@@ -44,6 +46,12 @@ public:
     address = EEPROMGetInternal(address, model.NoHeatBelow);     // dont turn on heating when tempretare is bellow this
     address = EEPROMGetInternal(address, model.NoCoolAbove);     // dont turn on cooling when tempretare is abowe this
     address = EEPROMGetInternal(address, model.ControllerMode);
+
+    if(model.HeatWindow == 0)
+    {
+      theApp::getInstance().getLogger().error("EEPROM data corrupted!"); 
+      return false;
+    }
 
     return true;
   }

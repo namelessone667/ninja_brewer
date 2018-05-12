@@ -3,6 +3,6 @@
 
 #define APP_VERSION_ADDR 0
 #define APP_CONFIG_ADDR 10
-#define EEPROM_MAP_VER  7
+#define EEPROM_MAP_VER  8
 
 #endif
