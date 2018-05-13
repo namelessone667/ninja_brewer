@@ -13,7 +13,9 @@ SerialLogHandler logHandler1;
 
 void wd_reboot()
 {
-    theApp::getInstance().saveState();
+    if(theApp::getInstance().getModel().AppState == RUNNING)
+      theApp::getInstance().saveState();
+      
     System.reset();
 }
 

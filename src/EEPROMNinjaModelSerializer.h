@@ -49,7 +49,7 @@ public:
 
     if(model.HeatWindow == 0)
     {
-      theApp::getInstance().getLogger().error("EEPROM data corrupted!"); 
+      theApp::getInstance().getLogger().error("EEPROM data corrupted!");
       return false;
     }
 
@@ -58,6 +58,12 @@ public:
 
   inline bool Save(const NinjaModel& model)
   {
+    if(model.HeatWindow == 0)
+    {
+      theApp::getInstance().getLogger().error("Model data invalid, save to EEPROM not executed!");
+      return false;
+    }
+
     byte eeprom_ver = EEPROM_MAP_VER;
     EEPROM.put(APP_VERSION_ADDR, eeprom_ver);
 

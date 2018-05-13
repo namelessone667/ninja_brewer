@@ -25,7 +25,7 @@ public:
     model.IdleDiff = 0.5;     // constrain fridge temperature to +/- 0.5 deg C (0.9 deg F) differential
     model.PeakDiff = 0.25;      // constrain allowed peak error to +/- 0.25 deg C (0.45 deg F) differential
     model.CoolMinOff = 600;     // minimum compressor off time, seconds (5 min)
-    model.CoolMinOn = 60;  // minimum compressor on time, seconds (1.5 min)
+    model.CoolMinOn = 120;  // minimum compressor on time, seconds (1.5 min)
     model.CoolMaxOn = 2700;     // maximum compressor on time, seconds (45 min)
     model.PeakMaxTime = 1200;   // maximum runTime to consider for peak estimation, seconds (20 min)
     model.PeakMaxWait = 1800;   // maximum wait on peak, seconds (30 min)
