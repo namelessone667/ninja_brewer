@@ -35,6 +35,17 @@ public:
     return m_output;
   }
 
+  void SetOutput(double output)
+  {
+    m_output = output;
+  }
+  //calculate and set ITerm so that Output = SetPopint when mode = AUTOMATIC
+  /*void ResetITerm()
+  {
+    if(inAuto)
+      ITerm = *mySetpoint - PTerm - DTerm;
+  }*/
+
 private:
   double m_input;              // * Pointers to the Input, Output, and Setpoint variables
   double m_output;             //   This creates a hard link between the variables and the

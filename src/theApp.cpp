@@ -116,15 +116,17 @@ void theApp::run()
         {
           _controller.Activate();
 
+          if(_mainPID.GetMode() == PID_MANUAL)
+            _mainPID.SetOutput(_model.SetPoint);
+
           _mainPID.Compute();
           _heatPID.Compute();
 
           //TODO Create Binding _mainPID.output -> _model.Output
-          //TODO Also for heat PID
-          if(_mainPID.GetMode() == PID_MANUAL)
-            _model.Output = _model.SetPoint;
-          else
-            _model.Output = _mainPID.GetOutput();
+          //TODO Also for heat PID          
+          //  _model.Output = _model.SetPoint;
+          //else
+          _model.Output = _mainPID.GetOutput();
 
           if(_heatPID.GetMode() == PID_AUTOMATIC)
             _model.HeatOutput = _heatPID.GetOutput();
@@ -133,7 +135,7 @@ void theApp::run()
         if(millis() - _pid_log_timestamp > 60000)
         {
           _pid_log_timestamp = millis();
-          getLogger().info(String::format("PID p-term: %.4f, PID i-term: %.4f", _mainPID.GetPTerm(), _mainPID.GetITerm()));
+          getLogger().info(String::format("PID p-term: %.4f, PID i-term: %.4f, PID output: %.4f", _mainPID.GetPTerm(), _mainPID.GetITerm(), _mainPID.GetOutput()));
           getLogger().info(String::format("Heat PID p-term: %.4f, Heat PID i-term: %.4f", _heatPID.GetPTerm(), _heatPID.GetITerm()));
         }
 
@@ -203,11 +205,14 @@ void theApp::setPID(int pid_mode, double new_output)
 {
   _mainPID.SetMode(pid_mode);
   _model.PIDMode = pid_mode;
-  if(pid_mode == PID_MANUAL)
+  /*if(pid_mode == PID_MANUAL)
   {
     _model.Output = new_output;
-
-  }
+  }*/
+  /*else
+  {
+    _mainPID.ResetITerm();
+  }*/
   saveState();
 }
 

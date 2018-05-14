@@ -40,43 +40,25 @@ probe::probe(OneWire* onewire, byte address[8])
 }
 
 bool probe::init() {
+  byte data[9];
 
   if(isDeviceOnBus() == false)
-    return false;
-
-  /*int succes_count  = 0;
-  int failed_count = 0;
-
-  while(succes_count < 2)
   {
-      _myWire->reset();
-      _myWire->select(_address);
-      _myWire->write(0x44);
+    //address CRC check failed
+    return false;
+  }
 
-      delay(1000);
+  if(_myWire->reset() == 0)
+  {
+    //no devices on the bus or bus is corrupted
+    return false;
+  }
 
-      _myWire->reset();
-      _myWire->select(_address);
-      _myWire->write(0xBE);
+  _myWire->select(_address);
+  _myWire->write(0xBE);
+  for (int i = 0; i < 9; i++) data[i] = _myWire->read();
+  if (OneWire::crc8(data, 8) != data[8]) return false;  // return false if crc check fails
 
-      if(_myWire->read())
-        succes_count++;
-      else
-        failed_count++;
-
-      if(failed_count > 4)
-        return false;
-  }*/
-  //_myWire->reset();
-  //_myWire->select(_address);
-  //_myWire->write(0x44);
-
-  //delay(1000);
-
-  //if(_updateTemp() == false)
-  //  return false;
-  //_temperature[1] = _temperature[2] = _temperature[3] = _temperature[0];
-  //_filter[0] = _filter[1] = _filter[2] = _filter[3] = _temperature[0];
   return true;
 }
 
