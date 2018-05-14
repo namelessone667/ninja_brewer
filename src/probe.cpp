@@ -182,11 +182,16 @@ boolean probe::_updateTemp() {  // read OneWire device temperature
   double rawRange = rawHigh - rawLow;
 
    _temperature[0] = (((rawtemp - rawLow) * refRange) / rawRange) + refLow;
+
    if(firstRead)
    {
      _temperature[1] = _temperature[2] = _temperature[3] = _temperature[0];
      _filter[0] = _filter[1] = _filter[2] = _filter[3] = _temperature[0];
      firstRead = false;
+   }
+   else if(abs(_temperature[0] - _temperature[0]) > 1)
+   {
+     Log.info(String::format("Temperature read from sensor %f", rawtemp));
    }
   //zpu end - get calibrated temp
     #if DEBUG == true
