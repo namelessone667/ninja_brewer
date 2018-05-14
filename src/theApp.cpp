@@ -120,10 +120,11 @@ void theApp::run()
             _mainPID.SetOutput(_model.SetPoint);
 
           _mainPID.Compute();
-          _heatPID.Compute();
+          if(_model.ControllerState == HEAT)
+            _heatPID.Compute();
 
           //TODO Create Binding _mainPID.output -> _model.Output
-          //TODO Also for heat PID          
+          //TODO Also for heat PID
           //  _model.Output = _model.SetPoint;
           //else
           _model.Output = _mainPID.GetOutput();
