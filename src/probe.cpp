@@ -104,6 +104,14 @@ bool probe::update() {
     if(_updateTemp() == false)
         return false;
     _updateFilter();
+    if(logcounter++ > 3)
+    {
+      logcounter = 0;
+      Log.info(String::format("Sensor %x:%x:%x:%x:%x:%x:%x:%x values %.2f %.2f %.2f %.2f",
+        _address[0],_address[1],_address[2],_address[3],_address[4],_address[5],_address[6],_address[7],
+      _temperature[0],_temperature[1],_temperature[2],_temperature[3]));
+
+    }
     return true;
 }
 
@@ -189,10 +197,7 @@ boolean probe::_updateTemp() {  // read OneWire device temperature
      _filter[0] = _filter[1] = _filter[2] = _filter[3] = _temperature[0];
      firstRead = false;
    }
-   else if(abs(_temperature[0] - _temperature[0]) > 1)
-   {
-     Log.info(String::format("Temperature read from sensor %f", rawtemp));
-   }
+
   //zpu end - get calibrated temp
     #if DEBUG == true
       Serial.print(F("Temperature:"));

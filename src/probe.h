@@ -31,6 +31,7 @@ class probe {
 		double calibrationValueLow;
 		double calibrationValueHigh;
     bool firstRead = true;
+    int logcounter = 0;
 
   public:
     probe(OneWire* onewire);

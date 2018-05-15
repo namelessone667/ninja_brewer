@@ -11,6 +11,7 @@ public:
   virtual int ReadSensor() = 0;
   const T& GetValue()
   {
+    //todo implement value filtering, etc. on this level using templates
     return _value.Get();
   }
 private:
