@@ -9,12 +9,13 @@ class Sensor
 public:
   virtual bool Init() = 0;
   virtual int ReadSensor() = 0;
+  //virtual ~Sensor() = 0;
   const T& GetValue()
   {
     //todo implement value filtering, etc. on this level using templates
     return _value.Get();
   }
-private:
+protected:
   Property<T> _value;
 };
 

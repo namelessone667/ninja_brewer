@@ -6,11 +6,11 @@
 #include "probe.h"
 #include "theAppUI.h"
 #include "OneWire.h"
-#include "DallasTemperatureProxy.h"
 #include "PublisherProxy.h"
 #include "CoolerHeaterContoller.h"
 #include "PIDProxy.h"
 #include "NinjaModel.h"
+#include "DS18B20Sensor.h"
 
 class theApp
 {
@@ -32,20 +32,25 @@ class theApp
         void reboot();
         void reinitLCD();
         void saveState();
+        void switchSensors();
     private:
         theApp();
+        int initSensors();
         NinjaModel _model;
         theAppUI _view;
         OneWire _oneWire;
-        DallasTemperatureProxy _tempProxy;
         PublisherProxy _publisherProxy;
         String _error;
         Logger _log;
         CoolerHeaterContoller _controller;
         PIDProxy _mainPID;
         PIDProxy _heatPID;
+        DS18B20Sensor* _tempSensor1 = NULL;
+        DS18B20Sensor* _tempSensor2 = NULL;
 
         long _pid_log_timestamp;
+        long _sensorDataTimestamp;
+        long _error_timestamp = -1;
 
         bool _reboot;
 

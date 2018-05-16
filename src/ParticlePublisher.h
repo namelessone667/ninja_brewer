@@ -19,6 +19,7 @@ class ParticlePublisher : public BasePublisher
     static int stopControl(String);
     static int saveState(String);
     static int reinitLCD(String);
+    static int switchSensors(String);
 };
 
 #endif

@@ -11,7 +11,6 @@ theApp::theApp()
     _model(),
     _view(this),
     _oneWire(ONE_WIRE_BUS_PIN),
-    _tempProxy(&_oneWire),
     _log("ninja_brewer"),
     _controller(COOLER_SSR_PIN, HEATER_SSR_PIN),
     _mainPID(_model.BeerTemp, _model.Output, _model.SetPoint, 0, 0, 0, PID_DIRECT),
@@ -47,19 +46,14 @@ void theApp::init()
   getLogger().info("initializing UI");
   _view.init();
   getLogger().info("initializing sensors");
-  int result = _tempProxy.Init();
 
-  if(result < 0)
+  int result = initSensors();
+
+  if(result == 0)
   {
       getLogger().code(result).error("failed to initialize OneWire sensors");
       setErrorState("Sensor init fail");
       return;
-  }
-  else if(result != 2)
-  {
-    getLogger().code(result).error(String::format("invalid number of detected sensors: %d, expected 2", result));
-    setErrorState("Inv. sens. count");
-    return;
   }
 
   _mainPID.SetTunings(_model.PID_Kp, _model.PID_Ki, _model.PID_Kd);    // set tuning params
@@ -84,6 +78,66 @@ void theApp::init()
   getLogger().info("initialization complete");
 }
 
+int theApp::initSensors()
+{
+  OneWireAddress sensorAddress;
+  int retries = 10;
+  while(true)
+  {
+    if(retries-- < 0)
+      return 0;
+
+    if(_tempSensor1 != NULL)
+    {
+      delete(_tempSensor1);
+      _tempSensor1 = NULL;
+    }
+    if(_tempSensor2 != NULL)
+    {
+      delete(_tempSensor2);
+      _tempSensor2 = NULL;
+    }
+
+    _oneWire.reset_search();
+
+    if(_oneWire.search(sensorAddress.address) != 1)
+      continue;
+
+    _tempSensor1 = new DS18B20Sensor(sensorAddress, &_oneWire);
+
+    if(_oneWire.search(sensorAddress.address) != 1)
+      continue;
+
+    _tempSensor2 = new DS18B20Sensor(sensorAddress, &_oneWire);
+
+    if(_tempSensor1->Init() && _tempSensor2->Init())
+    {
+      _tempSensor1->SetFiltered(true);
+      _tempSensor2->SetFiltered(true);
+      break;
+    }
+  }
+
+  String addressString;
+  for(int i = 0; i < 8; i++)
+  {
+      addressString += "0x" + String(_tempSensor1->GetAddress().address[i], HEX);
+      if(i < 7)
+       addressString += ",";
+  }
+  getLogger().info("Sensor1 address: " + addressString);
+  addressString = "";
+  for(int i = 0; i < 8; i++)
+  {
+      addressString += "0x" + String(_tempSensor2->GetAddress().address[i], HEX);
+      if(i < 7)
+       addressString += ",";
+  }
+  getLogger().info("Sensor2 address: " + addressString);
+
+  return 1;
+}
+
 void theApp::run()
 {
   if(_reboot)
@@ -97,53 +151,65 @@ void theApp::run()
       {
         _model.AppState = RUNNING;
         _pid_log_timestamp = millis();
+        _sensorDataTimestamp = millis();
       }
       break;
     case RUNNING:
+      if(readSensors())
       {
-        readSensors();
-        if(_tempProxy.GetValidDataAge() > TEMP_ERR_INTERVAL)
-        {
-          getLogger().error(String::format("failed to read valid temperature for %d miliseconds", TEMP_ERR_INTERVAL));
-          setErrorState("Sensor failure");
-        }
-
-        if(_model.StandBy)
-        {
-          _controller.Disable();
-        }
-        else
-        {
-          _controller.Activate();
-
-          if(_mainPID.GetMode() == PID_MANUAL)
-            _mainPID.SetOutput(_model.SetPoint);
-
-          _mainPID.Compute();
-          if(_model.ControllerState == HEAT)
-            _heatPID.Compute();
-
-          //TODO Create Binding _mainPID.output -> _model.Output
-          //TODO Also for heat PID
-          //  _model.Output = _model.SetPoint;
-          //else
-          _model.Output = _mainPID.GetOutput();
-
-          if(_heatPID.GetMode() == PID_AUTOMATIC)
-            _model.HeatOutput = _heatPID.GetOutput();
-        }
-
-        if(millis() - _pid_log_timestamp > 60000)
-        {
-          _pid_log_timestamp = millis();
-          getLogger().info(String::format("PID p-term: %.4f, PID i-term: %.4f, PID output: %.4f", _mainPID.GetPTerm(), _mainPID.GetITerm(), _mainPID.GetOutput()));
-          getLogger().info(String::format("Heat PID p-term: %.4f, Heat PID i-term: %.4f", _heatPID.GetPTerm(), _heatPID.GetITerm()));
-        }
-
-        _controller.Update(_model.FridgeTemp, _model.Output, _model.HeatOutput, _tempProxy.PeakDetect(FRIDGE_TEMPERATURE));
-        _model.ControllerState = _controller.GetState();
-        _publisherProxy.publish(_model);
+        _sensorDataTimestamp = millis();
       }
+      if(millis()-_sensorDataTimestamp > TEMP_ERR_INTERVAL)
+      {
+        getLogger().error(String::format("failed to read valid temperature for %d miliseconds", TEMP_ERR_INTERVAL));
+        setErrorState("Sensor failure");
+      }
+
+      if(_model.StandBy)
+      {
+        _controller.Disable();
+      }
+      else
+      {
+        _controller.Activate();
+
+        if(_mainPID.GetMode() == PID_MANUAL)
+        _mainPID.SetOutput(_model.SetPoint);
+
+        _mainPID.Compute();
+        if(_model.ControllerState == HEAT)
+          _heatPID.Compute();
+
+        //TODO Create Binding _mainPID.output -> _model.Output
+        //TODO Also for heat PID
+        //  _model.Output = _model.SetPoint;
+        //else
+        _model.Output = _mainPID.GetOutput();
+
+        if(_heatPID.GetMode() == PID_AUTOMATIC)
+          _model.HeatOutput = _heatPID.GetOutput();
+      }
+
+      if(millis() - _pid_log_timestamp > 60000)
+      {
+        _pid_log_timestamp = millis();
+        getLogger().info(String::format("PID p-term: %.4f, PID i-term: %.4f, PID output: %.4f", _mainPID.GetPTerm(), _mainPID.GetITerm(), _mainPID.GetOutput()));
+        getLogger().info(String::format("Heat PID p-term: %.4f, Heat PID i-term: %.4f", _heatPID.GetPTerm(), _heatPID.GetITerm()));
+      }
+
+      _controller.Update(_model.FridgeTemp, _model.Output, _model.HeatOutput, _tempSensor1->PeakDetect());
+      _model.ControllerState = _controller.GetState();
+      _publisherProxy.publish(_model);
+      _view.draw();
+      break;
+    case IN_ERROR:
+      if(_error_timestamp < 0)
+        _error_timestamp = millis();
+      else if(millis() - _error_timestamp > 30000)
+        reboot();
+
+      _view.draw();
+      break;
     default:
       _view.draw();
       break;
@@ -153,20 +219,27 @@ void theApp::run()
 
 bool theApp::readSensors()
 {
-  int result = _tempProxy.ReadTemperatures();
-  if(result < 0)
-  {
-    getLogger().code(result).error("failed to read temperature from sensors");
-    //setErrorState(String::format("Sensor fail:%d", result));
-    return false;
-  }
-  else if(result == 1)
-  {
-    _model.FridgeTemp = _tempProxy.GetFilteredTemperature(FRIDGE_TEMPERATURE);
-    _model.BeerTemp = _tempProxy.GetFilteredTemperature(BEER_TEMPERATURE);
-    return true;
-  }
-  return false;
+  int result1 = _tempSensor1->ReadSensor();
+  int result2 = _tempSensor2->ReadSensor();
+
+  /*if(result1 != 0 || result2 != 0)
+    getLogger().info("readSensor result: " + String(result1) + " / " + String(result2) + " / " + String((result1 == 1 && result2 == 1)));*/
+
+  if(result1 == -1)
+    _tempSensor1->Init();
+  else if(result1 == -2)
+    getLogger().code(result1).error("failed to read temperature from sensor 1");
+  else if(result1 == 1)
+    _model.FridgeTemp = _tempSensor1->GetValue();
+
+  if(result2 == -1)
+    _tempSensor2->Init();
+  else if(result2 == -2)
+    getLogger().code(result2).error("failed to read temperature from sensor 2");
+  else if(result2 == 1)
+    _model.BeerTemp = _tempSensor2->GetValue();
+
+  return (result1 == 1 && result2 == 1);
 }
 
 NinjaModel& theApp::getModel()
@@ -250,4 +323,11 @@ void theApp::saveState()
   EEPROMNinjaModelSerializer serializer;
   serializer.Save(_model);
   getLogger().info("Save state to EEPROM - done");
+}
+
+void theApp::switchSensors()
+{
+  DS18B20Sensor *temp = _tempSensor1;
+  _tempSensor1 = _tempSensor2;
+  _tempSensor2 = temp;
 }

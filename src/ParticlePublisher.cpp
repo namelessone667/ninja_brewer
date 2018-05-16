@@ -31,6 +31,8 @@ void ParticlePublisher::init(const NinjaModel &model)
     Particle.function("stopControl", stopControl);
     Particle.function("saveState", saveState);
     Particle.function("reinitLCD", reinitLCD);
+    Particle.function("switchSensor", switchSensors);
+
 }
 
 void ParticlePublisher::publish(const NinjaModel &model)
@@ -108,5 +110,11 @@ int ParticlePublisher::saveState(String args)
 int ParticlePublisher::reinitLCD(String args)
 {
   theApp::getInstance().reinitLCD();
+  return 1;
+}
+
+int ParticlePublisher::switchSensors(String)
+{
+  theApp::getInstance().switchSensors();
   return 1;
 }
