@@ -65,4 +65,29 @@ template<typename T>
 			inline operator T() const { return m_Data; }
   };
 
+template<typename T>
+	class PropertyBinding : public CEventReceiver
+	{
+		private:
+			Property<T>& m_target;
+			Property<T>& m_source;
+
+			void HandleValueChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
+			{
+				m_target.Set(((CValueChangedEventArgs<T>*)EvArgs)->NewValue());
+			}
+
+		public:
+			PropertyBinding(Property<T>& source, Property<T>& target)
+				: m_target(target), m_source(source)
+			{
+					m_source.ValueChanged.Subscribe(this, &PropertyBinding::HandleValueChanged);
+			}
+
+			~PropertyBinding()
+			{
+					m_source.ValueChanged.UnSubscribe(this);
+			}
+	};
+
 #endif
