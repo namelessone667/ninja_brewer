@@ -11,13 +11,28 @@ struct OneWireAddress
   byte address[8];
 
   OneWireAddress& operator=(const OneWireAddress& other)
+  {
+      for(int i = 0; i < 8; i++)
+      {
+        this->address[i] = other.address[i];
+      }
+      return *this;
+  }
+
+  bool operator==(const OneWireAddress &other) const
+  {
+    for(int i = 0; i < 8; i++)
     {
-        for(int i = 0; i < 8; i++)
-        {
-          this->address[i] = other.address[i];
-        }
-        return *this;
+      if(this->address[i] != other.address[i])
+        return false;
     }
+    return true;
+  }
+
+  String ToString() const
+  {
+    return String::format("%x:%x:%x:%x:%x:%x:%x:%x", address[0],address[1],address[2],address[3],address[4],address[5],address[6],address[7]);
+  }
 };
 
 class DS18B20Sensor : public Sensor<double>

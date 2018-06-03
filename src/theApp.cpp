@@ -13,8 +13,8 @@ theApp::theApp()
     _oneWire(ONE_WIRE_BUS_PIN),
     _log("ninja_brewer"),
     _controller(COOLER_SSR_PIN, HEATER_SSR_PIN),
-    _mainPID(_model.BeerTemp, _model.Output, _model.SetPoint, 0, 0, 0, PID_DIRECT),
-    _heatPID(_model.FridgeTemp, _model.HeatOutput, _model.Output, 0, 0, 0, PID_DIRECT),
+    _mainPID(_model.BeerTemp, _model.Output, _model.SetPoint, _model.PID_Kp, _model.PID_Ki, _model.PID_Kd, PID_DIRECT),
+    _heatPID(_model.FridgeTemp, _model.HeatOutput, _model.Output, _model.HeatPID_Kp, _model.HeatPID_Ki, _model.HeatPID_Kd, PID_DIRECT),
     _reboot(false)
 {
 
@@ -56,7 +56,25 @@ void theApp::init()
       return;
   }
 
-  _mainPID.SetTunings(_model.PID_Kp, _model.PID_Ki, _model.PID_Kd);    // set tuning params
+  getLogger().info("Sensor1 address: " + _tempSensor1->GetAddress().ToString());
+  getLogger().info("Sensor2 address: " + _tempSensor2->GetAddress().ToString());
+
+  OneWireAddress lastSensorAddress1 = EEPROMNinjaModelSerializer::LoadSensorAddress(TEMP_SENSOR_ADDR1);
+  OneWireAddress lastSensorAddress2 = EEPROMNinjaModelSerializer::LoadSensorAddress(TEMP_SENSOR_ADDR2);
+
+  getLogger().info("Last sensor1 address: " + lastSensorAddress1.ToString());
+  getLogger().info("Last sensor2 address: " + lastSensorAddress2.ToString());
+
+  if(_tempSensor1->GetAddress() == lastSensorAddress2 && _tempSensor2->GetAddress() == lastSensorAddress1)
+  {
+    switchSensors();
+    getLogger().info("Switching sensors");
+  }
+
+  EEPROMNinjaModelSerializer::SaveSensorAddress(_tempSensor1->GetAddress(), TEMP_SENSOR_ADDR1);
+  EEPROMNinjaModelSerializer::SaveSensorAddress(_tempSensor2->GetAddress(), TEMP_SENSOR_ADDR2);
+
+  //_mainPID.SetTunings(_model.PID_Kp, _model.PID_Ki, _model.PID_Kd);    // set tuning params
   _mainPID.SetSampleTime(1000);       // (ms) matches sample rate (1 hz)
   _mainPID.SetOutputLimits(MIN_FRIDGE_TEMP, MAX_FRIDE_TEMP);  // deg C (~32.5 - ~100 deg F)
   _mainPID.setOutputType(PID_FILTERED);
@@ -65,11 +83,17 @@ void theApp::init()
   _mainPID.SetMode(_model.PIDMode);  // set man/auto
   _mainPID.SetITerm(_model.SetPoint);
 
-  _heatPID.SetTunings(_model.HeatPID_Kp, _model.HeatPID_Ki, _model.HeatPID_Kd);
+  _model.PIDMode.ValueChanged.Subscribe(this, &theApp::handlePIDModeChanged);
+
+  _model.Output.Bind(_mainPID.Output);
+
+  //_heatPID.SetTunings(_model.HeatPID_Kp, _model.HeatPID_Ki, _model.HeatPID_Kd);
   _heatPID.SetSampleTime(1000);       // sampletime = time proportioning window length
   _heatPID.SetOutputLimits(HEAT_MIN_PERCENT, HEAT_MAX_PERCENT);  // _heatPID output = duty time per window
   _heatPID.SetMode(_model.HeatPIDMode);
   _heatPID.SetITerm(0);
+
+  _model.HeatPIDMode.ValueChanged.Subscribe(this, &theApp::handleHeatPIDModeChanged);
 
   _publisherProxy.init(_model);
 
@@ -118,23 +142,6 @@ int theApp::initSensors()
     }
   }
 
-  String addressString;
-  for(int i = 0; i < 8; i++)
-  {
-      addressString += "0x" + String(_tempSensor1->GetAddress().address[i], HEX);
-      if(i < 7)
-       addressString += ",";
-  }
-  getLogger().info("Sensor1 address: " + addressString);
-  addressString = "";
-  for(int i = 0; i < 8; i++)
-  {
-      addressString += "0x" + String(_tempSensor2->GetAddress().address[i], HEX);
-      if(i < 7)
-       addressString += ",";
-  }
-  getLogger().info("Sensor2 address: " + addressString);
-
   return 1;
 }
 
@@ -174,7 +181,7 @@ void theApp::run()
         _controller.Activate();
 
         if(_mainPID.GetMode() == PID_MANUAL)
-        _mainPID.SetOutput(_model.SetPoint);
+        _mainPID.Output = _model.SetPoint;
 
         _mainPID.Compute();
         if(_model.ControllerState == HEAT)
@@ -184,16 +191,16 @@ void theApp::run()
         //TODO Also for heat PID
         //  _model.Output = _model.SetPoint;
         //else
-        _model.Output = _mainPID.GetOutput();
+        //_model.Output = _mainPID.GetOutput();
 
         if(_heatPID.GetMode() == PID_AUTOMATIC)
-          _model.HeatOutput = _heatPID.GetOutput();
+          _model.HeatOutput = _heatPID.Output;
       }
 
       if(millis() - _pid_log_timestamp > 60000)
       {
         _pid_log_timestamp = millis();
-        getLogger().info(String::format("PID p-term: %.4f, PID i-term: %.4f, PID output: %.4f", _mainPID.GetPTerm(), _mainPID.GetITerm(), _mainPID.GetOutput()));
+        getLogger().info(String::format("PID p-term: %.4f, PID i-term: %.4f, PID output: %.4f", _mainPID.GetPTerm(), _mainPID.GetITerm(), _mainPID.Output.Get()));
         getLogger().info(String::format("Heat PID p-term: %.4f, Heat PID i-term: %.4f", _heatPID.GetPTerm(), _heatPID.GetITerm()));
       }
 
@@ -277,22 +284,12 @@ void theApp::DisableController()
 
 void theApp::setPID(int pid_mode, double new_output)
 {
-  _mainPID.SetMode(pid_mode);
   _model.PIDMode = pid_mode;
-  /*if(pid_mode == PID_MANUAL)
-  {
-    _model.Output = new_output;
-  }*/
-  /*else
-  {
-    _mainPID.ResetITerm();
-  }*/
   saveState();
 }
 
 void theApp::setHeatPID(int pid_mode, double new_output)
 {
-  _heatPID.SetMode(pid_mode);
   _model.HeatPIDMode = pid_mode;
   if(pid_mode == PID_MANUAL)
   {
@@ -330,4 +327,17 @@ void theApp::switchSensors()
   DS18B20Sensor *temp = _tempSensor1;
   _tempSensor1 = _tempSensor2;
   _tempSensor2 = temp;
+
+  EEPROMNinjaModelSerializer::SaveSensorAddress(_tempSensor1->GetAddress(), TEMP_SENSOR_ADDR1);
+  EEPROMNinjaModelSerializer::SaveSensorAddress(_tempSensor2->GetAddress(), TEMP_SENSOR_ADDR2);
+}
+
+void theApp::handlePIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
+{
+  _mainPID.SetMode(((CValueChangedEventArgs<int>*)EvArgs)->NewValue());
+}
+
+void theApp::handleHeatPIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
+{
+  _heatPID.SetMode(((CValueChangedEventArgs<int>*)EvArgs)->NewValue());
 }

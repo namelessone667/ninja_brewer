@@ -22,8 +22,13 @@ template<typename T>
 	};
 
 template<typename T>
-	class Property : public CEventSource
+	class Property : public CEventSource, public CEventReceiver
   {
+		private:
+			void HandleValueChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
+			{
+				this->Set(((CValueChangedEventArgs<T>*)EvArgs)->NewValue());
+			}
     protected:
       T m_Data;		// Create the Object for Predefined Types
 
@@ -63,31 +68,16 @@ template<typename T>
 			}
 
 			inline operator T() const { return m_Data; }
+
+			void Bind(Property<T>& source)
+			{
+					source.ValueChanged.Subscribe(this, &Property::HandleValueChanged);
+			}
+
+			void Unbind(Property<T>& source)
+			{
+					source.ValueChanged.UnSubscribe(this);
+			}
   };
-
-template<typename T>
-	class PropertyBinding : public CEventReceiver
-	{
-		private:
-			Property<T>& m_target;
-			Property<T>& m_source;
-
-			void HandleValueChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
-			{
-				m_target.Set(((CValueChangedEventArgs<T>*)EvArgs)->NewValue());
-			}
-
-		public:
-			PropertyBinding(Property<T>& source, Property<T>& target)
-				: m_target(target), m_source(source)
-			{
-					m_source.ValueChanged.Subscribe(this, &PropertyBinding::HandleValueChanged);
-			}
-
-			~PropertyBinding()
-			{
-					m_source.ValueChanged.UnSubscribe(this);
-			}
-	};
 
 #endif

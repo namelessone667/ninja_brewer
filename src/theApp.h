@@ -12,7 +12,7 @@
 #include "NinjaModel.h"
 #include "DS18B20Sensor.h"
 
-class theApp
+class theApp : public CEventReceiver
 {
     public:
         static theApp& getInstance();
@@ -36,6 +36,8 @@ class theApp
     private:
         theApp();
         int initSensors();
+        void handlePIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
+        void handleHeatPIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         NinjaModel _model;
         theAppUI _view;
         OneWire _oneWire;

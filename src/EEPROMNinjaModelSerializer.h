@@ -100,6 +100,29 @@ public:
     return true;
   }
 
+  static bool SaveSensorAddress(const OneWireAddress& sensorAddress, int eeprom_address)
+  {
+    for(int i = 0; i < 8; i++)
+    {
+      theApp::getInstance().getLogger().info("SaveSensorAddress to EEPROM, address:" + String(eeprom_address) + ", " + String(sizeof(sensorAddress.address[i])) + " bytes written, value: " + String(sensorAddress.address[i]));
+      EEPROM.put(eeprom_address, sensorAddress.address[i]);
+      eeprom_address += sizeof(sensorAddress.address[i]);
+    }
+    return true;
+  }
+
+  static OneWireAddress LoadSensorAddress(int eeprom_address)
+  {
+    OneWireAddress sensorAddress;
+    for(int i = 0; i < 8; i++)
+    {
+      EEPROM.get(eeprom_address, sensorAddress.address[i]);
+      theApp::getInstance().getLogger().info("LoadSensorAddress from EEPROM, address:" + String(eeprom_address) + ", " + String(sizeof(sensorAddress.address[i])) + " bytes loaded, value: " + String(sensorAddress.address[i]));
+      eeprom_address += sizeof(sensorAddress.address[i]);
+    }
+    return sensorAddress;
+  }
+
 protected:
   template <typename T> int EEPROMPutInternal( int idx, const T &t )
   {

@@ -212,6 +212,7 @@ NinjaMenuNavigation theAppUI::ScanNavigationButtons()
 void theAppUI::saveAndExitMenu()
 {
   _ninjaMenu.SaveChanges();
+  _controller->saveState();
   _menuActive = false;
 }
 
