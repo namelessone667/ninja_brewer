@@ -76,9 +76,11 @@ void theApp::init()
 
   //_mainPID.SetTunings(_model.PID_Kp, _model.PID_Ki, _model.PID_Kd);    // set tuning params
   _mainPID.SetSampleTime(1000);       // (ms) matches sample rate (1 hz)
-  _mainPID.SetOutputLimits(MIN_FRIDGE_TEMP, MAX_FRIDE_TEMP);  // deg C (~32.5 - ~100 deg F)
+  _mainPID.SetOutputLimits(_model.MinTemperature, _model.MaxTemperature);  // deg C (~32.5 - ~100 deg F)
+
   _mainPID.setOutputType(PID_FILTERED);
   _mainPID.setFilterConstant(1000);
+
   _mainPID.initHistory();
   _mainPID.SetMode(_model.PIDMode);  // set man/auto
   _mainPID.SetITerm(_model.SetPoint);
@@ -89,7 +91,10 @@ void theApp::init()
 
   //_heatPID.SetTunings(_model.HeatPID_Kp, _model.HeatPID_Ki, _model.HeatPID_Kd);
   _heatPID.SetSampleTime(1000);       // sampletime = time proportioning window length
-  _heatPID.SetOutputLimits(HEAT_MIN_PERCENT, HEAT_MAX_PERCENT);  // _heatPID output = duty time per window
+  _heatPID.SetOutputLimits(_model.HeatMinPercent, _model.HeatMaxPercent);  // _heatPID output = duty time per window
+  _heatPID.setOutputType(PID_FILTERED);
+  _heatPID.setFilterConstant(10);
+  _heatPID.initHistory();
   _heatPID.SetMode(_model.HeatPIDMode);
   _heatPID.SetITerm(0);
 
@@ -136,8 +141,13 @@ int theApp::initSensors()
 
     if(_tempSensor1->Init() && _tempSensor2->Init())
     {
+#ifdef HERMS_MODE
+      _tempSensor1->SetFiltered(false);
+      _tempSensor2->SetFiltered(false);
+#else
       _tempSensor1->SetFiltered(true);
       _tempSensor2->SetFiltered(true);
+#endif
       break;
     }
   }
@@ -195,6 +205,8 @@ void theApp::run()
 
         if(_heatPID.GetMode() == PID_AUTOMATIC)
           _model.HeatOutput = _heatPID.Output;
+        else
+          _model.HeatOutput = _model.HeatManualOutputPercent;
       }
 
       if(millis() - _pid_log_timestamp > 60000)
@@ -206,7 +218,11 @@ void theApp::run()
 
       _controller.Update(_model.FridgeTemp, _model.Output, _model.HeatOutput, _tempSensor1->PeakDetect());
       _model.ControllerState = _controller.GetState();
+#ifdef HERMS_MODE
+      _publisherProxy.publish(_model, _heatPID.GetPTerm(), _heatPID.GetITerm(), _heatPID.GetDTerm());
+#else
       _publisherProxy.publish(_model);
+#endif
       _view.draw();
       break;
     case IN_ERROR:
@@ -291,15 +307,18 @@ void theApp::setPID(int pid_mode, double new_output)
 void theApp::setHeatPID(int pid_mode, double new_output)
 {
   _model.HeatPIDMode = pid_mode;
-  if(pid_mode == PID_MANUAL)
+  if(pid_mode == PID_MANUAL && new_output >= _model.HeatMinPercent && new_output <= _model.HeatMaxPercent)
   {
-    _model.HeatOutput = new_output;
+    _model.HeatManualOutputPercent = new_output;
   }
   saveState();
 }
 
 void theApp::setNewTargetTemp(double new_setpoint)
 {
+  if(new_setpoint > _model.MaxTemperature || new_setpoint < _model.MinTemperature)
+    return;
+
   _model.SetPoint = new_setpoint;
   saveState();
 }

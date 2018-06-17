@@ -36,6 +36,11 @@ public:
     Property<double> NoHeatBelow;     // dont turn on heating when tempretare is bellow this
     Property<double> NoCoolAbove;     // dont turn on cooling when tempretare is abowe this
     Property<opMode> ControllerMode;
+    Property<double> MinTemperature;
+    Property<double> MaxTemperature;
+    Property<double> HeatMinPercent;
+    Property<double> HeatMaxPercent;
+    Property<double> HeatManualOutputPercent;
 
     Property<double> FridgeTemp = -127.0; //also input for heatPID
     Property<double> BeerTemp = -127.0; //also Input for mainPID

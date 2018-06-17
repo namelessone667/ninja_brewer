@@ -3,20 +3,23 @@
 
 #define ENABLE_PID
 
-#define MAX_FRIDE_TEMP 35
-#define MIN_FRIDGE_TEMP 2
+//#define MAX_FRIDE_TEMP 35
+//#define MIN_FRIDGE_TEMP 2
 
 #define COOLING_PID_MODE PID_AUTOMATIC
 #define HEATINH_PID_MODE PID_AUTOMATIC
 
-#define HEAT_MIN_PERCENT    0
-#define HEAT_MAX_PERCENT    25
+//#define HEAT_MIN_PERCENT    0
+//#define HEAT_MAX_PERCENT    25
 
 #define PIN_FRIDGE_TEMP V5
 #define PIN_BEER_TEMP V6
 #define PIN_PID_OUTPUT V7
 #define PIN_PID_SETPOINT V8
 #define PIN_HEATPID_OUTPUT V9
+#define HPID_PTERM V10
+#define HPID_ITERM V11
+#define HPID_DTERM V12
 
 #define BLYNK_CONNECT_RETRY 60000
 
@@ -34,5 +37,7 @@
 
 #define COOLER_SSR_PIN A1
 #define HEATER_SSR_PIN A2
+
+#define HERMS_MODE
 
 #endif

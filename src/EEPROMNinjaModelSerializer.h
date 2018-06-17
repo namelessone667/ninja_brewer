@@ -47,6 +47,12 @@ public:
     address = EEPROMGetInternal(address, model.NoCoolAbove);     // dont turn on cooling when tempretare is abowe this
     address = EEPROMGetInternal(address, model.ControllerMode);
 
+    address = EEPROMGetInternal(address, model.MinTemperature);
+    address = EEPROMGetInternal(address, model.MaxTemperature);
+    address = EEPROMGetInternal(address, model.HeatMinPercent);
+    address = EEPROMGetInternal(address, model.HeatMaxPercent);
+    address = EEPROMGetInternal(address, model.HeatManualOutputPercent);
+
     if(model.HeatWindow == 0)
     {
       theApp::getInstance().getLogger().error("EEPROM data corrupted!");
@@ -96,6 +102,12 @@ public:
     address = EEPROMPutInternal(address, model.NoHeatBelow.Get());     // dont turn on heating when tempretare is bellow this
     address = EEPROMPutInternal(address, model.NoCoolAbove.Get());     // dont turn on cooling when tempretare is abowe this
     address = EEPROMPutInternal(address, model.ControllerMode.Get());
+
+    address = EEPROMPutInternal(address, model.MinTemperature.Get());
+    address = EEPROMPutInternal(address, model.MaxTemperature.Get());
+    address = EEPROMPutInternal(address, model.HeatMinPercent.Get());
+    address = EEPROMPutInternal(address, model.HeatMaxPercent.Get());
+    address = EEPROMPutInternal(address, model.HeatManualOutputPercent.Get());
 
     return true;
   }

@@ -8,6 +8,9 @@ class ParticlePublisher : public BasePublisher
   public:
     void init(const NinjaModel&);
     void publish(const NinjaModel&);
+#ifdef HERMS_MODE
+    void publish(const NinjaModel&, double pTerm, double iTerm, double dTerm);
+#endif
 
     static int setNewSetPoint(String);
     static int setPIDModeAuto(String);

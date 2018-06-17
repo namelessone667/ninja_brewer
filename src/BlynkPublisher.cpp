@@ -45,3 +45,17 @@ void BlynkPublisher::publish(const NinjaModel &model)
     _lastPublishTimestamp = now;
   }
 }
+
+#ifdef HERMS_MODE
+void BlynkPublisher::publish(const NinjaModel &model, double pTerm, double iTerm, double dTerm)
+{
+  long timestamp = _lastPublishTimestamp;
+  publish(model);
+  if(_lastPublishTimestamp != timestamp)
+  {
+    Blynk.virtualWrite(HPID_PTERM, pTerm);
+    Blynk.virtualWrite(HPID_ITERM, iTerm);
+    Blynk.virtualWrite(HPID_DTERM, dTerm);
+  }
+}
+#endif

@@ -43,7 +43,7 @@ bool PID::Compute() {
   unsigned long timeChange = (now - lastTime);
   if(timeChange>=SampleTime) {  // compute all the working error variables
     count++;
-    if (count == 10) {
+    if (count == 2) {
       for (int i = 29; i > 0; i--) { History[i] = History[i - 1]; }
       History[0] = *myInput;
       count = 0;
@@ -54,7 +54,7 @@ bool PID::Compute() {
     ITerm += (ki * error);
     if (ITerm > outMax) ITerm= outMax;
       else if (ITerm < outMin) ITerm= outMin;
-    double dInput = (History[0] - History[29]) / (5*60);
+    double dInput = (History[0] - History[29]) / (60);
     PTerm = kp * error;
     DTerm = -kd * dInput;
 

@@ -40,14 +40,18 @@ void ParticlePublisher::publish(const NinjaModel &model)
 
 }
 
+#ifdef HERMS_MODE
+void ParticlePublisher::publish(const NinjaModel&, double pTerm, double iTerm, double dTerm)
+{
+  
+}
+#endif
+
 int ParticlePublisher::setNewSetPoint(String args)
 {
   double setpoint = strtod(args, NULL);
   if(setpoint == 0.0)
     return -1;
-
-  if(setpoint > MAX_FRIDE_TEMP || setpoint < MIN_FRIDGE_TEMP)
-    return 0;
 
   theApp::getInstance().setNewTargetTemp(setpoint);
   return 1;

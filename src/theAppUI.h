@@ -26,7 +26,8 @@ class theAppUI : public INinjaMenuNavigationHandler
       int scanNavButtons();
       void discardChangesAndExitMenu();
       char getProgressbarSymbol();
-
+      String drawDefault();
+      String drawHerms();
       theApp *_controller;
       Encoder _encoder;
       LiquidCrystal_I2C _lcd;

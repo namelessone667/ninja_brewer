@@ -36,6 +36,12 @@ public:
     model.NoCoolAbove = 25;
     model.ControllerMode = COOLER_HEATER;
 
+    model.MinTemperature = 0;
+    model.MaxTemperature = 35;
+    model.HeatMinPercent = 0;
+    model.HeatMaxPercent = 25;
+    model.HeatManualOutputPercent = 10;
+
     //model.FridgeTemp = -127.0; //also input for heatPID
     //model.BeerTemp = -127.0; //also Input for mainPID
     //model.AppState = UNDEFINED;

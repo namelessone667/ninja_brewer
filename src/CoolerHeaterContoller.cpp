@@ -59,7 +59,7 @@ void CoolerHeaterContoller::Update(double currentTemp, double setTemp, double he
     default:
     case IDLE:
       //if we are in IDLE state less than minIdleTime second, stay IDLE
-      if((long)((millis() - stopTime) / 1000) < minIdleTime)
+      if(controllerMode != HEATER_ONLY && ((long)((millis() - stopTime) / 1000) < minIdleTime))
         break;
 
       if (controllerState[1] == IDLE) {   // only switch to HEAT/COOL if not waiting for COOL peak
@@ -70,8 +70,9 @@ void CoolerHeaterContoller::Update(double currentTemp, double setTemp, double he
           //digitalWrite(LED_BUILTIN, HIGH);
           startTime = millis();       // record COOLing start time
         }
-        else if ((currentTemp < setTemp - idleDiff) && (((long)((millis() - stopTime) / 1000) > heatMinOff) || stopTime == 0) &&
-            (currentTemp > no_heat_below) && controllerMode != COOLER_ONLY) {  // switch to HEAT only if temp below IDLE range and min off time met
+        else if (controllerMode == HEATER_ONLY ||
+                ((currentTemp < setTemp - idleDiff) && (((long)((millis() - stopTime) / 1000) > heatMinOff) || stopTime == 0) &&
+                  (currentTemp > no_heat_below) && controllerMode != COOLER_ONLY) ) {  // switch to HEAT only if temp below IDLE range and min off time met
           updatecontrollerState(HEAT);
           //if (programState & 0b010000) heatSetpoint = setTemp;  // update heat PID setpoint if in automatic mode
           //heatSetpoint = setTemp;
@@ -157,7 +158,7 @@ void CoolerHeaterContoller::Update(double currentTemp, double setTemp, double he
         //Serial.println("new PID values computed");
         startTime = millis();
       }*/
-      if (currentTemp > setTemp + idleDiff) {  // temp exceeds setpoint, go to idle to decide if it is time to COOL
+      if (controllerMode != HEATER_ONLY && (currentTemp > setTemp + idleDiff)) {  // temp exceeds setpoint, go to idle to decide if it is time to COOL
         updatecontrollerState(IDLE, IDLE);
         digitalWrite(_heat_pin, /*HIGH*/LOW);
         stopTime = millis();

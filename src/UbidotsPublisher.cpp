@@ -28,3 +28,18 @@ void UbidotsPublisher::publish(const NinjaModel &model)
     _lastPublishTimestamp = now;
   }
 }
+
+#ifdef HERMS_MODE
+void UbidotsPublisher::publish(const NinjaModel &model, double pTerm, double iTerm, double dTerm)
+{
+  long timestamp = _lastPublishTimestamp;
+  publish(model);
+  if(_lastPublishTimestamp != timestamp)
+  {
+    _ubidots.add("pTerm", pTerm);
+    _ubidots.add("iTerm", iTerm);
+    _ubidots.add("dTerm", dTerm);
+    _ubidots.sendAll();
+  }
+}
+#endif
