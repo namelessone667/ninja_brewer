@@ -95,7 +95,7 @@ void theApp::init()
   _heatPID.SetSampleTime(1000);       // sampletime = time proportioning window length
   _heatPID.SetOutputLimits(_model.HeatMinPercent, _model.HeatMaxPercent);  // _heatPID output = duty time per window
   _heatPID.setOutputType(PID_FILTERED);
-  _heatPID.setFilterConstant(100);
+  _heatPID.setFilterConstant(10);
 
   _heatPID.SetMode(_model.HeatPIDMode);
 
