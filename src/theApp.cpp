@@ -85,9 +85,7 @@ void theApp::init()
   _mainPID.setOutputType(PID_FILTERED);
   _mainPID.setFilterConstant(1000);
 
-  _mainPID.initHistory();
   _mainPID.SetMode(_model.PIDMode);  // set man/auto
-  _mainPID.SetITerm(_model.SetPoint);
 
   _model.PIDMode.ValueChanged.Subscribe(this, &theApp::handlePIDModeChanged);
 
@@ -98,9 +96,8 @@ void theApp::init()
   _heatPID.SetOutputLimits(_model.HeatMinPercent, _model.HeatMaxPercent);  // _heatPID output = duty time per window
   _heatPID.setOutputType(PID_FILTERED);
   _heatPID.setFilterConstant(100);
-  _heatPID.initHistory();
+
   _heatPID.SetMode(_model.HeatPIDMode);
-  _heatPID.SetITerm(0);
 
   _model.HeatPIDMode.ValueChanged.Subscribe(this, &theApp::handleHeatPIDModeChanged);
 
@@ -173,6 +170,10 @@ void theApp::run()
         _model.AppState = RUNNING;
         _pid_log_timestamp = millis();
         _sensorDataTimestamp = millis();
+        _mainPID.initHistory();
+        _mainPID.SetITerm(_model.SetPoint);
+        _heatPID.initHistory();
+        _heatPID.SetITerm(0);
       }
       break;
     case RUNNING:
