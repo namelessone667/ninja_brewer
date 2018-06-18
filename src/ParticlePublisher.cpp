@@ -4,6 +4,9 @@
 
 void ParticlePublisher::init(const NinjaModel &model)
 {
+    if(registeredToCloud || !WiFi.ready())
+      return;
+
     Particle.connect();
 
     Particle.variable("beerTemp", model.BeerTemp.Get());
@@ -33,17 +36,19 @@ void ParticlePublisher::init(const NinjaModel &model)
     Particle.function("reinitLCD", reinitLCD);
     Particle.function("switchSensor", switchSensors);
 
+    registeredToCloud = true;
 }
 
 void ParticlePublisher::publish(const NinjaModel &model)
 {
-
+  if(!registeredToCloud)
+    init(model);
 }
 
 #ifdef HERMS_MODE
-void ParticlePublisher::publish(const NinjaModel&, double pTerm, double iTerm, double dTerm)
+void ParticlePublisher::publish(const NinjaModel& model, double pTerm, double iTerm, double dTerm)
 {
-  
+  publish(model);
 }
 #endif
 

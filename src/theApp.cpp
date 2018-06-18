@@ -30,8 +30,12 @@ theApp& theApp::getInstance()
 void theApp::init()
 {
   getLogger().info("initializing...");
-  getLogger().info("connecting to Cloud");
-  Particle.connect();
+
+  if(WiFi.ready())
+  {
+    getLogger().info("connecting to Cloud");
+    Particle.connect();
+  }
 
   getLogger().info("loading configuration from EEPROM");
   EEPROMNinjaModelSerializer eepromSerializer;
@@ -93,7 +97,7 @@ void theApp::init()
   _heatPID.SetSampleTime(1000);       // sampletime = time proportioning window length
   _heatPID.SetOutputLimits(_model.HeatMinPercent, _model.HeatMaxPercent);  // _heatPID output = duty time per window
   _heatPID.setOutputType(PID_FILTERED);
-  _heatPID.setFilterConstant(10);
+  _heatPID.setFilterConstant(100);
   _heatPID.initHistory();
   _heatPID.SetMode(_model.HeatPIDMode);
   _heatPID.SetITerm(0);

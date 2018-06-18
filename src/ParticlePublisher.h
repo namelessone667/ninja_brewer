@@ -5,6 +5,8 @@
 
 class ParticlePublisher : public BasePublisher
 {
+  private:
+    bool registeredToCloud = false;
   public:
     void init(const NinjaModel&);
     void publish(const NinjaModel&);

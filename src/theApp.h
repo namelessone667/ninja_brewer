@@ -36,6 +36,7 @@ class theApp : public CEventReceiver
     private:
         theApp();
         int initSensors();
+        
         void handlePIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         void handleHeatPIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         NinjaModel _model;

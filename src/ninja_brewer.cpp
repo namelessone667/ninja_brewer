@@ -15,7 +15,7 @@ void wd_reboot()
 {
     if(theApp::getInstance().getModel().AppState == RUNNING)
       theApp::getInstance().saveState();
-      
+
     System.reset();
 }
 
@@ -25,7 +25,11 @@ void setup()
 {
     WiFi.connect();
     // wait for WiFi to connect (to be able to log to Papertail)
-    while(!WiFi.ready());
+    long wifi_timeout = 10000;
+    while(!WiFi.ready() || wifi_timeout-- > 0)
+    {
+      delay(1);
+    }
 
     theApp::getInstance().init();
 
