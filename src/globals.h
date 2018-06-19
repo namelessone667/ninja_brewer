@@ -12,6 +12,9 @@
 //#define HEAT_MIN_PERCENT    0
 //#define HEAT_MAX_PERCENT    25
 
+#define PIN_BTN_ON_OFF V0
+#define PIN_NEW_SETPOINT V1
+#define PIN_BTN_SET_NEW_SETPOINT V2
 #define PIN_FRIDGE_TEMP V5
 #define PIN_BEER_TEMP V6
 #define PIN_PID_OUTPUT V7

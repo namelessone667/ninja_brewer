@@ -21,6 +21,8 @@ class BlynkPublisher : public BasePublisher
 #ifdef HERMS_MODE
     void publish(const NinjaModel&, double pTerm, double iTerm, double dTerm);
 #endif
+    static double _newSetPoint;
+    static void setNewSetPoint();
   private:
     long _lastPublishTimestamp;
     long _lastReconnectTimestamp;

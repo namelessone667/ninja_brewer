@@ -2,6 +2,9 @@
 #include "application.h"
 #include "globals.h"
 #include "Blynk.h"
+#include "theApp.h"
+
+double BlynkPublisher::_newSetPoint;
 
 BlynkPublisher::BlynkPublisher()
 {
@@ -13,6 +16,8 @@ void BlynkPublisher::init(const NinjaModel &model)
   Blynk.config(BLYNK_AUTH);
   Blynk.connect(BLYNK_CONNECTION_TIMEOUT*3);
   _lastReconnectTimestamp = millis();
+  _newSetPoint = model.SetPoint;
+  Blynk.virtualWrite(V1, _newSetPoint);
 }
 
 void BlynkPublisher::publish(const NinjaModel &model)
@@ -41,6 +46,7 @@ void BlynkPublisher::publish(const NinjaModel &model)
     Blynk.virtualWrite(PIN_PID_OUTPUT, model.Output);
     Blynk.virtualWrite(PIN_PID_SETPOINT, model.SetPoint);
     Blynk.virtualWrite(PIN_HEATPID_OUTPUT, model.HeatOutput);
+    Blynk.virtualWrite(PIN_BTN_ON_OFF, model.StandBy ? 0 : 1);
 
     _lastPublishTimestamp = now;
   }
@@ -59,3 +65,32 @@ void BlynkPublisher::publish(const NinjaModel &model, double pTerm, double iTerm
   }
 }
 #endif
+
+void BlynkPublisher::setNewSetPoint()
+{
+  theApp::getInstance().setNewTargetTemp(_newSetPoint);
+}
+
+BLYNK_WRITE(V0)
+{
+// button ON/OFF pushed
+  int btn_status = param.asInt();
+  if(btn_status == 1)
+    theApp::getInstance().ActivateController();
+  else
+    theApp::getInstance().DisableController();
+}
+
+BLYNK_WRITE(V1)
+{
+// new setpoint value
+  BlynkPublisher::_newSetPoint = param.asDouble();
+}
+
+BLYNK_WRITE(V2)
+{
+// Set new setpoint button pushed
+  int btn_status = param.asInt();
+  if(btn_status == 1)
+    BlynkPublisher::setNewSetPoint();
+}
