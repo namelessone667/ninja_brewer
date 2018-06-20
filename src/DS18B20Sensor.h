@@ -5,6 +5,8 @@
 #include "probe.h"
 
 #define TEMP_READ_RETRY_COUNT 5
+#define TEMP_INVALID -274.0
+#define TEMP_CONVERSION_NOT_READY 85.0
 
 struct OneWireAddress
 {
@@ -81,10 +83,18 @@ public:
         continue;
 
       _lastUpdate = millis();
-      if(_filtered)
-        _value = _probe->getFilter();
-      else
-        _value = _probe->getTemp();
+
+      if( _lastValue == TEMP_INVALID ||
+          _probe->getTemp() != TEMP_CONVERSION_NOT_READY ||
+          _lastValue == TEMP_CONVERSION_NOT_READY) // workaround for 85.0 sensor glitch (if sensor read 85.0C we ignore this reading for the first cycle)
+      {
+        if(_filtered)
+          _value = _probe->getFilter();
+        else
+          _value = _probe->getTemp();
+      }
+
+      _lastValue = _probe->getTemp();
 
       if(_startConversion == false)
       {
@@ -126,6 +136,7 @@ private:
   bool _startConversionMe = true;
   unsigned long _lastUpdate = 0;
   bool _filtered = false;
+  double _lastValue = TEMP_INVALID;
 };
 
 #endif

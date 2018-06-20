@@ -24,6 +24,7 @@ void BlynkPublisher::publish(const NinjaModel &model)
 {
   if(!WiFi.ready())
     return;
+    
 
   long now = millis();
 
