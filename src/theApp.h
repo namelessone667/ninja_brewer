@@ -11,6 +11,7 @@
 #include "PIDProxy.h"
 #include "NinjaModel.h"
 #include "DS18B20Sensor.h"
+#include "TemperatureProfile.h"
 
 class theApp : public CEventReceiver
 {
@@ -36,7 +37,7 @@ class theApp : public CEventReceiver
     private:
         theApp();
         int initSensors();
-        
+
         void handlePIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         void handleHeatPIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         NinjaModel _model;
@@ -50,6 +51,8 @@ class theApp : public CEventReceiver
         PIDProxy _heatPID;
         DS18B20Sensor* _tempSensor1 = NULL;
         DS18B20Sensor* _tempSensor2 = NULL;
+
+        TemperatureProfile _tempProfile;
 
         long _pid_log_timestamp;
         long _sensorDataTimestamp;

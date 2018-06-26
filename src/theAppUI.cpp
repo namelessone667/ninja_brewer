@@ -63,6 +63,13 @@ void theAppUI::buildMenu()
     rootMenuItem->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Target temp"), _controller->getModel().SetPoint, _controller->getModel().MinTemperature,_controller->getModel().MaxTemperature,0.1,1 ));
     rootMenuItem->AddSubMenu(new BindedPropertyNinjaMenuItem<bool>(F("Stand By"), _controller->getModel().StandBy ));
 
+    //SubNinjaMenuItem* tempProfileSubMenu = new SubNinjaMenuItem(F("Temp profiles"));
+    rootMenuItem->AddSubMenu((new SubNinjaMenuItem(F("Temp profiles")))
+      ->AddSubMenu((new SubNinjaMenuItem(F("View"))))
+      ->AddSubMenu((new SubNinjaMenuItem(F("Add step"))))
+      ->AddSubMenu((new SubNinjaMenuItem(F("Clear"))))
+    );
+
     rootMenuItem->AddSubMenu((new SubNinjaMenuItem(F("PID param")))
       ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("PID Kp"), _controller->getModel().PID_Kp, 0, 10, 0.1, 1))
       ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("PID Ki"), _controller->getModel().PID_Ki, 0,0.01,0.00001,5))
