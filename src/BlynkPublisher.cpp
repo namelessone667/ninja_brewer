@@ -1,8 +1,8 @@
 #include "BlynkPublisher.h"
 #include "application.h"
 #include "globals.h"
-#include "Blynk.h"
 #include "theApp.h"
+#include "Blynk.h"
 
 double BlynkPublisher::_newSetPoint;
 
@@ -18,13 +18,17 @@ void BlynkPublisher::init(const NinjaModel &model)
   _lastReconnectTimestamp = millis();
   _newSetPoint = model.SetPoint;
   Blynk.virtualWrite(V1, _newSetPoint);
+
+  WidgetLED _ledStatus(PIN_STATUS_LED);
+  _ledStatus.off();
+
 }
 
 void BlynkPublisher::publish(const NinjaModel &model)
 {
   if(!WiFi.ready())
     return;
-    
+
 
   long now = millis();
 
@@ -48,6 +52,28 @@ void BlynkPublisher::publish(const NinjaModel &model)
     Blynk.virtualWrite(PIN_PID_SETPOINT, model.SetPoint);
     Blynk.virtualWrite(PIN_HEATPID_OUTPUT, model.HeatOutput);
     Blynk.virtualWrite(PIN_BTN_ON_OFF, model.StandBy ? 0 : 1);
+
+    WidgetLED _ledStatus(PIN_STATUS_LED);
+    if(model.StandBy)
+    {
+      _ledStatus.off();
+    }
+    else
+    {
+      _ledStatus.on();
+      switch(model.ControllerState)
+      {
+        case COOL:
+          Blynk.setProperty(PIN_STATUS_LED, "color", "#00BFFF"); //blue
+          break;
+        case HEAT:
+          Blynk.setProperty(PIN_STATUS_LED, "color", "#D3435C"); //red
+          break;
+        default:
+          Blynk.setProperty(PIN_STATUS_LED, "color", "#F5F5DC"); //beige
+          break;
+      }
+    }
 
     _lastPublishTimestamp = now;
   }
