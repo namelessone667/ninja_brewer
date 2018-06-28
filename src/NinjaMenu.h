@@ -270,6 +270,8 @@ private:
     buffer.concat(String::format("%.*f",m_precision, var));
   }
   Property<T>& m_bindedProperty;
+
+  //TODO: make min and max value also a Property<T> so that it could be binded to another property
   T m_value;
   T m_tempValue;
   T m_minValue;
