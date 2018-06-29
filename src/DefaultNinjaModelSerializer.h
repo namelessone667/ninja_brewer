@@ -22,7 +22,7 @@ public:
     model.HeatPIDMode = PID_MANUAL;
     model.StandBy = true;
 
-    model.IdleDiff = 1.0;     // constrain fridge temperature to +/- 0.5 deg C (0.9 deg F) differential
+    model.IdleDiff = 0.5;     // constrain fridge temperature to +/- 0.5 deg C (0.9 deg F) differential
     model.PeakDiff = 0.25;      // constrain allowed peak error to +/- 0.25 deg C (0.45 deg F) differential
     model.CoolMinOff = 600;     // minimum compressor off time, seconds (5 min)
     model.CoolMinOn = 120;  // minimum compressor on time, seconds (1.5 min)

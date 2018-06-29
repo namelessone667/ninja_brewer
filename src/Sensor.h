@@ -9,7 +9,7 @@ class Sensor
 public:
   virtual bool Init() = 0;
   virtual int ReadSensor() = 0;
-  //virtual ~Sensor() = 0;
+  virtual ~Sensor() = default;
   const T& GetValue()
   {
     //todo implement value filtering, etc. on this level using templates

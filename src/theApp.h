@@ -52,7 +52,7 @@ class theApp : public CEventReceiver
         DS18B20Sensor* _tempSensor1 = NULL;
         DS18B20Sensor* _tempSensor2 = NULL;
 
-        //TemperatureProfile _tempProfile;
+        TemperatureProfile _tempProfile;
 
         long _pid_log_timestamp;
         long _sensorDataTimestamp;

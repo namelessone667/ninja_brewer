@@ -42,6 +42,6 @@
 #define COOLER_SSR_PIN A1
 #define HEATER_SSR_PIN A2
 
-//#define HERMS_MODE
+#define HERMS_MODE
 
 #endif

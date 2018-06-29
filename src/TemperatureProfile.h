@@ -4,6 +4,11 @@
 #include <list>
 #include <time.h>
 
+///////////////////////////////////////////////////////////////////////////////
+/* duration: constant (seconds, minutes, hours, days), manual */
+/* temperature: constant, linear_rise, rise_per_time_unit */
+//////////////////////////////////////////////////////////////////////////////
+
 enum TemperatureProfileStepDuration {
   SECONDS,
   MINUTES,
@@ -11,21 +16,75 @@ enum TemperatureProfileStepDuration {
   DAYS
 };
 
-struct BaseTemperatureProfileStep
+class TemperatureProfile;
+
+class BaseTemperatureProfileStep
 {
+protected:
   double targetTemperature;
-  double duration;
+  double startTemperature;
+  long duration;
   TemperatureProfileStepDuration durationUnit;
+public:
+  BaseTemperatureProfileStep(double temp, long dur, TemperatureProfileStepDuration unit) :
+  targetTemperature(temp), duration(dur), durationUnit(unit)
+  {
+
+  }
+  virtual ~BaseTemperatureProfileStep() = default;
+  double GetTargetTemperature()
+  {
+    return targetTemperature;
+  }
+  double GetDuration()
+  {
+    return duration;
+  }
+  TemperatureProfileStepDuration GetDurationUnit()
+  {
+    return durationUnit;
+  }
+  long GetDurationInSeconds()
+  {
+    switch(durationUnit)
+    {
+      case MINUTES:
+        return duration * 60;
+      case HOURS:
+        return duration * 60*60;
+      case DAYS:
+        return duration * 24*60*60;
+      default:
+        return duration;
+    }
+  }
+  void SetStartTemperature(double temp)
+  {
+    startTemperature = temp;
+  }
+  double GetStartTemperature()
+  {
+    return startTemperature;
+  }
+
   virtual double getCurrentTargetTemperature(long currentDuration) = 0;
 };
 
 template<typename ProfileType>
-struct TemperatureProfileStep : BaseTemperatureProfileStep
+class TemperatureProfileStep : public BaseTemperatureProfileStep
 {
+  TemperatureProfileStep(double temp, long dur, TemperatureProfileStepDuration unit) :
+  BaseTemperatureProfileStep(temp, dur, unit)
+  {
+
+  }
+
   double getCurrentTargetTemperature(long currentDuration)
   {
     return ProfileType::getCurrentTargetTemperature(this, currentDuration);
   }
+
+  friend TemperatureProfile;
 };
 
 class ConstantTemperatureProfileStepType
@@ -33,7 +92,20 @@ class ConstantTemperatureProfileStepType
 public:
   static double getCurrentTargetTemperature(TemperatureProfileStep<ConstantTemperatureProfileStepType> *step, long duration)
   {
-    return step->targetTemperature;
+    return step->GetTargetTemperature();
+  }
+};
+
+class LinearTemperatureProfileStepType
+{
+public:
+  static double getCurrentTargetTemperature(TemperatureProfileStep<LinearTemperatureProfileStepType> *step, long duration)
+  {
+    long stepDuration = step->GetDurationInSeconds();
+    if(duration >= stepDuration)
+      return step->GetTargetTemperature();
+
+    return step->GetStartTemperature() + (step->GetTargetTemperature()-step->GetStartTemperature())*(duration/stepDuration);
   }
 };
 
@@ -47,13 +119,17 @@ public:
 
   void ClearProfile()
   {
-    _profileSteps.clear();
+    while(!_profileSteps.empty())
+    {
+      delete(_profileSteps.front());
+    }
     _currentStep = _profileSteps.end();
   }
 
-  void AddProfileStep(BaseTemperatureProfileStep *newStep)
+  template<typename ProfileType>
+  void AddProfileStep(double temp, long dur, TemperatureProfileStepDuration unit)
   {
-    _profileSteps.push_back(newStep);
+    _profileSteps.push_back(new TemperatureProfileStep<ProfileType>(temp, dur, unit));
   }
 
   bool ActivateTemperatureProfile()
@@ -65,8 +141,10 @@ public:
       return false;
 
     _currentStep = _profileSteps.begin();
+    (*_currentStep)->SetStartTemperature((*_currentStep)->GetTargetTemperature());
     _currentStepStartTimestamp = Time.now();
     _isActive = true;
+    return true;
   }
 
   void DeactivateTemperatureProfile()
@@ -84,35 +162,23 @@ public:
     if(_isActive == false)
       return false;
 
-    double currentDuration = difftime(Time.now(), _currentStepStartTimestamp);
-    double duration = (*_currentStep)->duration;
-    switch((*_currentStep)->durationUnit)
-    {
-      case MINUTES:
-        duration *= 60;
-        break;
-      case HOURS:
-        duration *= 60*60;
-        break;
-      case DAYS:
-        duration *= 24*60*60;
-        break;
-      default:
-        break;
-    }
+    long currentDuration = difftime(Time.now(), _currentStepStartTimestamp);
+    double duration = (*_currentStep)->GetDurationInSeconds();
     if(currentDuration > duration)
     {
-      if(_currentStep != _profileSteps.end())
+      if(std::next(_currentStep,1) != _profileSteps.end())
       {
+        double startTemp = (*_currentStep)->GetTargetTemperature();
         ++_currentStep;
         _currentStepStartTimestamp += duration;
         currentDuration -= duration;
+        (*_currentStep)->SetStartTemperature(startTemp);
         return GetCurrentTargetTemperature(targetTemperature);
       }
       else
       {
-        targetTemperature = (*_currentStep)->targetTemperature;
-        return false;
+        targetTemperature = (*_currentStep)->getCurrentTargetTemperature(currentDuration);
+        return true;
       }
     }
     else
