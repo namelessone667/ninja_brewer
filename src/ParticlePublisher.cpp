@@ -23,6 +23,8 @@ void ParticlePublisher::init(const NinjaModel &model)
     Particle.variable("pidMode", model.PIDMode.Get());
     Particle.variable("heatPidMode", model.HeatPIDMode.Get());
     Particle.variable("standBy", model.StandBy.Get());
+    Particle.variable("profileTemp", model.TempProfileTemperature.Get());
+
 
     Particle.function("setSetPoint", setNewSetPoint);
     Particle.function("setPIDAuto", setPIDModeAuto);
@@ -35,6 +37,7 @@ void ParticlePublisher::init(const NinjaModel &model)
     Particle.function("saveState", saveState);
     Particle.function("reinitLCD", reinitLCD);
     Particle.function("switchSensor", switchSensors);
+
 
     registeredToCloud = true;
 }

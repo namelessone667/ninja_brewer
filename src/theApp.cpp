@@ -18,9 +18,9 @@ theApp::theApp()
     _reboot(false)
 {
   //debug TemperatureProfile
-  _tempProfile.AddProfileStep<ConstantTemperatureProfileStepType>(20.0, 60, SECONDS);
-  _tempProfile.AddProfileStep<LinearTemperatureProfileStepType>(30.0, 120, SECONDS);
-  _tempProfile.ActivateTemperatureProfile();
+  //_tempProfile.AddProfileStep<ConstantTemperatureProfileStepType>(20.0, 20, SECONDS);
+  //_tempProfile.AddProfileStep<LinearTemperatureProfileStepType>(30.0, 240, SECONDS);
+
   //debug end
 }
 
@@ -181,6 +181,10 @@ void theApp::run()
       }
       break;
     case RUNNING:
+
+      //if(!_tempProfile.IsActiveTemperatureProfile())
+      //  _tempProfile.ActivateTemperatureProfile();
+
       if(readSensors())
       {
         _sensorDataTimestamp = millis();
@@ -189,6 +193,17 @@ void theApp::run()
       {
         getLogger().error(String::format("failed to read valid temperature for %d miliseconds", TEMP_ERR_INTERVAL));
         setErrorState("Sensor failure");
+      }
+
+      // Temperature profile functionality
+      if(_tempProfile.IsActiveTemperatureProfile())
+      {
+        double temp;
+        if(_tempProfile.GetCurrentTargetTemperature(temp))
+        {
+          _model.TempProfileTemperature = temp;
+          _model.SetPoint = temp;
+        }
       }
 
       if(_model.StandBy)
@@ -218,12 +233,12 @@ void theApp::run()
           _model.HeatOutput = _model.HeatManualOutputPercent;
       }
 
-      if(millis() - _pid_log_timestamp > 60000)
+      /*if(millis() - _pid_log_timestamp > 60000)
       {
         _pid_log_timestamp = millis();
         getLogger().info(String::format("PID p-term: %.4f, PID i-term: %.4f, PID output: %.4f", _mainPID.GetPTerm(), _mainPID.GetITerm(), _mainPID.Output.Get()));
         getLogger().info(String::format("Heat PID p-term: %.4f, Heat PID i-term: %.4f", _heatPID.GetPTerm(), _heatPID.GetITerm()));
-      }
+      }*/
 
       _controller.Update(_model.FridgeTemp, _model.Output, _model.HeatOutput, _tempSensor1->PeakDetect());
       _model.ControllerState = _controller.GetState();
@@ -368,4 +383,9 @@ void theApp::handlePIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* E
 void theApp::handleHeatPIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
 {
   _heatPID.SetMode(((CValueChangedEventArgs<int>*)EvArgs)->NewValue());
+}
+
+TemperatureProfile& theApp::getTemperatureProfile()
+{
+  return _tempProfile;
 }

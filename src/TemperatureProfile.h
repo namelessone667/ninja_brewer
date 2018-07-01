@@ -10,10 +10,10 @@
 //////////////////////////////////////////////////////////////////////////////
 
 enum TemperatureProfileStepDuration {
-  SECONDS,
-  MINUTES,
-  HOURS,
-  DAYS
+  SECONDS = 1,
+  MINUTES = 2,
+  HOURS = 3,
+  DAYS = 4
 };
 
 class TemperatureProfile;
@@ -92,6 +92,7 @@ class ConstantTemperatureProfileStepType
 public:
   static double getCurrentTargetTemperature(TemperatureProfileStep<ConstantTemperatureProfileStepType> *step, long duration)
   {
+    //Log.info(String::format("ConstantTemperatureProfileStepType duration: %d s,  %.2f C", duration, step->GetTargetTemperature()));
     return step->GetTargetTemperature();
   }
 };
@@ -105,7 +106,9 @@ public:
     if(duration >= stepDuration)
       return step->GetTargetTemperature();
 
-    return step->GetStartTemperature() + (step->GetTargetTemperature()-step->GetStartTemperature())*(duration/stepDuration);
+    double temp = step->GetStartTemperature() + (step->GetTargetTemperature()-step->GetStartTemperature())*((double)duration/(double)stepDuration);
+    //Log.info(String::format("LinearTemperatureProfileStepType duration: %d s,  %.2f C, step duration: %d s, start temp: %.2f C", duration, temp, stepDuration, step->GetStartTemperature()));
+    return temp;
   }
 };
 
@@ -119,9 +122,12 @@ public:
 
   void ClearProfile()
   {
+    DeactivateTemperatureProfile();
     while(!_profileSteps.empty())
     {
       delete(_profileSteps.front());
+      _profileSteps.pop_front();
+
     }
     _currentStep = _profileSteps.end();
   }

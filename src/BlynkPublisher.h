@@ -3,6 +3,7 @@
 
 #include "BasePublisher.h"
 #include "secrets.h"
+#include "TemperatureProfile.h"
 
 #ifdef HERMS_MODE
 #define BLYNK_PUBLISH_INTERVAL 10000
@@ -22,7 +23,16 @@ class BlynkPublisher : public BasePublisher
     void publish(const NinjaModel&, double pTerm, double iTerm, double dTerm);
 #endif
     static double _newSetPoint;
+    static double _stepTemperature;
+    static long _stepDuration;
+    static TemperatureProfileStepDuration _stepDurationUnit;
+    static int _id;
+    static int _stepType;
     static void setNewSetPoint();
+    static void addTemperatureProfileStep();
+    static void clearTemperatureProfile();
+    static void activateTemperatureProfile();
+    static void disableTemperatureProfile();
   private:
     long _lastPublishTimestamp;
     long _lastReconnectTimestamp;

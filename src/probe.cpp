@@ -104,6 +104,7 @@ bool probe::update() {
     if(_updateTemp() == false)
         return false;
     _updateFilter();
+#if DEBUG == true
     if(logcounter++ > 3)
     {
       logcounter = 0;
@@ -112,6 +113,7 @@ bool probe::update() {
       _temperature[0],_temperature[1],_temperature[2],_temperature[3]));
 
     }
+#endif
     return true;
 }
 

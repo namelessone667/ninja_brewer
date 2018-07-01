@@ -47,6 +47,8 @@ public:
     Property<opState> ControllerState = IDLE;
     Property<ApplicationState> AppState = UNDEFINED;
 
+    Property<double> TempProfileTemperature;
+
 };
 
 #endif

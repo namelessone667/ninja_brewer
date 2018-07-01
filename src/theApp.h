@@ -34,6 +34,7 @@ class theApp : public CEventReceiver
         void reinitLCD();
         void saveState();
         void switchSensors();
+        TemperatureProfile& getTemperatureProfile();
     private:
         theApp();
         int initSensors();
