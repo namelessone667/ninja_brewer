@@ -16,6 +16,11 @@ enum TemperatureProfileStepDuration {
   DAYS = 4
 };
 
+enum TemperatureProfileStepType {
+  CONSTANT = 1,
+  LINEAR = 2
+};
+
 class TemperatureProfile;
 
 class BaseTemperatureProfileStep
@@ -32,6 +37,8 @@ public:
 
   }
   virtual ~BaseTemperatureProfileStep() = default;
+  virtual TemperatureProfileStepType GetTemperatureProfileStepType() = 0;
+
   double GetTargetTemperature()
   {
     return targetTemperature;
@@ -85,6 +92,12 @@ class TemperatureProfileStep : public BaseTemperatureProfileStep
   }
 
   friend TemperatureProfile;
+
+public:
+  TemperatureProfileStepType GetTemperatureProfileStepType()
+  {
+    return ProfileType::getTemperatureProfileStepType();
+  }
 };
 
 class ConstantTemperatureProfileStepType
@@ -94,6 +107,11 @@ public:
   {
     //Log.info(String::format("ConstantTemperatureProfileStepType duration: %d s,  %.2f C", duration, step->GetTargetTemperature()));
     return step->GetTargetTemperature();
+  }
+
+  static TemperatureProfileStepType getTemperatureProfileStepType()
+  {
+    return CONSTANT;
   }
 };
 
@@ -110,6 +128,10 @@ public:
     //Log.info(String::format("LinearTemperatureProfileStepType duration: %d s,  %.2f C, step duration: %d s, start temp: %.2f C", duration, temp, stepDuration, step->GetStartTemperature()));
     return temp;
   }
+  static TemperatureProfileStepType getTemperatureProfileStepType()
+  {
+    return LINEAR;
+  }
 };
 
 class TemperatureProfile
@@ -118,6 +140,7 @@ public:
   TemperatureProfile()
   {
     _currentStep = _profileSteps.end();
+    _currentStepIndex = 0;
   }
 
   void ClearProfile()
@@ -130,6 +153,7 @@ public:
 
     }
     _currentStep = _profileSteps.end();
+    _currentStepIndex = 0;
   }
 
   template<typename ProfileType>
@@ -147,6 +171,7 @@ public:
       return false;
 
     _currentStep = _profileSteps.begin();
+    _currentStepIndex = 0;
     (*_currentStep)->SetStartTemperature((*_currentStep)->GetTargetTemperature());
     _currentStepStartTimestamp = Time.now();
     _isActive = true;
@@ -158,7 +183,7 @@ public:
     _isActive = false;
   }
 
-  bool IsActiveTemperatureProfile()
+  bool IsActiveTemperatureProfile() const
   {
     return _isActive;
   }
@@ -176,6 +201,7 @@ public:
       {
         double startTemp = (*_currentStep)->GetTargetTemperature();
         ++_currentStep;
+        ++_currentStepIndex;
         _currentStepStartTimestamp += duration;
         currentDuration -= duration;
         (*_currentStep)->SetStartTemperature(startTemp);
@@ -193,11 +219,61 @@ public:
       return true;
     }
   }
+
+  bool ActivateAtStep(int stepIndex, long startTimeStamp)
+  {
+    if(_isActive == true)
+      return false;
+
+    if(!ActivateTemperatureProfile())
+      return false;
+
+    _currentStepStartTimestamp = startTimeStamp;
+
+    if(stepIndex > 0)
+    {
+      double startTemp;
+
+      for(int i = 0; i < stepIndex; i++)
+      {
+        if(std::next(_currentStep,1) != _profileSteps.end())
+        {
+          startTemp = (*_currentStep)->GetTargetTemperature();
+          ++_currentStep;
+          ++_currentStepIndex;
+        }
+        else
+        {
+          DeactivateTemperatureProfile();
+          return false;
+        }
+      }
+      (*_currentStep)->SetStartTemperature(startTemp);
+    }
+
+    return true;
+  }
+
+  const std::list<BaseTemperatureProfileStep*>& GetProfileSteps() const
+  {
+    return _profileSteps;
+  }
+
+  int GetCurrentStepIndex() const
+  {
+    return _currentStepIndex;
+  }
+
+  time_t GetCurrentStepStartTimestamp() const
+  {
+    return _currentStepStartTimestamp;
+  }
 private:
   std::list<BaseTemperatureProfileStep*> _profileSteps;
   std::list<BaseTemperatureProfileStep*>::iterator _currentStep;
   time_t _currentStepStartTimestamp;
   bool _isActive = false;
+  int _currentStepIndex;
 };
 
 #endif

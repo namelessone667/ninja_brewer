@@ -17,11 +17,6 @@ theApp::theApp()
     _heatPID(_model.FridgeTemp, _model.HeatOutput, _model.Output, _model.HeatPID_Kp, _model.HeatPID_Ki, _model.HeatPID_Kd, PID_DIRECT),
     _reboot(false)
 {
-  //debug TemperatureProfile
-  //_tempProfile.AddProfileStep<ConstantTemperatureProfileStepType>(20.0, 20, SECONDS);
-  //_tempProfile.AddProfileStep<LinearTemperatureProfileStepType>(30.0, 240, SECONDS);
-
-  //debug end
 }
 
 theApp& theApp::getInstance()
@@ -181,9 +176,6 @@ void theApp::run()
       }
       break;
     case RUNNING:
-
-      //if(!_tempProfile.IsActiveTemperatureProfile())
-      //  _tempProfile.ActivateTemperatureProfile();
 
       if(readSensors())
       {

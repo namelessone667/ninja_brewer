@@ -20,15 +20,12 @@ void BlynkPublisher::init(const NinjaModel &model)
 {
   Blynk.config(BLYNK_AUTH);
   Blynk.connect(BLYNK_CONNECTION_TIMEOUT*3);
+
   _lastReconnectTimestamp = millis();
   _newSetPoint = model.SetPoint;
-  Blynk.syncVirtual(PIN_NEW_SETPOINT, PIN_STEP_TEMPERATURE, PIN_STEP_DURATION, PIN_STEP_DURATION_UNIT, PIN_TEMPROFILESTEP_TYPE);
   Blynk.virtualWrite(V1, _newSetPoint);
-  Blynk.virtualWrite(PIN_TEMPROFILE_ON_OFF_BTN, theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile() ? 1 : 0);
 
-  WidgetLED _ledStatus(PIN_STATUS_LED);
-  _ledStatus.off();
-
+  synchVirtualPins();
 }
 
 void BlynkPublisher::publish(const NinjaModel &model)
@@ -59,29 +56,7 @@ void BlynkPublisher::publish(const NinjaModel &model)
     Blynk.virtualWrite(PIN_PID_SETPOINT, model.SetPoint);
     Blynk.virtualWrite(PIN_HEATPID_OUTPUT, model.HeatOutput);
     Blynk.virtualWrite(PIN_BTN_ON_OFF, model.StandBy ? 0 : 1);
-
-    WidgetLED _ledStatus(PIN_STATUS_LED);
-    if(model.StandBy)
-    {
-      _ledStatus.off();
-    }
-    else
-    {
-      _ledStatus.on();
-      switch(model.ControllerState)
-      {
-        case COOL:
-          Blynk.setProperty(PIN_STATUS_LED, "color", "#00BFFF"); //blue
-          break;
-        case HEAT:
-          Blynk.setProperty(PIN_STATUS_LED, "color", "#D3435C"); //red
-          break;
-        default:
-          Blynk.setProperty(PIN_STATUS_LED, "color", "#F5F5DC"); //beige
-          break;
-      }
-    }
-
+    synchStatusLED(model);
     Blynk.virtualWrite(PIN_TEMP_PROFILE, model.TempProfileTemperature);
     Blynk.virtualWrite(PIN_TEMPROFILE_ON_OFF_BTN, theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile() ? 1 : 0);
 
@@ -160,6 +135,43 @@ void BlynkPublisher::activateTemperatureProfile()
 void BlynkPublisher::disableTemperatureProfile()
 {
   theApp::getInstance().getTemperatureProfile().DeactivateTemperatureProfile();
+}
+
+void BlynkPublisher::synchVirtualPins()
+{
+  Blynk.syncVirtual(PIN_NEW_SETPOINT, PIN_STEP_TEMPERATURE, PIN_STEP_DURATION, PIN_STEP_DURATION_UNIT, PIN_TEMPROFILESTEP_TYPE);
+  Blynk.virtualWrite(PIN_TEMPROFILE_ON_OFF_BTN, theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile() ? 1 : 0);
+  synchStatusLED(theApp::getInstance().getModel());
+}
+
+void BlynkPublisher::synchStatusLED(const NinjaModel& model)
+{
+  WidgetLED _ledStatus(PIN_STATUS_LED);
+  if(model.StandBy)
+  {
+    _ledStatus.off();
+  }
+  else
+  {
+    _ledStatus.on();
+    switch(model.ControllerState)
+    {
+      case COOL:
+        Blynk.setProperty(PIN_STATUS_LED, "color", "#00BFFF"); //blue
+        break;
+      case HEAT:
+        Blynk.setProperty(PIN_STATUS_LED, "color", "#D3435C"); //red
+        break;
+      default:
+        Blynk.setProperty(PIN_STATUS_LED, "color", "#F5F5DC"); //beige
+        break;
+    }
+  }
+}
+
+BLYNK_CONNECTED() {
+  //get data stored in virtual pin V0 from server
+  Blynk.syncVirtual(V0);
 }
 
 BLYNK_WRITE(PIN_BTN_ON_OFF)

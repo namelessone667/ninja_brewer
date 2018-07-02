@@ -33,6 +33,8 @@ class BlynkPublisher : public BasePublisher
     static void clearTemperatureProfile();
     static void activateTemperatureProfile();
     static void disableTemperatureProfile();
+    static void synchVirtualPins();
+    static void synchStatusLED(const NinjaModel&);
   private:
     long _lastPublishTimestamp;
     long _lastReconnectTimestamp;

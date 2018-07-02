@@ -54,6 +54,16 @@ public:
   {
     return false;
   }
+
+  bool LoadTempProfile(TemperatureProfile& tempProfile)
+  {
+    tempProfile.ClearProfile();
+    return true;
+  }
+  bool SaveTempProfile(const TemperatureProfile& tempProfile)
+  {
+    return false;
+  }
 };
 
 #endif

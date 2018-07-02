@@ -3,6 +3,7 @@
 
 #include "INinjaModelSerializer.h"
 #include "EEPROM_MAP.h"
+#include "TemperatureProfile.h"
 
 class EEPROMNinjaModelSerializer : INinjaModelSerializer
 {
@@ -135,6 +136,101 @@ public:
     return sensorAddress;
   }
 
+  bool LoadTempProfile(TemperatureProfile& tempProfile)
+  {
+    byte eeprom_ver = -1;
+    EEPROM.get(APP_VERSION_ADDR, eeprom_ver);
+
+    if(eeprom_ver != EEPROM_MAP_VER)
+    {
+      theApp::getInstance().getLogger().info("Failed to load temperature profile, eeprom version mismatch");
+      return false;
+    }
+
+    int address = TEMP_PROFILE_ADDR;
+    int stepsCount;
+    bool isActive;
+    int activeStepIndex;
+    long activeStepStartTimestamp;
+    TemperatureProfileStepType stepType;
+    //double startTemp;
+    double targetTemp;
+    long duration;
+    TemperatureProfileStepDuration durationUnit;
+
+    address = EEPROMGetInternal(address, stepsCount);
+    address = EEPROMGetInternal(address, isActive);
+    address = EEPROMGetInternal(address, activeStepIndex);
+    address = EEPROMGetInternal(address, activeStepStartTimestamp);
+
+    tempProfile.ClearProfile();
+    address = TEMP_PROFILE_ADDR + 100;
+
+    for(int i = 0; i < stepsCount; i++)
+    {
+      //address = EEPROMGetInternal(address, startTemp);
+      address = EEPROMGetInternal(address, targetTemp);
+      address = EEPROMGetInternal(address, duration);
+      address = EEPROMGetInternal(address, (int&)durationUnit);
+      address = EEPROMGetInternal(address, (int&)stepType);
+      switch(stepType)
+      {
+        case CONSTANT:
+          tempProfile.AddProfileStep<ConstantTemperatureProfileStepType>(targetTemp, duration, durationUnit);
+          break;
+        case LINEAR:
+          tempProfile.AddProfileStep<LinearTemperatureProfileStepType>(targetTemp, duration, durationUnit);
+          break;
+        default:
+          theApp::getInstance().getLogger().info("Invalid temperature profile step type");
+          break;
+      }
+    }
+    if(isActive)
+    {
+      return tempProfile.ActivateAtStep(activeStepIndex, activeStepStartTimestamp);
+    }
+
+    return true;
+  }
+
+  bool SaveTempProfile(const TemperatureProfile& tempProfile)
+  {
+    byte eeprom_ver = -1;
+    EEPROM.get(APP_VERSION_ADDR, eeprom_ver);
+
+    if(eeprom_ver != EEPROM_MAP_VER)
+    {
+      theApp::getInstance().getLogger().info("Failed to save temperature profile, eeprom version mismatch");
+      return false;
+    }
+
+    int address = TEMP_PROFILE_ADDR;
+
+    int stepsCount = tempProfile.GetProfileSteps().size();
+    bool isActive = tempProfile.IsActiveTemperatureProfile();
+    int activeStepIndex = tempProfile.GetCurrentStepIndex();
+    long activeStepStartTimestamp = tempProfile.GetCurrentStepStartTimestamp();
+
+    address = EEPROMPutInternal(address, stepsCount);
+    address = EEPROMPutInternal(address, isActive);
+    address = EEPROMPutInternal(address, activeStepIndex);
+    address = EEPROMPutInternal(address, activeStepStartTimestamp);
+
+    address = TEMP_PROFILE_ADDR + 100;
+
+    for(auto it = tempProfile.GetProfileSteps().cbegin(); it != tempProfile.GetProfileSteps().cend(); it++)
+    {
+      //address = EEPROMPutInternal(address, (*it)->GetStartTemperature());
+      address = EEPROMPutInternal(address, (*it)->GetTargetTemperature());
+      address = EEPROMPutInternal(address, (*it)->GetDuration());
+      address = EEPROMPutInternal(address, (int)(*it)->GetDurationUnit());
+      address = EEPROMPutInternal(address, (int)(*it)->GetTemperatureProfileStepType());
+    }
+
+    return true;
+  }
+
 protected:
   template <typename T> int EEPROMPutInternal( int idx, const T &t )
   {
@@ -148,6 +244,13 @@ protected:
     T value;
     EEPROM.get(idx, value);
     t = value;
+    theApp::getInstance().getLogger().info("EEPROMGetInternal address:" + String(idx) + ", " + String(sizeof(T)) + " bytes loaded, value: " + String(value));
+    return idx + sizeof(T);
+  }
+
+  template <typename T> int EEPROMGetInternal( int idx, T &value )
+  {
+    EEPROM.get(idx, value);
     theApp::getInstance().getLogger().info("EEPROMGetInternal address:" + String(idx) + ", " + String(sizeof(T)) + " bytes loaded, value: " + String(value));
     return idx + sizeof(T);
   }

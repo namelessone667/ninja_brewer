@@ -6,5 +6,6 @@
 #define EEPROM_MAP_VER  10
 #define TEMP_SENSOR_ADDR1 500
 #define TEMP_SENSOR_ADDR2 600
+#define TEMP_PROFILE_ADDR 700
 
 #endif
