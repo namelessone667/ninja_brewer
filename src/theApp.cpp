@@ -44,6 +44,12 @@ void theApp::init()
   {
     getLogger().info("loading configuration from EEPROM failed, loading default configuration");
     defaultSerializer.Load(_model);
+    _tempProfile.ClearProfile();
+  }
+  else
+  {
+    if(eepromSerializer.LoadTempProfile(_tempProfile) == false)
+      _tempProfile.ClearProfile();
   }
   _model.AppState = INIT;
   getLogger().info("initializing UI");
@@ -354,6 +360,7 @@ void theApp::saveState()
   getLogger().info("Saving state to EEPROM");
   EEPROMNinjaModelSerializer serializer;
   serializer.Save(_model);
+  serializer.SaveTempProfile(_tempProfile);
   getLogger().info("Save state to EEPROM - done");
 }
 
