@@ -138,6 +138,7 @@ public:
 
   bool LoadTempProfile(TemperatureProfile& tempProfile)
   {
+    theApp::getInstance().getLogger().info("Loading temperature profile from eeprom");
     byte eeprom_ver = -1;
     EEPROM.get(APP_VERSION_ADDR, eeprom_ver);
 
@@ -149,30 +150,30 @@ public:
 
     int address = TEMP_PROFILE_ADDR;
     int stepsCount;
-    bool isActive;
-    int activeStepIndex;
-    long activeStepStartTimestamp;
+
     TemperatureProfileStepType stepType;
-    //double startTemp;
     double targetTemp;
     long duration;
     TemperatureProfileStepDuration durationUnit;
+    int temp1, temp2;
 
     address = EEPROMGetInternal(address, stepsCount);
-    address = EEPROMGetInternal(address, isActive);
-    address = EEPROMGetInternal(address, activeStepIndex);
-    address = EEPROMGetInternal(address, activeStepStartTimestamp);
+
+    theApp::getInstance().getLogger().info("Number of temperature profile steps: " + String(stepsCount));
 
     tempProfile.ClearProfile();
     address = TEMP_PROFILE_ADDR + 100;
 
     for(int i = 0; i < stepsCount; i++)
     {
-      //address = EEPROMGetInternal(address, startTemp);
       address = EEPROMGetInternal(address, targetTemp);
       address = EEPROMGetInternal(address, duration);
-      address = EEPROMGetInternal(address, (int&)durationUnit);
-      address = EEPROMGetInternal(address, (int&)stepType);
+      address = EEPROMGetInternal(address, temp1);
+      address = EEPROMGetInternal(address, temp2);
+
+      durationUnit = (TemperatureProfileStepDuration)temp1;
+      stepType = (TemperatureProfileStepType)temp2;
+
       switch(stepType)
       {
         case CONSTANT:
@@ -186,16 +187,13 @@ public:
           break;
       }
     }
-    if(isActive)
-    {
-      return tempProfile.ActivateAtStep(activeStepIndex, activeStepStartTimestamp);
-    }
 
     return true;
   }
 
   bool SaveTempProfile(const TemperatureProfile& tempProfile)
   {
+    theApp::getInstance().getLogger().info("Saving temperature profile to eeprom");
     byte eeprom_ver = -1;
     EEPROM.get(APP_VERSION_ADDR, eeprom_ver);
 
@@ -208,14 +206,14 @@ public:
     int address = TEMP_PROFILE_ADDR;
 
     int stepsCount = tempProfile.GetProfileSteps().size();
-    bool isActive = tempProfile.IsActiveTemperatureProfile();
-    int activeStepIndex = tempProfile.GetCurrentStepIndex();
-    long activeStepStartTimestamp = tempProfile.GetCurrentStepStartTimestamp();
+    //bool isActive = tempProfile.IsActiveTemperatureProfile();
+    //int activeStepIndex = tempProfile.GetCurrentStepIndex();
+    //long activeStepStartTimestamp = tempProfile.GetCurrentStepStartTimestamp();
 
     address = EEPROMPutInternal(address, stepsCount);
-    address = EEPROMPutInternal(address, isActive);
-    address = EEPROMPutInternal(address, activeStepIndex);
-    address = EEPROMPutInternal(address, activeStepStartTimestamp);
+    //address = EEPROMPutInternal(address, isActive);
+    //address = EEPROMPutInternal(address, activeStepIndex);
+    //address = EEPROMPutInternal(address, activeStepStartTimestamp);
 
     address = TEMP_PROFILE_ADDR + 100;
 
@@ -226,9 +224,49 @@ public:
       address = EEPROMPutInternal(address, (*it)->GetDuration());
       address = EEPROMPutInternal(address, (int)(*it)->GetDurationUnit());
       address = EEPROMPutInternal(address, (int)(*it)->GetTemperatureProfileStepType());
+
+      theApp::getInstance().getLogger().info("Saved step " + String((*it)->GetTargetTemperature()));
     }
 
     return true;
+  }
+
+  void SaveTempProfileRuntimeParameters(bool isActive, int activeStepIndex, long activeStepDuration)
+  {
+    int address = TEMP_PROFILE_RUNTIME_ADDR;
+    address = EEPROMPutInternal(address, isActive);
+    address = EEPROMPutInternal(address, activeStepIndex);
+    address = EEPROMPutInternal(address, activeStepDuration);
+  }
+
+  bool LoadTempProfileRuntimeParameters(bool& isActive, int& activeStepIndex, long& activeStepDuration)
+  {
+    byte eeprom_ver = -1;
+    EEPROM.get(APP_VERSION_ADDR, eeprom_ver);
+
+    if(eeprom_ver != EEPROM_MAP_VER)
+    {
+      theApp::getInstance().getLogger().info("Failed to load temperature profile runtime parameters, eeprom version mismatch");
+      return false;
+    }
+
+    int address = TEMP_PROFILE_RUNTIME_ADDR;
+    address = EEPROMGetInternal(address, isActive);
+
+    if(isActive)
+    {
+      address = EEPROMGetInternal(address, activeStepIndex);
+      address = EEPROMGetInternal(address, activeStepDuration);
+    }
+    return true;
+  }
+
+  void ClearTempProfileRuntimeParameters()
+  {
+    int address = TEMP_PROFILE_RUNTIME_ADDR;
+    address = EEPROMPutInternal(address, false);
+    address = EEPROMPutInternal(address, (int)0);
+    address = EEPROMPutInternal(address, (long)0);
   }
 
 protected:

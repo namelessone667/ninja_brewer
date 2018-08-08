@@ -6,10 +6,11 @@
 
 double BlynkPublisher::_newSetPoint;
 double BlynkPublisher::_stepTemperature;
-long BlynkPublisher::_stepDuration;
-TemperatureProfileStepDuration BlynkPublisher::_stepDurationUnit;
+long BlynkPublisher::_stepDuration = 0;
+TemperatureProfileStepDuration BlynkPublisher::_stepDurationUnit = SECONDS;
+TemperatureProfileStepType BlynkPublisher::_stepType = CONSTANT;
 int BlynkPublisher::_id = 0;
-int BlynkPublisher::_stepType = 0;
+bool BlynkPublisher::_isInitialized = false;
 
 BlynkPublisher::BlynkPublisher()
 {
@@ -22,10 +23,6 @@ void BlynkPublisher::init(const NinjaModel &model)
   Blynk.connect(BLYNK_CONNECTION_TIMEOUT*3);
 
   _lastReconnectTimestamp = millis();
-  _newSetPoint = model.SetPoint;
-  Blynk.virtualWrite(V1, _newSetPoint);
-
-  synchVirtualPins();
 }
 
 void BlynkPublisher::publish(const NinjaModel &model)
@@ -46,6 +43,22 @@ void BlynkPublisher::publish(const NinjaModel &model)
       return;
   }
 
+  if(!_isInitialized)
+  {
+    _newSetPoint = model.SetPoint;
+    Blynk.virtualWrite(PIN_NEW_SETPOINT, _newSetPoint);
+    Blynk.virtualWrite(PIN_STEP_TEMPERATURE, _newSetPoint);
+    Blynk.virtualWrite(PIN_STEP_DURATION, _stepDuration);
+    Blynk.virtualWrite(PIN_STEP_DURATION_UNIT, (int)_stepDurationUnit);
+    Blynk.virtualWrite(PIN_TEMPROFILESTEP_TYPE, (int)_stepType);
+    Blynk.virtualWrite(PIN_TEMPROFILE_ON_OFF_BTN, theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile() ? 1 : 0);
+    synchStatusLED(model);
+    publishTemperatureProfile(theApp::getInstance().getTemperatureProfile());
+    Blynk.run();
+    _isInitialized = true;
+    return;
+  }
+
   Blynk.run();
 
   if(_lastPublishTimestamp + BLYNK_PUBLISH_INTERVAL < now)
@@ -58,9 +71,17 @@ void BlynkPublisher::publish(const NinjaModel &model)
     Blynk.virtualWrite(PIN_BTN_ON_OFF, model.StandBy ? 0 : 1);
     synchStatusLED(model);
     Blynk.virtualWrite(PIN_TEMP_PROFILE, model.TempProfileTemperature);
-    Blynk.virtualWrite(PIN_TEMPROFILE_ON_OFF_BTN, theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile() ? 1 : 0);
-
+    if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile())
+    {
+      Blynk.virtualWrite(PIN_TEMPROFILE_ON_OFF_BTN, 1);
+    }
+    else
+    {
+      Blynk.virtualWrite(PIN_TEMPROFILE_ON_OFF_BTN, 0);
+    }
+    Blynk.virtualWrite(PIN_TEMPROFILE_TABLE, "pick", theApp::getInstance().getTemperatureProfile().GetCurrentStepIndex());
     _lastPublishTimestamp = now;
+    Blynk.run();
   }
 }
 
@@ -74,9 +95,55 @@ void BlynkPublisher::publish(const NinjaModel &model, double pTerm, double iTerm
     Blynk.virtualWrite(HPID_PTERM, pTerm);
     Blynk.virtualWrite(HPID_ITERM, iTerm);
     Blynk.virtualWrite(HPID_DTERM, dTerm);
+    Blynk.run();
   }
 }
 #endif
+
+void BlynkPublisher::publishTemperatureProfile(const TemperatureProfile& profile)
+{
+  int id = 0;
+  String unit, type;
+  for(auto it = profile.GetProfileSteps().cbegin(); it != profile.GetProfileSteps().cend(); it++)
+  {
+    switch((*it)->GetDurationUnit())
+    {
+      case SECONDS:
+        unit = "seconds";
+        break;
+      case MINUTES:
+        unit = "minutes";
+        break;
+      case HOURS:
+        unit = "hours";
+        break;
+      case DAYS:
+        unit = "days";
+        break;
+      default:
+        unit = "undefined";
+        break;
+    }
+    switch((*it)->GetTemperatureProfileStepType())
+    {
+      case CONSTANT:
+        type = "constant";
+        break;
+      case LINEAR:
+        type = "linear";
+        break;
+      default:
+        type = "undefined";
+        break;
+    }
+    Blynk.virtualWrite(PIN_TEMPROFILE_TABLE, "add", id, String::format("%.2fC @ %d ", (*it)->GetTargetTemperature(), (*it)->GetDuration())+unit+" (" + type + ")", id+1);
+    id++;
+  }
+  if(profile.IsActiveTemperatureProfile())
+  {
+    Blynk.virtualWrite(PIN_TEMPROFILE_TABLE, "pick", profile.GetCurrentStepIndex());
+  }
+}
 
 void BlynkPublisher::setNewSetPoint()
 {
@@ -85,46 +152,28 @@ void BlynkPublisher::setNewSetPoint()
 
 void BlynkPublisher::addTemperatureProfileStep()
 {
-
-  String unit;
-  switch(_stepDurationUnit)
-  {
-    case SECONDS:
-      unit = "seconds";
-      break;
-    case MINUTES:
-      unit = "minutes";
-      break;
-    case HOURS:
-      unit = "hours";
-      break;
-    case DAYS:
-      unit = "days";
-      break;
-  }
-
   switch(_stepType)
   {
-    case 1:
+    case CONSTANT:
       theApp::getInstance().getTemperatureProfile().AddProfileStep<ConstantTemperatureProfileStepType>(_stepTemperature, _stepDuration, _stepDurationUnit);
-      Blynk.virtualWrite(PIN_TEMPROFILE_TABLE, "add", _id, String::format("%.2fC @ %d ", _stepTemperature, _stepDuration)+unit+" (constant)", _id+1);
       break;
-    case 2:
+    case LINEAR:
       theApp::getInstance().getTemperatureProfile().AddProfileStep<LinearTemperatureProfileStepType>(_stepTemperature, _stepDuration, _stepDurationUnit);
-      Blynk.virtualWrite(PIN_TEMPROFILE_TABLE, "add", _id, String::format("%.2fC @ %d ", _stepTemperature, _stepDuration)+unit+" (linear)", _id+1);
       break;
     default:
       return;
   }
   _id++;
+  publishTemperatureProfile(theApp::getInstance().getTemperatureProfile());
+  Blynk.run();
 }
 
 void BlynkPublisher::clearTemperatureProfile()
 {
   theApp::getInstance().getTemperatureProfile().ClearProfile();
-  Blynk.virtualWrite(PIN_TEMPROFILE_TABLE, "clr");
-  Blynk.virtualWrite(PIN_TEMPROFILE_ON_OFF_BTN, theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile() ? 1 : 0);
   _id = 0;
+  Blynk.virtualWrite(PIN_TEMPROFILE_TABLE, "clr");
+  Blynk.run();
 }
 
 void BlynkPublisher::activateTemperatureProfile()
@@ -139,6 +188,8 @@ void BlynkPublisher::disableTemperatureProfile()
 
 void BlynkPublisher::synchVirtualPins()
 {
+  if(!BlynkPublisher::_isInitialized)
+    return;
   Blynk.syncVirtual(PIN_NEW_SETPOINT, PIN_STEP_TEMPERATURE, PIN_STEP_DURATION, PIN_STEP_DURATION_UNIT, PIN_TEMPROFILESTEP_TYPE);
   Blynk.virtualWrite(PIN_TEMPROFILE_ON_OFF_BTN, theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile() ? 1 : 0);
   synchStatusLED(theApp::getInstance().getModel());
@@ -171,17 +222,19 @@ void BlynkPublisher::synchStatusLED(const NinjaModel& model)
 
 BLYNK_CONNECTED() {
   //get data stored in virtual pin V0 from server
-  Blynk.syncVirtual(V0);
+  //Blynk.syncVirtual(PIN_BTN_ON_OFF);
+  BlynkPublisher::synchVirtualPins();
 }
 
 BLYNK_WRITE(PIN_BTN_ON_OFF)
 {
 // button ON/OFF pushed
   int btn_status = param.asInt();
-  if(btn_status == 1)
+  if(btn_status == 1 && theApp::getInstance().getModel().StandBy == true)
     theApp::getInstance().ActivateController();
-  else
+  else if(btn_status == 0 && theApp::getInstance().getModel().StandBy == false)
     theApp::getInstance().DisableController();
+
 }
 
 BLYNK_WRITE(PIN_NEW_SETPOINT)
@@ -238,5 +291,5 @@ BLYNK_WRITE(PIN_TEMPROFILE_ON_OFF_BTN)
 
 BLYNK_WRITE(PIN_TEMPROFILESTEP_TYPE)
 {
-  BlynkPublisher::_stepType = param.asInt();
+  BlynkPublisher::_stepType = (TemperatureProfileStepType)param.asInt();
 }

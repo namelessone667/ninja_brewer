@@ -44,7 +44,7 @@
 
 #define ONE_WIRE_BUS_PIN D6
 
-#define PAPERTAIL_SERVER "logs.papertrailapp.com"
+#define PAPERTAIL_SERVER "logs7.papertrailapp.com"//"logs7.papertrailapp.com:10532"// //logs7.papertrailapp.com:10532
 #define LOG_LEVEL LOG_LEVEL_ALL
 
 #define TEMP_ERR_INTERVAL 600000

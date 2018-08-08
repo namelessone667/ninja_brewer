@@ -28,6 +28,7 @@ theApp& theApp::getInstance()
 
 void theApp::init()
 {
+  bool LoadTempProfileRuntimeParameters = false;
   getLogger().info("initializing...");
 
   if(WiFi.ready())
@@ -50,7 +51,24 @@ void theApp::init()
   {
     if(eepromSerializer.LoadTempProfile(_tempProfile) == false)
       _tempProfile.ClearProfile();
+    else
+    {
+      LoadTempProfileRuntimeParameters = true;
+    }
   }
+
+  if(LoadTempProfileRuntimeParameters)
+  {
+    bool isActive;
+    int stepIndex;
+    long timestamp;
+    eepromSerializer.LoadTempProfileRuntimeParameters(isActive, stepIndex, timestamp);
+    if(isActive)
+    {
+      _tempProfile.ActivateAtStep(stepIndex, millis() - timestamp);
+    }
+  }
+
   _model.AppState = INIT;
   getLogger().info("initializing UI");
   _view.init();
@@ -85,9 +103,11 @@ void theApp::init()
 
   //_mainPID.SetTunings(_model.PID_Kp, _model.PID_Ki, _model.PID_Kd);    // set tuning params
   _mainPID.SetSampleTime(1000);       // (ms) matches sample rate (1 hz)
+
   _mainPID.SetOutputLimits(_model.MinTemperature, _model.MaxTemperature);  // deg C (~32.5 - ~100 deg F)
 
   _mainPID.setOutputType(PID_FILTERED);
+
   _mainPID.setFilterConstant(1000);
 
   _mainPID.SetMode(_model.PIDMode);  // set man/auto
@@ -98,17 +118,24 @@ void theApp::init()
 
   //_heatPID.SetTunings(_model.HeatPID_Kp, _model.HeatPID_Ki, _model.HeatPID_Kd);
   _heatPID.SetSampleTime(1000);       // sampletime = time proportioning window length
+
   _heatPID.SetOutputLimits(_model.HeatMinPercent, _model.HeatMaxPercent);  // _heatPID output = duty time per window
+
   _heatPID.setOutputType(PID_FILTERED);
+
   _heatPID.setFilterConstant(10);
 
   _heatPID.SetMode(_model.HeatPIDMode);
 
   _model.HeatPIDMode.ValueChanged.Subscribe(this, &theApp::handleHeatPIDModeChanged);
 
+  _tempProfile.TemperatureProfileStepsChanged.Subscribe(this, &theApp::handleTempProfileStepsChanged);
+
   _publisherProxy.init(_model);
 
   _controller.Configure(_model);
+
+  eepromSerializer.ClearTempProfileRuntimeParameters();
 
   getLogger().info("initialization complete");
 }
@@ -164,7 +191,14 @@ int theApp::initSensors()
 void theApp::run()
 {
   if(_reboot)
+  {
+    if(_tempProfile.IsActiveTemperatureProfile())
+    {
+      EEPROMNinjaModelSerializer serializer;
+      serializer.SaveTempProfileRuntimeParameters(true, _tempProfile.GetCurrentStepIndex(), millis() - _tempProfile.GetCurrentStepStartTimestamp());
+    }
     System.reset();
+  }
 
   switch(_model.AppState)
   {
@@ -387,4 +421,10 @@ void theApp::handleHeatPIDModeChanged(const CEventSource* EvSrc,CEventHandlerArg
 TemperatureProfile& theApp::getTemperatureProfile()
 {
   return _tempProfile;
+}
+
+void theApp::handleTempProfileStepsChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
+{
+  EEPROMNinjaModelSerializer serializer;
+  serializer.SaveTempProfile(_tempProfile);
 }

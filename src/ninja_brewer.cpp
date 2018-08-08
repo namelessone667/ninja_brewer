@@ -3,6 +3,8 @@
 #include "globals.h"
 #include "secrets.h"
 #include "papertrail.h"
+#include "TemperatureProfile.h"
+#include "EEPROMNinjaModelSerializer.h"
 
 SYSTEM_THREAD(ENABLED);
 SYSTEM_MODE(SEMI_AUTOMATIC);
@@ -14,7 +16,16 @@ SerialLogHandler logHandler1;
 void wd_reboot()
 {
     if(theApp::getInstance().getModel().AppState == RUNNING)
+    {
       theApp::getInstance().saveState();
+      TemperatureProfile& tempProfile = theApp::getInstance().getTemperatureProfile();
+
+      if(tempProfile.IsActiveTemperatureProfile())
+      {
+        EEPROMNinjaModelSerializer serializer;
+        serializer.SaveTempProfileRuntimeParameters(true, tempProfile.GetCurrentStepIndex(), millis() - tempProfile.GetCurrentStepStartTimestamp());
+      }
+    }
 
     System.reset();
 }

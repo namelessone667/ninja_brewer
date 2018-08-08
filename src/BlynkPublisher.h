@@ -27,7 +27,8 @@ class BlynkPublisher : public BasePublisher
     static long _stepDuration;
     static TemperatureProfileStepDuration _stepDurationUnit;
     static int _id;
-    static int _stepType;
+    static TemperatureProfileStepType _stepType;
+    static bool _isInitialized;
     static void setNewSetPoint();
     static void addTemperatureProfileStep();
     static void clearTemperatureProfile();
@@ -35,6 +36,7 @@ class BlynkPublisher : public BasePublisher
     static void disableTemperatureProfile();
     static void synchVirtualPins();
     static void synchStatusLED(const NinjaModel&);
+    static void publishTemperatureProfile(const TemperatureProfile&);
   private:
     long _lastPublishTimestamp;
     long _lastReconnectTimestamp;
