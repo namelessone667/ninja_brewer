@@ -44,7 +44,8 @@
 
 #define ONE_WIRE_BUS_PIN D6
 
-#define PAPERTAIL_SERVER "logs7.papertrailapp.com"//"logs7.papertrailapp.com:10532"// //logs7.papertrailapp.com:10532
+#define PAPERTAIL_SERVER "logs.papertrailapp.com"
+#define PAPERTAIL_APPNAME "lager_brewer"
 #define LOG_LEVEL LOG_LEVEL_ALL
 
 #define TEMP_ERR_INTERVAL 600000
@@ -52,6 +53,6 @@
 #define COOLER_SSR_PIN A1
 #define HEATER_SSR_PIN A2
 
-#define HERMS_MODE
+//#define HERMS_MODE
 
 #endif
