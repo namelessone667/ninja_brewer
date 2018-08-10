@@ -28,7 +28,9 @@ theApp& theApp::getInstance()
 
 void theApp::init()
 {
+#ifdef TEMP_PROFILES
   bool LoadTempProfileRuntimeParameters = false;
+#endif
   getLogger().info("initializing...");
 
   if(WiFi.ready())
@@ -45,8 +47,11 @@ void theApp::init()
   {
     getLogger().info("loading configuration from EEPROM failed, loading default configuration");
     defaultSerializer.Load(_model);
+#ifdef TEMP_PROFILES
     _tempProfile.ClearProfile();
+#endif
   }
+#ifdef TEMP_PROFILES
   else
   {
     if(eepromSerializer.LoadTempProfile(_tempProfile) == false)
@@ -68,7 +73,7 @@ void theApp::init()
       _tempProfile.ActivateAtStep(stepIndex, millis() - timestamp);
     }
   }
-
+#endif
   _model.AppState = INIT;
   getLogger().info("initializing UI");
   _view.init();
@@ -128,14 +133,13 @@ void theApp::init()
   _heatPID.SetMode(_model.HeatPIDMode);
 
   _model.HeatPIDMode.ValueChanged.Subscribe(this, &theApp::handleHeatPIDModeChanged);
-
+#ifdef TEMP_PROFILES
   _tempProfile.TemperatureProfileStepsChanged.Subscribe(this, &theApp::handleTempProfileStepsChanged);
-
+  eepromSerializer.ClearTempProfileRuntimeParameters();
+#endif
   _publisherProxy.init(_model);
 
   _controller.Configure(_model);
-
-  eepromSerializer.ClearTempProfileRuntimeParameters();
 
   getLogger().info("initialization complete");
 }
@@ -192,11 +196,13 @@ void theApp::run()
 {
   if(_reboot)
   {
+#ifdef TEMP_PROFILES
     if(_tempProfile.IsActiveTemperatureProfile())
     {
       EEPROMNinjaModelSerializer serializer;
       serializer.SaveTempProfileRuntimeParameters(true, _tempProfile.GetCurrentStepIndex(), millis() - _tempProfile.GetCurrentStepStartTimestamp());
     }
+#endif
     System.reset();
   }
 
@@ -226,7 +232,7 @@ void theApp::run()
         getLogger().error(String::format("failed to read valid temperature for %d miliseconds", TEMP_ERR_INTERVAL));
         setErrorState("Sensor failure");
       }
-
+#ifdef TEMP_PROFILES
       // Temperature profile functionality
       if(_tempProfile.IsActiveTemperatureProfile())
       {
@@ -237,7 +243,7 @@ void theApp::run()
           _model.SetPoint = temp;
         }
       }
-
+#endif
       if(_model.StandBy)
       {
         _controller.Disable();
@@ -274,7 +280,7 @@ void theApp::run()
 
       _controller.Update(_model.FridgeTemp, _model.Output, _model.HeatOutput, _tempSensor1->PeakDetect());
       _model.ControllerState = _controller.GetState();
-#ifdef HERMS_MODE
+#ifdef DEBUG_HERMS
       _publisherProxy.publish(_model, _heatPID.GetPTerm(), _heatPID.GetITerm(), _heatPID.GetDTerm());
 #else
       _publisherProxy.publish(_model);
@@ -394,7 +400,9 @@ void theApp::saveState()
   getLogger().info("Saving state to EEPROM");
   EEPROMNinjaModelSerializer serializer;
   serializer.Save(_model);
+#ifdef TEMP_PROFILES
   serializer.SaveTempProfile(_tempProfile);
+#endif
   getLogger().info("Save state to EEPROM - done");
 }
 
@@ -417,7 +425,7 @@ void theApp::handleHeatPIDModeChanged(const CEventSource* EvSrc,CEventHandlerArg
 {
   _heatPID.SetMode(((CValueChangedEventArgs<int>*)EvArgs)->NewValue());
 }
-
+#ifdef TEMP_PROFILES
 TemperatureProfile& theApp::getTemperatureProfile()
 {
   return _tempProfile;
@@ -428,3 +436,4 @@ void theApp::handleTempProfileStepsChanged(const CEventSource* EvSrc,CEventHandl
   EEPROMNinjaModelSerializer serializer;
   serializer.SaveTempProfile(_tempProfile);
 }
+#endif

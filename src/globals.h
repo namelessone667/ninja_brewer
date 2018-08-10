@@ -1,16 +1,16 @@
 #ifndef globals_h
 #define globals_h
 
-#define ENABLE_PID
-
-//#define MAX_FRIDE_TEMP 35
-//#define MIN_FRIDGE_TEMP 2
+/******** feaures section *****************/
+#define HERMS_MODE
+//#define DEBUG_HERMS
+//TODO: #define LCD20_4
+#define TEMP_PROFILES
+#define BREWPI_LINK //TODO: implement BrewPiLink
+/******** feaures section end *****************/
 
 #define COOLING_PID_MODE PID_AUTOMATIC
 #define HEATINH_PID_MODE PID_AUTOMATIC
-
-//#define HEAT_MIN_PERCENT    0
-//#define HEAT_MAX_PERCENT    25
 
 #define PIN_BTN_ON_OFF V0
 #define PIN_NEW_SETPOINT V1
@@ -51,7 +51,5 @@
 
 #define COOLER_SSR_PIN A1
 #define HEATER_SSR_PIN A2
-
-#define HERMS_MODE
 
 #endif

@@ -5,6 +5,7 @@
 #include "PID_v1.h"
 #include "Property.h"
 #include "enum.h"
+#include "globals.h"
 
 class NinjaModel
 {
@@ -46,9 +47,9 @@ public:
     Property<double> BeerTemp = -127.0; //also Input for mainPID
     Property<opState> ControllerState = IDLE;
     Property<ApplicationState> AppState = UNDEFINED;
-
+#ifdef TEMP_PROFILES
     Property<double> TempProfileTemperature;
-
+#endif
 };
 
 #endif

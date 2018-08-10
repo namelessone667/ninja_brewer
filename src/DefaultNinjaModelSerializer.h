@@ -54,7 +54,7 @@ public:
   {
     return false;
   }
-
+#ifdef TEMP_PROFILES
   bool LoadTempProfile(TemperatureProfile& tempProfile)
   {
     tempProfile.ClearProfile();
@@ -64,6 +64,7 @@ public:
   {
     return false;
   }
+#endif
 };
 
 #endif

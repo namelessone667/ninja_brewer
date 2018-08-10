@@ -11,7 +11,9 @@
 #include "PIDProxy.h"
 #include "NinjaModel.h"
 #include "DS18B20Sensor.h"
+#ifdef TEMP_PROFILES
 #include "TemperatureProfile.h"
+#endif
 
 class theApp : public CEventReceiver
 {
@@ -34,14 +36,15 @@ class theApp : public CEventReceiver
         void reinitLCD();
         void saveState();
         void switchSensors();
+#ifdef TEMP_PROFILES
         TemperatureProfile& getTemperatureProfile();
+#endif
     private:
         theApp();
         int initSensors();
 
         void handlePIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         void handleHeatPIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
-        void handleTempProfileStepsChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         NinjaModel _model;
         theAppUI _view;
         OneWire _oneWire;
@@ -53,9 +56,10 @@ class theApp : public CEventReceiver
         PIDProxy _heatPID;
         DS18B20Sensor* _tempSensor1 = NULL;
         DS18B20Sensor* _tempSensor2 = NULL;
-
+#ifdef TEMP_PROFILES
         TemperatureProfile _tempProfile;
-
+        void handleTempProfileStepsChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
+#endif
         long _pid_log_timestamp;
         long _sensorDataTimestamp;
         long _error_timestamp = -1;

@@ -21,7 +21,7 @@ void PublisherProxy::publish(const NinjaModel &model)
   }
 }
 
-#ifdef HERMS_MODE
+#ifdef DEBUG_HERMS
 void PublisherProxy::publish(const NinjaModel &model, double pTerm, double iTerm, double dTerm)
 {
   for (BasePublisher *p : _publishers) {

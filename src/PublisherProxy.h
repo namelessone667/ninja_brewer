@@ -9,7 +9,7 @@ class PublisherProxy
   public:
     void init(const NinjaModel&);
     void publish(const NinjaModel&);
-#ifdef HERMS_MODE
+#ifdef DEBUG_HERMS
     void publish(const NinjaModel&, double pTerm, double iTerm, double dTerm);
 #endif
   private:

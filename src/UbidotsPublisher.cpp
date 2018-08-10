@@ -29,7 +29,7 @@ void UbidotsPublisher::publish(const NinjaModel &model)
   }
 }
 
-#ifdef HERMS_MODE
+#ifdef DEBUG_HERMS
 void UbidotsPublisher::publish(const NinjaModel &model, double pTerm, double iTerm, double dTerm)
 {
   long timestamp = _lastPublishTimestamp;

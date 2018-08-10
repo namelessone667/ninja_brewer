@@ -23,8 +23,9 @@ void ParticlePublisher::init(const NinjaModel &model)
     Particle.variable("pidMode", model.PIDMode.Get());
     Particle.variable("heatPidMode", model.HeatPIDMode.Get());
     Particle.variable("standBy", model.StandBy.Get());
+#ifdef TEMP_PROFILES
     Particle.variable("profileTemp", model.TempProfileTemperature.Get());
-
+#endif
 
     Particle.function("setSetPoint", setNewSetPoint);
     Particle.function("setPIDAuto", setPIDModeAuto);
@@ -48,7 +49,7 @@ void ParticlePublisher::publish(const NinjaModel &model)
     init(model);
 }
 
-#ifdef HERMS_MODE
+#ifdef DEBUG_HERMS
 void ParticlePublisher::publish(const NinjaModel& model, double pTerm, double iTerm, double dTerm)
 {
   publish(model);

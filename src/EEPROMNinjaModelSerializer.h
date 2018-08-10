@@ -3,7 +3,9 @@
 
 #include "INinjaModelSerializer.h"
 #include "EEPROM_MAP.h"
+#ifdef TEMP_PROFILES
 #include "TemperatureProfile.h"
+#endif
 
 class EEPROMNinjaModelSerializer : INinjaModelSerializer
 {
@@ -135,7 +137,7 @@ public:
     }
     return sensorAddress;
   }
-
+#ifdef TEMP_PROFILES
   bool LoadTempProfile(TemperatureProfile& tempProfile)
   {
     theApp::getInstance().getLogger().info("Loading temperature profile from eeprom");
@@ -268,7 +270,7 @@ public:
     address = EEPROMPutInternal(address, (int)0);
     address = EEPROMPutInternal(address, (long)0);
   }
-
+#endif
 protected:
   template <typename T> int EEPROMPutInternal( int idx, const T &t )
   {

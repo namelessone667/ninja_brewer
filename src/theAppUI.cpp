@@ -16,7 +16,7 @@ uint8_t backslash_char[8] = {
 theAppUI::theAppUI(theApp *controller) :
   _encoder(ENCODER_PIN_A, ENCODER_PIN_B),
   _lcd(0x38, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE),
-#ifdef HERMS_MODE
+#ifdef HERMS_MODE //TODO replace with LCD20_4
   _ninjaMenu(&_lcd, 20,4, this),
 #else
   _ninjaMenu(&_lcd, 16,2, this),

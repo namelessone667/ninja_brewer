@@ -3,7 +3,9 @@
 #include "globals.h"
 #include "secrets.h"
 #include "papertrail.h"
+#ifdef TEMP_PROFILES
 #include "TemperatureProfile.h"
+#endif
 #include "EEPROMNinjaModelSerializer.h"
 
 SYSTEM_THREAD(ENABLED);
@@ -18,6 +20,7 @@ void wd_reboot()
     if(theApp::getInstance().getModel().AppState == RUNNING)
     {
       theApp::getInstance().saveState();
+#ifdef TEMP_PROFILES
       TemperatureProfile& tempProfile = theApp::getInstance().getTemperatureProfile();
 
       if(tempProfile.IsActiveTemperatureProfile())
@@ -25,6 +28,7 @@ void wd_reboot()
         EEPROMNinjaModelSerializer serializer;
         serializer.SaveTempProfileRuntimeParameters(true, tempProfile.GetCurrentStepIndex(), millis() - tempProfile.GetCurrentStepStartTimestamp());
       }
+#endif
     }
 
     System.reset();
