@@ -62,14 +62,47 @@ void theAppUI::buildMenu()
 
     rootMenuItem->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Target temp"), _controller->getModel().SetPoint, _controller->getModel().MinTemperature,_controller->getModel().MaxTemperature,0.1,1 ));
     rootMenuItem->AddSubMenu(new BindedPropertyNinjaMenuItem<bool>(F("Stand By"), _controller->getModel().StandBy ));
+#ifdef TEMP_PROFILES
+    SubNinjaMenuItem* tempProfileSubMenu = new SubNinjaMenuItem(F("Temp profiles"));
 
-    //SubNinjaMenuItem* tempProfileSubMenu = new SubNinjaMenuItem(F("Temp profiles"));
-    rootMenuItem->AddSubMenu((new SubNinjaMenuItem(F("Temp profiles")))
-      ->AddSubMenu((new SubNinjaMenuItem(F("View"))))
+    tempProfileSubMenu
+      ->AddSubMenu((new SubNinjaMenuItem(F("View profile")))) // TODO new type of submenu - tempprofilesubmenu
       ->AddSubMenu((new SubNinjaMenuItem(F("Add step"))))
-      ->AddSubMenu((new SubNinjaMenuItem(F("Clear"))))
-    );
+      ->AddSubMenu((new SubNinjaMenuItem(F("Clear profile"))))
+      ->AddSubMenu((new SubNinjaMenuItem(F("Activate profile")))) //TODO make conditionally hidden (temp. profile is not active)
+      ->AddSubMenu((new SubNinjaMenuItem(F("Stop profile")))); //TODO make conditionally hidden (temp. profile is active)
 
+    rootMenuItem->AddSubMenu(tempProfileSubMenu);
+/**************** temperature profile menu *****************
+    Temp. profile
+    ->
+    View profile
+     |->
+     1. 40.1C@15m C
+     2. 66.5C@90m L
+     ...
+    Add step
+     |->
+     Target temp
+      |->
+      [0] 45.4 [100]
+     Duration
+      |->
+      [0] 60 [600]
+     Duration unit
+      |->
+      seconds / minutes / hours / days
+     Step type
+      |->
+      constant / linear
+     Add step
+      |-> confirm to run
+    Clear profile
+     |-> Confirm to run
+    Activate / Stop
+     |-> Confirm to run
+*************************************************************/
+#endif
     rootMenuItem->AddSubMenu((new SubNinjaMenuItem(F("PID param")))
       ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("PID Kp"), _controller->getModel().PID_Kp, 0, 10, 0.1, 1))
       ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("PID Ki"), _controller->getModel().PID_Ki, 0,0.01,0.00001,5))
