@@ -6,12 +6,15 @@
 //#define DEBUG_HERMS
 //TODO: #define LCD20_4
 #define TEMP_PROFILES
+#define USE_WIFI
+#define USE_PARTICLE
+#define USE_UBIDOTS
+#define USE_BLYNK
+#define USE_PAPERTAIL
 #define BREWPI_LINK //TODO: implement BrewPiLink
 /******** feaures section end *****************/
 
-#define COOLING_PID_MODE PID_AUTOMATIC
-#define HEATINH_PID_MODE PID_AUTOMATIC
-
+/******** Blynk Virtual PINS definition *******/
 #define PIN_BTN_ON_OFF V0
 #define PIN_NEW_SETPOINT V1
 #define PIN_BTN_SET_NEW_SETPOINT V2
@@ -35,8 +38,13 @@
 #define PIN_TEMPROFILE_TABLE V20
 #define PIN_TEMPROFILESTEP_TYPE V21
 
+/******** Blynk Virtual PINS definition end *******/
+
 #define BLYNK_CONNECT_RETRY 60000
 
+/******** Particle GPIO PIN mapping **************/
+#define COOLER_SSR_PIN A1
+#define HEATER_SSR_PIN A2
 #define LEFT_BUTTON_PIN A3
 #define RIGHT_BUTTON_PIN A4
 #define ENCODER_PIN_A D4
@@ -44,12 +52,11 @@
 
 #define ONE_WIRE_BUS_PIN D6
 
+/******** Particle GPIO PIN mapping end ***********/
+
 #define PAPERTAIL_SERVER "logs7.papertrailapp.com"//"logs7.papertrailapp.com:10532"// //logs7.papertrailapp.com:10532
 #define LOG_LEVEL LOG_LEVEL_ALL
 
 #define TEMP_ERR_INTERVAL 600000
-
-#define COOLER_SSR_PIN A1
-#define HEATER_SSR_PIN A2
 
 #endif

@@ -33,12 +33,13 @@ void theApp::init()
 #endif
   getLogger().info("initializing...");
 
+#ifdef USE_PARTICLE
   if(WiFi.ready())
   {
     getLogger().info("connecting to Cloud");
     Particle.connect();
   }
-
+#endif
   getLogger().info("loading configuration from EEPROM");
   EEPROMNinjaModelSerializer eepromSerializer;
   DefaultNinjaModelSerializer defaultSerializer;

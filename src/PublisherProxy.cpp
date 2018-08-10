@@ -1,13 +1,25 @@
 #include "PublisherProxy.h"
+#ifdef USE_PARTICLE
 #include "ParticlePublisher.h"
+#endif
+#ifdef USE_UBIDOTS
 #include "UbidotsPublisher.h"
+#endif
+#ifdef USE_BLYNK
 #include "BlynkPublisher.h"
+#endif
 
 void PublisherProxy::init(const NinjaModel &model)
 {
+#ifdef USE_PARTICLE
   _publishers.push_back(new ParticlePublisher());
-  //_publishers.push_back(new UbidotsPublisher());
+#endif
+#ifdef USE_UBIDOTS
+  _publishers.push_back(new UbidotsPublisher());
+#endif
+#ifdef USE_BLYNK
   _publishers.push_back(new BlynkPublisher());
+#endif
 
   for (BasePublisher *p : _publishers) {
       p->init(model);
