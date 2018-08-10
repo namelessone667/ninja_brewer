@@ -9,5 +9,5 @@
 #endif
 #define UBIDOTS_TOKEN "A1E-jPfWoFnDeB4O12NA5RoZVRRoS4EDS0"  // Add here your Ubidots TOKEN
 
-#define PAPERTAIL_PORT 10532//10532 //19915
+#define PAPERTAIL_PORT 19915//10532 //19915
 #endif

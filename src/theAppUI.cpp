@@ -1,6 +1,9 @@
 #include "theAppUI.h"
 #include "globals.h"
 #include "theApp.h"
+#ifdef TEMP_PROFILES
+#include "TemperatureProfile.h"
+#endif
 
 uint8_t backslash_char[8] = {
     0b00000,
@@ -12,6 +15,31 @@ uint8_t backslash_char[8] = {
     0b00000,
     0b00000
 };
+
+#ifdef TEMP_PROFILES
+static Property<double> stepTemp = 0;
+static Property<int> duration = 0;
+static Property<int> durationUnit = SECONDS;
+static Property<int> stepType = CONSTANT;
+
+void addTemperatureProfileStep()
+{
+  switch((TemperatureProfileStepType)stepType.Get())
+  {
+      case LINEAR:
+        theApp::getInstance().getTemperatureProfile().AddProfileStep<LinearTemperatureProfileStepType>(stepTemp, duration, (TemperatureProfileStepDuration)durationUnit.Get());
+        break;
+      case CONSTANT:
+        theApp::getInstance().getTemperatureProfile().AddProfileStep<ConstantTemperatureProfileStepType>(stepTemp, duration, (TemperatureProfileStepDuration)durationUnit.Get());
+        break;
+  }
+}
+
+void clearTemperatureProfile()
+{
+  theApp::getInstance().getTemperatureProfile().ClearProfile();
+}
+#endif
 
 theAppUI::theAppUI(theApp *controller) :
   _encoder(ENCODER_PIN_A, ENCODER_PIN_B),
@@ -63,15 +91,43 @@ void theAppUI::buildMenu()
     rootMenuItem->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Target temp"), _controller->getModel().SetPoint, _controller->getModel().MinTemperature,_controller->getModel().MaxTemperature,0.1,1 ));
     rootMenuItem->AddSubMenu(new BindedPropertyNinjaMenuItem<bool>(F("Stand By"), _controller->getModel().StandBy ));
 #ifdef TEMP_PROFILES
+
     SubNinjaMenuItem* tempProfileSubMenu = new SubNinjaMenuItem(F("Temp profiles"));
 
-    tempProfileSubMenu
-      ->AddSubMenu((new SubNinjaMenuItem(F("View profile")))) // TODO new type of submenu - tempprofilesubmenu
-      ->AddSubMenu((new SubNinjaMenuItem(F("Add step"))))
-      ->AddSubMenu((new SubNinjaMenuItem(F("Clear profile"))))
-      ->AddSubMenu((new SubNinjaMenuItem(F("Activate profile")))) //TODO make conditionally hidden (temp. profile is not active)
-      ->AddSubMenu((new SubNinjaMenuItem(F("Stop profile")))); //TODO make conditionally hidden (temp. profile is active)
+    /*tempProfileSubMenu
+      ->AddSubMenu((new SubNinjaMenuItem(F("View profile")))); // TODO new type of submenu - tempprofilesubmenu*/
 
+    SubNinjaMenuItem* addTempProfileStepSubMenu = new SubNinjaMenuItem(F("Add step"));
+    addTempProfileStepSubMenu
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Step temp"), stepTemp, 0, 100, 0.5, 1))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Duration"), duration, 0, 1000, 1, 0));
+    addTempProfileStepSubMenu
+      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<int>(F("Duration unit"), durationUnit, SECONDS))
+        ->AddOption(SECONDS, "Seconds")
+        ->AddOption(MINUTES, "Minutes")
+        ->AddOption(HOURS, "Hours")
+        ->AddOption(DAYS, "Days")
+    );
+    addTempProfileStepSubMenu
+      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<int>(F("Step type"), durationUnit, CONSTANT))
+        ->AddOption(CONSTANT, "Constant")
+        ->AddOption(LINEAR, "Linear")
+    );
+    addTempProfileStepSubMenu
+      ->AddSubMenu(new CommandNinjaMenuItem<FunctionDelegateNinjaCommand>(F("Add step"), *(new FunctionDelegateNinjaCommand(&addTemperatureProfileStep))));
+    tempProfileSubMenu
+      ->AddSubMenu(addTempProfileStepSubMenu);
+
+    tempProfileSubMenu
+      ->AddSubMenu(new CommandNinjaMenuItem<FunctionDelegateNinjaCommand>(F("Clear Profile"), *(new FunctionDelegateNinjaCommand(&clearTemperatureProfile))));
+
+    /*tempProfileSubMenu
+      ->AddSubMenu((new SubNinjaMenuItem(F("Clear profile"))));
+    tempProfileSubMenu
+      ->AddSubMenu((new SubNinjaMenuItem(F("Activate profile")))); //TODO make conditionally hidden (temp. profile is not active)
+    tempProfileSubMenu
+      ->AddSubMenu((new SubNinjaMenuItem(F("Stop profile")))); //TODO make conditionally hidden (temp. profile is active)
+    */
     rootMenuItem->AddSubMenu(tempProfileSubMenu);
 /**************** temperature profile menu *****************
     Temp. profile

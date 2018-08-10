@@ -638,6 +638,22 @@ public:
   }
 };
 
+class FunctionDelegateNinjaCommand : public INinjaCommand
+{
+  typedef void (*FuncHandler)();
+  FuncHandler m_pFunc;
+public:
+  FunctionDelegateNinjaCommand(FuncHandler func) : m_pFunc(func)
+  {
+
+  }
+
+  void Execute()
+  {
+    m_pFunc();
+  }
+};
+
 class NinjaCommandChain : INinjaCommand
 {
 public:

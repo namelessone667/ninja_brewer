@@ -54,7 +54,8 @@
 
 /******** Particle GPIO PIN mapping end ***********/
 
-#define PAPERTAIL_SERVER "logs7.papertrailapp.com"//"logs7.papertrailapp.com:10532"// //logs7.papertrailapp.com:10532
+#define PAPERTAIL_SERVER "logs.papertrailapp.com"//"logs7.papertrailapp.com:10532"// //logs7.papertrailapp.com:10532
+#define PAPERTAIL_APP_NAME "herms_brewer"
 #define LOG_LEVEL LOG_LEVEL_ALL
 
 #define TEMP_ERR_INTERVAL 600000
