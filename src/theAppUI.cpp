@@ -204,7 +204,7 @@ void theAppUI::buildMenu()
     SubNinjaMenuItem* addTempProfileStepSubMenu = new SubNinjaMenuItem(F("Add step"));
     addTempProfileStepSubMenu
       ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnItemValueChangedBehaviour>(F("Step temp"), stepTemp, 0, 100, 0.5, 1))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int, SaveChangesOnItemValueChangedBehaviour>(F("Duration"), duration, 0, 1000, 1, 0));
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int, SaveChangesOnItemValueChangedBehaviour>(F("Duration"), duration, 0, 1000, 1, 1));
     addTempProfileStepSubMenu
       ->AddSubMenu((new OptionsPropertyNinjaMenuItem<int, SaveChangesOnItemValueChangedBehaviour>(F("Duration unit"), durationUnit, SECONDS))
         ->AddOption(SECONDS, "Seconds")
