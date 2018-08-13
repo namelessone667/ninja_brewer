@@ -89,6 +89,23 @@ protected:
   MENU_LABEL m_label;
 };
 
+class SaveChangesOnConfirmBehaviour
+{
+public:
+  static void OnMenuItemValueChanged(NinjaMenuItem* menuItem)
+  {
+  }
+};
+
+class SaveChangesOnItemValueChangedBehaviour
+{
+public:
+  static void OnMenuItemValueChanged(NinjaMenuItem* menuItem)
+  {
+      menuItem->SaveChanges();
+  }
+};
+
 class SubNinjaMenuItem : public NinjaMenuItem
 {
 public:
@@ -179,6 +196,7 @@ public:
 
   void Reset()
   {
+    DiscardChanges();
     m_current = m_first;
   }
 private:
@@ -186,7 +204,7 @@ private:
   NinjaMenuItem* m_first = NULL;
 };
 
-template<typename T>
+template<typename T, typename SaveChangesBehaviour>
 class BindedPropertyNinjaMenuItem : public NinjaMenuItem
 {
   static_assert(std::is_arithmetic<T>::value, "BindedPropertyNinjaMenuItem can be used only with arithmetic types");
@@ -219,7 +237,10 @@ public:
         if(navigationStep == NINJAMENU_BACK)
           m_tempValue = m_value;
         else
+        {
           m_value = m_tempValue;
+          SaveChangesBehaviour::OnMenuItemValueChanged(this);
+        }
         if(m_parent != NULL)
           return m_parent;
         else
@@ -280,8 +301,92 @@ private:
   int m_precision;
 };
 
-template<>
-class BindedPropertyNinjaMenuItem<bool> : public NinjaMenuItem
+template<typename T, typename NavigationActionBehaviour, typename DrawBehaviour, typename SaveChangesBehaviour>
+class CustomNinjaMenuItem : public NinjaMenuItem
+{
+  //static_assert(std::is_arithmetic<T>::value, "BindedPropertyNinjaMenuItem can be used only with arithmetic types");
+public:
+  CustomNinjaMenuItem(MENU_LABEL menuItemLabel, Property<T>& property)
+  : NinjaMenuItem(menuItemLabel), m_bindedProperty(property)
+  {
+    m_value = property.Get();
+    m_tempValue = m_value;
+  }
+
+  NinjaMenuItem* ExecuteAction(NinjaMenuNavigation navigationStep)
+  {
+    switch(navigationStep)
+    {
+      case NINJAMENU_LEFT:
+        //if(m_tempValue - m_step >= m_minValue)
+        //  m_tempValue -= m_step;
+        NavigationActionBehaviour::Decrement(m_tempValue);
+        return this;
+      case NINJAMENU_RIGHT:
+        //if(m_tempValue + m_step <= m_maxValue)
+        //  m_tempValue += m_step;
+        NavigationActionBehaviour::Increment(m_tempValue);
+        return this;
+      case NINJAMENU_ENTER:
+      case NINJAMENU_BACK:
+        if(navigationStep == NINJAMENU_BACK)
+        //  m_tempValue = m_value;
+        NavigationActionBehaviour::BackCancel(m_value, m_tempValue);
+        else
+        {
+          //m_value = m_tempValue;
+          NavigationActionBehaviour::BackOK(m_value, m_tempValue);
+          SaveChangesBehaviour::OnMenuItemValueChanged(this);
+        }
+        if(m_parent != NULL)
+          return m_parent;
+        else
+          return this;
+      default:
+        return this;
+    }
+  }
+
+  void DrawMenuItem(String& buffer)
+  {
+    /*buffer.concat(m_label);
+    buffer.concat('\n');
+    buffer.concat('[');
+    DrawVariable(buffer, m_minValue);
+    buffer.concat("] ");
+    DrawVariable(buffer, m_tempValue);
+    buffer.concat(" [");
+    DrawVariable(buffer, m_maxValue);
+    buffer.concat(']');
+    buffer.concat('\n');*/
+    DrawBehaviour::Draw(buffer, m_value);
+  }
+
+  void SaveChanges()
+  {
+    m_bindedProperty.Set(m_value);
+  }
+
+  void DiscardChanges()
+  {
+    m_value = m_bindedProperty.Get();
+    m_tempValue = m_value;
+  }
+
+  void Reset()
+  {
+    DiscardChanges();
+  }
+
+private:
+  Property<T>& m_bindedProperty;
+  //TODO: make min and max value also a Property<T> so that it could be binded to another property
+  T m_value;
+  T m_tempValue;
+};
+
+template<typename SaveChangesBehaviour>
+class BindedPropertyNinjaMenuItem<bool, SaveChangesBehaviour> : public NinjaMenuItem
 {
 public:
   BindedPropertyNinjaMenuItem(MENU_LABEL menuItemLabel, Property<bool>& property)
@@ -304,7 +409,10 @@ public:
         if(navigationStep == NINJAMENU_BACK)
           m_tempValue = m_value;
         else
+        {
           m_value = m_tempValue;
+          SaveChangesBehaviour::OnMenuItemValueChanged(this);
+        }
         if(m_parent != NULL)
           return m_parent;
         else
@@ -397,7 +505,7 @@ private:
   C& m_command;
 };
 
-template<typename T>
+template<typename T, typename SaveChangesBehaviour>
 class OptionsPropertyNinjaMenuItem : public NinjaMenuItem
 {
 public:
@@ -453,7 +561,10 @@ public:
         if(navigationStep == NINJAMENU_BACK)
           m_tempValue = m_value;
         else
+        {
           m_value = m_tempValue;
+          SaveChangesBehaviour::OnMenuItemValueChanged(this);
+        }
         if(m_parent != NULL)
           return m_parent;
         else
@@ -577,6 +688,9 @@ public:
 private:
   void PrintLineToLCD(int lineNumber, const String& line)
   {
+    if(lineNumber >= m_rows)
+      return;
+      
     m_lcd->setCursor(0,lineNumber);
     int length = line.length();
     m_lcd->print(line.substring(0, length <= (int)m_cols ? length : m_cols));

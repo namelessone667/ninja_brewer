@@ -21,6 +21,7 @@ static Property<double> stepTemp = 0;
 static Property<int> duration = 0;
 static Property<int> durationUnit = SECONDS;
 static Property<int> stepType = CONSTANT;
+static Property<int> viewProfileVar = 0;
 
 void addTemperatureProfileStep()
 {
@@ -39,6 +40,109 @@ void clearTemperatureProfile()
 {
   theApp::getInstance().getTemperatureProfile().ClearProfile();
 }
+
+void activateTemperatureProfile()
+{
+  theApp::getInstance().getTemperatureProfile().ActivateTemperatureProfile();
+}
+
+void stopTemperatureProfile()
+{
+  theApp::getInstance().getTemperatureProfile().DeactivateTemperatureProfile();
+}
+
+class ViewTempProfileNavigationBehaviour
+{
+public:
+  static void Increment(int& temp_value)
+  {
+    if((temp_value+1) < theApp::getInstance().getTemperatureProfile().GetProfileSteps().size())
+      temp_value++;
+  }
+  static void Decrement(int& temp_value)
+  {
+    if(temp_value > 0)
+      temp_value--;
+  }
+
+  static void BackCancel(int& value, int& temp_value)
+  {
+    value = 0;
+    temp_value = 0;
+  }
+
+  static void BackOK(int& value, int& temp_value)
+  {
+    value = 0;
+    temp_value = 0;
+  }
+};
+
+class DrawTempProfileBehaviour
+{
+public:
+  static void Draw(String& buffer, int value)
+  {
+#ifdef LCD20_4
+    int print_rows = 3;
+#else
+    int print_rows = 1;
+#endif
+    int counter = 0;
+    int currentStepIndex = theApp::getInstance().getTemperatureProfile().GetCurrentStepIndex();
+    if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile())
+    {
+      buffer.concat("Active");
+    }
+    else
+    {
+      buffer.concat("Not active");
+    }
+
+    buffer.concat('\n');
+
+    for(auto it = theApp::getInstance().getTemperatureProfile().GetProfileSteps().cbegin(); it != theApp::getInstance().getTemperatureProfile().GetProfileSteps().cend(); it++)
+    {
+      if((counter < value) ||
+        (counter >= value + print_rows))
+        continue;
+
+      buffer.concat(String::format("%s%.*f",1, (currentStepIndex == counter ? '>' : ' '), (*it)->GetTargetTemperature()));
+      buffer.concat("C@");
+      buffer.concat(String::format("%d", (*it)->GetDuration()));
+      switch((*it)->GetDurationUnit())
+      {
+        case SECONDS:
+          buffer.concat('s');
+          break;
+        case MINUTES:
+          buffer.concat('m');
+          break;
+        case HOURS:
+          buffer.concat('h');
+          break;
+        case DAYS:
+          buffer.concat('d');
+          break;
+      }
+
+      buffer.concat(' ');
+
+      switch((*it)->GetTemperatureProfileStepType())
+      {
+        case LINEAR:
+          buffer.concat('L');
+          break;
+        case CONSTANT:
+          buffer.concat('C');
+          break;
+      }
+
+      buffer.concat('\n');
+    }
+
+  }
+};
 #endif
 
 theAppUI::theAppUI(theApp *controller) :
@@ -88,28 +192,28 @@ void theAppUI::buildMenu()
     /* NINJA MENU */
     SubNinjaMenuItem* rootMenuItem = new SubNinjaMenuItem(F("Settings"));
 
-    rootMenuItem->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Target temp"), _controller->getModel().SetPoint, _controller->getModel().MinTemperature,_controller->getModel().MaxTemperature,0.1,1 ));
-    rootMenuItem->AddSubMenu(new BindedPropertyNinjaMenuItem<bool>(F("Stand By"), _controller->getModel().StandBy ));
+    rootMenuItem->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("Target temp"), _controller->getModel().SetPoint, _controller->getModel().MinTemperature,_controller->getModel().MaxTemperature,0.1,1 ));
+    rootMenuItem->AddSubMenu(new BindedPropertyNinjaMenuItem<bool, SaveChangesOnConfirmBehaviour>(F("Stand By"), _controller->getModel().StandBy ));
 #ifdef TEMP_PROFILES
 
     SubNinjaMenuItem* tempProfileSubMenu = new SubNinjaMenuItem(F("Temp profiles"));
 
-    /*tempProfileSubMenu
-      ->AddSubMenu((new SubNinjaMenuItem(F("View profile")))); // TODO new type of submenu - tempprofilesubmenu*/
+    tempProfileSubMenu
+      ->AddSubMenu((new CustomNinjaMenuItem<int, ViewTempProfileNavigationBehaviour, DrawTempProfileBehaviour, SaveChangesOnItemValueChangedBehaviour>(F("View profile"), viewProfileVar))); // TODO new type of submenu - tempprofilesubmenu*/
 
     SubNinjaMenuItem* addTempProfileStepSubMenu = new SubNinjaMenuItem(F("Add step"));
     addTempProfileStepSubMenu
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Step temp"), stepTemp, 0, 100, 0.5, 1))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Duration"), duration, 0, 1000, 1, 0));
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnItemValueChangedBehaviour>(F("Step temp"), stepTemp, 0, 100, 0.5, 1))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int, SaveChangesOnItemValueChangedBehaviour>(F("Duration"), duration, 0, 1000, 1, 0));
     addTempProfileStepSubMenu
-      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<int>(F("Duration unit"), durationUnit, SECONDS))
+      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<int, SaveChangesOnItemValueChangedBehaviour>(F("Duration unit"), durationUnit, SECONDS))
         ->AddOption(SECONDS, "Seconds")
         ->AddOption(MINUTES, "Minutes")
         ->AddOption(HOURS, "Hours")
         ->AddOption(DAYS, "Days")
     );
     addTempProfileStepSubMenu
-      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<int>(F("Step type"), durationUnit, CONSTANT))
+      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<int, SaveChangesOnItemValueChangedBehaviour>(F("Step type"), durationUnit, CONSTANT))
         ->AddOption(CONSTANT, "Constant")
         ->AddOption(LINEAR, "Linear")
     );
@@ -121,13 +225,11 @@ void theAppUI::buildMenu()
     tempProfileSubMenu
       ->AddSubMenu(new CommandNinjaMenuItem<FunctionDelegateNinjaCommand>(F("Clear Profile"), *(new FunctionDelegateNinjaCommand(&clearTemperatureProfile))));
 
-    /*tempProfileSubMenu
-      ->AddSubMenu((new SubNinjaMenuItem(F("Clear profile"))));
     tempProfileSubMenu
-      ->AddSubMenu((new SubNinjaMenuItem(F("Activate profile")))); //TODO make conditionally hidden (temp. profile is not active)
+      ->AddSubMenu(new CommandNinjaMenuItem<FunctionDelegateNinjaCommand>(F("Activate profile"), *(new FunctionDelegateNinjaCommand(&activateTemperatureProfile)))); //TODO make conditionally hidden (temp. profile is not active)
     tempProfileSubMenu
-      ->AddSubMenu((new SubNinjaMenuItem(F("Stop profile")))); //TODO make conditionally hidden (temp. profile is active)
-    */
+      ->AddSubMenu(new CommandNinjaMenuItem<FunctionDelegateNinjaCommand>(F("Stop profile"), *(new FunctionDelegateNinjaCommand(&stopTemperatureProfile)))); //TODO make conditionally hidden (temp. profile is active)
+
     rootMenuItem->AddSubMenu(tempProfileSubMenu);
 /**************** temperature profile menu *****************
     Temp. profile
@@ -160,42 +262,42 @@ void theAppUI::buildMenu()
 *************************************************************/
 #endif
     rootMenuItem->AddSubMenu((new SubNinjaMenuItem(F("PID param")))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("PID Kp"), _controller->getModel().PID_Kp, 0, 10, 0.1, 1))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("PID Ki"), _controller->getModel().PID_Ki, 0,0.01,0.00001,5))
-      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<int>(F("PID Mode"), _controller->getModel().PIDMode, PID_MANUAL))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("PID Kp"), _controller->getModel().PID_Kp, 0, 10, 0.1, 1))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("PID Ki"), _controller->getModel().PID_Ki, 0,0.01,0.00001,5))
+      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<int, SaveChangesOnConfirmBehaviour>(F("PID Mode"), _controller->getModel().PIDMode, PID_MANUAL))
         ->AddOption(PID_MANUAL, "MANUAL")
         ->AddOption(PID_AUTOMATIC, "AUTOMATIC")
       )
     );
     rootMenuItem->AddSubMenu((new SubNinjaMenuItem(F("Heat PID param")))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Heat PID Kp"), _controller->getModel().HeatPID_Kp, 0, 100, 0.1, 1))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Heat PID Ki"), _controller->getModel().HeatPID_Ki, 0,1.0,0.0001,4))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Heat PID Kd"), _controller->getModel().HeatPID_Kd, 0,10000,100,0))
-      //->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Manual Output"), _controller->getModel().HeatOutput, 0,25,0.5,1))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Heat Min %"), _controller->getModel().HeatMinPercent, 0,100,1,1))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Heat Max %"), _controller->getModel().HeatMaxPercent, 0,100,1,1))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Manual Output %"), _controller->getModel().HeatManualOutputPercent, 0,100,1,1))
-      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<int>(F("Heat PID Mode"), _controller->getModel().HeatPIDMode, PID_MANUAL))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("Heat PID Kp"), _controller->getModel().HeatPID_Kp, 0, 100, 0.1, 1))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("Heat PID Ki"), _controller->getModel().HeatPID_Ki, 0,1.0,0.0001,4))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("Heat PID Kd"), _controller->getModel().HeatPID_Kd, 0,10000,100,0))
+      //->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("Manual Output"), _controller->getModel().HeatOutput, 0,25,0.5,1))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("Heat Min %"), _controller->getModel().HeatMinPercent, 0,100,1,1))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("Heat Max %"), _controller->getModel().HeatMaxPercent, 0,100,1,1))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("Manual Output %"), _controller->getModel().HeatManualOutputPercent, 0,100,1,1))
+      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<int, SaveChangesOnConfirmBehaviour>(F("Heat PID Mode"), _controller->getModel().HeatPIDMode, PID_MANUAL))
         ->AddOption(PID_MANUAL, "MANUAL")
         ->AddOption(PID_AUTOMATIC, "AUTOMATIC")
       )
     );
     rootMenuItem->AddSubMenu((new SubNinjaMenuItem(F("Controller param")))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Idle Diff"), _controller->getModel().IdleDiff, 0,5,0.1,1))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Peak Diff"), _controller->getModel().PeakDiff, 0,1,0.01,2))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Cool Min ON"), _controller->getModel().CoolMinOn, 120,600,10,0))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Cool Min OFF"), _controller->getModel().CoolMinOff, 120,600,10,0))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Cool Max ON"), _controller->getModel().CoolMaxOn, 600,7200,60,0))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Peak Max Time"), _controller->getModel().PeakMaxTime, 60,3600,60,0))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Peak Max Wait"), _controller->getModel().PeakMaxWait, 60,3600,60,0))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Heat Min OFF"), _controller->getModel().HeatMinOff, 0,3600,10,0))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Heat Window"), _controller->getModel().HeatWindow, 5,600,1,0))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int>(F("Idle Min ON"), _controller->getModel().MinIdleTime, 0,3600,10,0))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("No Heat Below"), _controller->getModel().NoHeatBelow, -10,50,1,1))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("No Cool Above"), _controller->getModel().NoCoolAbove, -10,50,1,1))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Min Temp"), _controller->getModel().MinTemperature, -20,100,1,1))
-      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double>(F("Max Temp"), _controller->getModel().MaxTemperature, -20,100,1,1))
-      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<opMode>(F("Mode"), _controller->getModel().ControllerMode, COOLER_HEATER))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("Idle Diff"), _controller->getModel().IdleDiff, 0,5,0.1,1))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("Peak Diff"), _controller->getModel().PeakDiff, 0,1,0.01,2))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int, SaveChangesOnConfirmBehaviour>(F("Cool Min ON"), _controller->getModel().CoolMinOn, 120,600,10,0))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int, SaveChangesOnConfirmBehaviour>(F("Cool Min OFF"), _controller->getModel().CoolMinOff, 120,600,10,0))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int, SaveChangesOnConfirmBehaviour>(F("Cool Max ON"), _controller->getModel().CoolMaxOn, 600,7200,60,0))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int, SaveChangesOnConfirmBehaviour>(F("Peak Max Time"), _controller->getModel().PeakMaxTime, 60,3600,60,0))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int, SaveChangesOnConfirmBehaviour>(F("Peak Max Wait"), _controller->getModel().PeakMaxWait, 60,3600,60,0))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int, SaveChangesOnConfirmBehaviour>(F("Heat Min OFF"), _controller->getModel().HeatMinOff, 0,3600,10,0))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int, SaveChangesOnConfirmBehaviour>(F("Heat Window"), _controller->getModel().HeatWindow, 5,600,1,0))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<int, SaveChangesOnConfirmBehaviour>(F("Idle Min ON"), _controller->getModel().MinIdleTime, 0,3600,10,0))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("No Heat Below"), _controller->getModel().NoHeatBelow, -10,50,1,1))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("No Cool Above"), _controller->getModel().NoCoolAbove, -10,50,1,1))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("Min Temp"), _controller->getModel().MinTemperature, -20,100,1,1))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("Max Temp"), _controller->getModel().MaxTemperature, -20,100,1,1))
+      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<opMode, SaveChangesOnConfirmBehaviour>(F("Mode"), _controller->getModel().ControllerMode, COOLER_HEATER))
         ->AddOption(COOLER_HEATER, "COOL/HEAT")
         ->AddOption(COOLER_ONLY, "COOL ONLY")
         ->AddOption(HEATER_ONLY, "HEAT ONLY")
