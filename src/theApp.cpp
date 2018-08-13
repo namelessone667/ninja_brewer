@@ -1,6 +1,8 @@
 #include "theApp.h"
 #include "DefaultNinjaModelSerializer.h"
 #include "EEPROMNinjaModelSerializer.h"
+#include "DS18B20Sensor.h"
+#include "VirtualTempSensor.h"
 
 //TODO create structures to store onewire device addresses
 //TODO implement dynamic onewire device discovery and initialization
@@ -88,7 +90,7 @@ void theApp::init()
       setErrorState("Sensor init fail");
       return;
   }
-
+#ifndef SIMULATE_TEMP_SENSORS
   getLogger().info("Sensor1 address: " + _tempSensor1->GetAddress().ToString());
   getLogger().info("Sensor2 address: " + _tempSensor2->GetAddress().ToString());
 
@@ -106,7 +108,7 @@ void theApp::init()
 
   EEPROMNinjaModelSerializer::SaveSensorAddress(_tempSensor1->GetAddress(), TEMP_SENSOR_ADDR1);
   EEPROMNinjaModelSerializer::SaveSensorAddress(_tempSensor2->GetAddress(), TEMP_SENSOR_ADDR2);
-
+#endif
   //_mainPID.SetTunings(_model.PID_Kp, _model.PID_Ki, _model.PID_Kd);    // set tuning params
   _mainPID.SetSampleTime(1000);       // (ms) matches sample rate (1 hz)
 
@@ -153,7 +155,10 @@ int theApp::initSensors()
   {
     if(retries-- < 0)
       return 0;
-
+#ifdef SIMULATE_TEMP_SENSORS
+    _tempSensor1 = new VirtualTempSensor();
+    _tempSensor2 = new VirtualTempSensor();
+#else
     if(_tempSensor1 != NULL)
     {
       delete(_tempSensor1);
@@ -176,6 +181,7 @@ int theApp::initSensors()
       continue;
 
     _tempSensor2 = new DS18B20Sensor(sensorAddress, &_oneWire);
+#endif
 
     if(_tempSensor1->Init() && _tempSensor2->Init())
     {
@@ -409,12 +415,13 @@ void theApp::saveState()
 
 void theApp::switchSensors()
 {
-  DS18B20Sensor *temp = _tempSensor1;
+  Sensor<double> *temp = _tempSensor1;
   _tempSensor1 = _tempSensor2;
   _tempSensor2 = temp;
-
+#ifndef SIMULATE_TEMP_SENSORS
   EEPROMNinjaModelSerializer::SaveSensorAddress(_tempSensor1->GetAddress(), TEMP_SENSOR_ADDR1);
   EEPROMNinjaModelSerializer::SaveSensorAddress(_tempSensor2->GetAddress(), TEMP_SENSOR_ADDR2);
+#endif
 }
 
 void theApp::handlePIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)

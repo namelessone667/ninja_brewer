@@ -359,7 +359,7 @@ public:
     DrawVariable(buffer, m_maxValue);
     buffer.concat(']');
     buffer.concat('\n');*/
-    DrawBehaviour::Draw(buffer, m_value);
+    DrawBehaviour::Draw(buffer, m_tempValue);
   }
 
   void SaveChanges()
@@ -690,7 +690,7 @@ private:
   {
     if(lineNumber >= m_rows)
       return;
-      
+
     m_lcd->setCursor(0,lineNumber);
     int length = line.length();
     m_lcd->print(line.substring(0, length <= (int)m_cols ? length : m_cols));

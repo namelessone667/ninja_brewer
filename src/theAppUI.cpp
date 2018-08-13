@@ -98,17 +98,19 @@ public:
     {
       buffer.concat("Not active");
     }
-
     buffer.concat('\n');
 
     for(auto it = theApp::getInstance().getTemperatureProfile().GetProfileSteps().cbegin(); it != theApp::getInstance().getTemperatureProfile().GetProfileSteps().cend(); it++)
     {
       if((counter < value) ||
         (counter >= value + print_rows))
+      {
+        counter++;
         continue;
-
-      buffer.concat(String::format("%s%.*f",1, (currentStepIndex == counter ? '>' : ' '), (*it)->GetTargetTemperature()));
-      buffer.concat("C@");
+      }
+      buffer.concat(String::format("%d.", counter+1));
+      buffer.concat(String::format("%c%.1f", (currentStepIndex == counter ? '>' : ' '), (*it)->GetTargetTemperature()));
+      buffer.concat("C / ");
       buffer.concat(String::format("%d", (*it)->GetDuration()));
       switch((*it)->GetDurationUnit())
       {
@@ -139,6 +141,7 @@ public:
       }
 
       buffer.concat('\n');
+      counter++;
     }
 
   }
@@ -213,7 +216,7 @@ void theAppUI::buildMenu()
         ->AddOption(DAYS, "Days")
     );
     addTempProfileStepSubMenu
-      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<int, SaveChangesOnItemValueChangedBehaviour>(F("Step type"), durationUnit, CONSTANT))
+      ->AddSubMenu((new OptionsPropertyNinjaMenuItem<int, SaveChangesOnItemValueChangedBehaviour>(F("Step type"), stepType, CONSTANT))
         ->AddOption(CONSTANT, "Constant")
         ->AddOption(LINEAR, "Linear")
     );

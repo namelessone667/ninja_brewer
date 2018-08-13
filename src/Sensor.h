@@ -15,6 +15,8 @@ public:
     //todo implement value filtering, etc. on this level using templates
     return _value.Get();
   }
+  virtual void SetFiltered(bool) = 0;
+  virtual bool PeakDetect() = 0;
 protected:
   Property<T> _value;
 };

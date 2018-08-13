@@ -3,6 +3,7 @@
 
 #include "INinjaModelSerializer.h"
 #include "EEPROM_MAP.h"
+#include "DS18B20Sensor.h"
 #ifdef TEMP_PROFILES
 #include "TemperatureProfile.h"
 #endif

@@ -10,7 +10,7 @@
 #include "CoolerHeaterContoller.h"
 #include "PIDProxy.h"
 #include "NinjaModel.h"
-#include "DS18B20Sensor.h"
+#include "Sensor.h"
 #ifdef TEMP_PROFILES
 #include "TemperatureProfile.h"
 #endif
@@ -54,8 +54,8 @@ class theApp : public CEventReceiver
         CoolerHeaterContoller _controller;
         PIDProxy _mainPID;
         PIDProxy _heatPID;
-        DS18B20Sensor* _tempSensor1 = NULL;
-        DS18B20Sensor* _tempSensor2 = NULL;
+        Sensor<double>* _tempSensor1 = NULL;
+        Sensor<double>* _tempSensor2 = NULL;
 #ifdef TEMP_PROFILES
         TemperatureProfile _tempProfile;
         void handleTempProfileStepsChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
