@@ -1,7 +1,6 @@
 #include "theApp.h"
 #include "DefaultNinjaModelSerializer.h"
 #include "EEPROMNinjaModelSerializer.h"
-#include "DS18B20Sensor.h"
 #include "VirtualTempSensor.h"
 
 //TODO create structures to store onewire device addresses
@@ -415,7 +414,7 @@ void theApp::saveState()
 
 void theApp::switchSensors()
 {
-  Sensor<double> *temp = _tempSensor1;
+  IDS18B20Sensor *temp = _tempSensor1;
   _tempSensor1 = _tempSensor2;
   _tempSensor2 = temp;
 #ifndef SIMULATE_TEMP_SENSORS

@@ -2,17 +2,17 @@
 #define globals_h
 
 /******** feaures section *****************/
-#define HERMS_MODE
+//#define HERMS_MODE
 //#define DEBUG_HERMS
-#define LCD20_4
+//#define LCD20_4
 #define TEMP_PROFILES
 #define USE_WIFI
 #define USE_PARTICLE
-#define USE_UBIDOTS
+//#define USE_UBIDOTS
 #define USE_BLYNK
 #define USE_PAPERTAIL
-#define BREWPI_LINK //TODO: implement BrewPiLink
-#define SIMULATE_TEMP_SENSORS
+//#define BREWPI_LINK //TODO: implement BrewPiLink
+//#define SIMULATE_TEMP_SENSORS
 /******** feaures section end *****************/
 
 /******** Blynk Virtual PINS definition *******/
