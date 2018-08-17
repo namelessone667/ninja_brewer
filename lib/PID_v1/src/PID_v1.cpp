@@ -21,6 +21,7 @@ PID::PID(double* Input, double* Output, double* Setpoint, double Kp, double Ki, 
 
   inAuto = false;
   isRaw = true;
+  integratorClamping = false;
 
   PID::SetOutputLimits(0, 255);	 //default output limit corresponds to
 				 //the arduino pwm limits
@@ -50,22 +51,32 @@ bool PID::Compute() {
     }
     double input = *myInput;
     double error = *mySetpoint - input;
-
-    ITerm += (ki * error);
-    if (ITerm > outMax) ITerm= outMax;
-      else if (ITerm < outMin) ITerm= outMin;
-    double dInput = (History[0] - History[29]) / (60);
-    PTerm = kp * error;
-    DTerm = -kd * dInput;
+    double lastITerm = ITerm;
 
     double output = *myOutput;
 
     if(inAuto)
     {
+      ITerm += (ki * error);
+      if (ITerm > outMax) ITerm= outMax;
+        else if (ITerm < outMin) ITerm= outMin;
+
+      double dInput = (History[0] - History[29]) / (60);
+      PTerm = kp * error;
+      DTerm = -kd * dInput;
+
+      if(integratorClamping &&
+        ((PTerm + ITerm + DTerm) > outMax || (PTerm + ITerm + DTerm) < outMin))
+      {
+        //dont update integrator term when the output is saturated
+        ITerm = lastITerm;
+      }
+
       output = PTerm + ITerm + DTerm;  // Compute PID Output
 
       if(output > outMax) output = outMax;
         else if(output < outMin) output = outMin;
+
       if(lastOutput == LAST_OUTPUT_DEFAULT)
         lastOutput = output;
       if (!isRaw) output = lastOutput + ((SampleTime / 1000) / FilterConstant) * (output - lastOutput);

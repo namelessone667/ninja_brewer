@@ -25,7 +25,10 @@ class PID {
     void SetOutputLimits(double, double);  //clamps the output to a specific range. 0-255 by default, but
                                            //it's likely the user will want to change this depending on
 					   //the application
-
+    inline void SetIntegratorClamping(bool clamping_enabled)
+    {
+      integratorClamping = clamping_enabled;
+    };
 //available but not commonly used functions ********************************************************
     void SetTunings(double, double, double);  // * While most users will set the tunings once in the
                              	              // constructor, this function gives the user the option
@@ -73,6 +76,6 @@ class PID {
     double History[30];                  // for calculating broad PV slope for derivative term
     unsigned long SampleTime, lastTime;  // time between sample/compute (ms), time of last sample (ms)
     double outMin, outMax;     // output constraints
-    bool inAuto, isRaw;        // state flags
+    bool inAuto, isRaw, integratorClamping;        // state flags
 };
 #endif

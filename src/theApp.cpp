@@ -114,6 +114,8 @@ void theApp::init()
 
   _mainPID.SetOutputLimits(_model.MinTemperature, _model.MaxTemperature);  // deg C (~32.5 - ~100 deg F)
 
+  _mainPID.SetIntegratorClamping(true);
+
   _mainPID.setOutputType(PID_FILTERED);
 
   _mainPID.setFilterConstant(1000);
@@ -128,6 +130,8 @@ void theApp::init()
   _heatPID.SetSampleTime(1000);       // sampletime = time proportioning window length
 
   _heatPID.SetOutputLimits(_model.HeatMinPercent, _model.HeatMaxPercent);  // _heatPID output = duty time per window
+
+  _heatPID.SetIntegratorClamping(true);
 
   _heatPID.setOutputType(PID_FILTERED);
 
