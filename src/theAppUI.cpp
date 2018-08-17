@@ -110,7 +110,11 @@ public:
       }
       buffer.concat(String::format("%d.", counter+1));
       buffer.concat(String::format("%c%.1f", (currentStepIndex == counter ? '>' : ' '), (*it)->GetTargetTemperature()));
+#ifdef LCD20_4
       buffer.concat("C / ");
+#else
+      buffer.concat("C/");
+#endif
       buffer.concat(String::format("%d", (*it)->GetDuration()));
       switch((*it)->GetDurationUnit())
       {

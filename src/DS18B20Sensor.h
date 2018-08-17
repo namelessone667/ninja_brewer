@@ -37,7 +37,21 @@ struct OneWireAddress
   }
 };
 
-class DS18B20Sensor : public Sensor<double>
+class IDS18B20Sensor : public Sensor<double>
+{
+public:
+  virtual ~IDS18B20Sensor() = default;
+  virtual void SetFiltered(bool) = 0;
+  virtual bool PeakDetect() = 0;
+  const OneWireAddress& GetAddress()
+  {
+    return _address;
+  }
+protected:
+  OneWireAddress _address;
+};
+
+class DS18B20Sensor : public IDS18B20Sensor
 {
 public:
   DS18B20Sensor(const OneWireAddress& address, OneWire* oneWire)
@@ -123,13 +137,8 @@ public:
     _filtered = filtered;
   }
 
-  const OneWireAddress& GetAddress()
-  {
-    return _address;
-  }
 
 private:
-  OneWireAddress _address;
   probe* _probe;
   bool _isInitialized = false;
   static bool _startConversion;

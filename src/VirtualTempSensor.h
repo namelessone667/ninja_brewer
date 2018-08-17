@@ -1,15 +1,24 @@
 #ifndef _VirtualTempSensor_h
 #define _VirtualTempSensor_h
 
-#include "Sensor.h"
+#include "DS18B20Sensor.h"
 
 
-class VirtualTempSensor : public Sensor<double>
+class VirtualTempSensor : public IDS18B20Sensor
 {
 public:
-  VirtualTempSensor()
+  VirtualTempSensor() : VirtualTempSensor((OneWireAddress){{0,0,0,0,0,0,0,0}})
   {
+
+  }
+  VirtualTempSensor(const OneWireAddress& address)
+  {
+    _address = address;
     _value.Set(18);
+  }
+
+  ~VirtualTempSensor()
+  {
   }
 
   bool Init()
@@ -31,6 +40,8 @@ public:
   {
     return false;
   }
+
+
 };
 
 #endif
