@@ -519,3 +519,8 @@ void theAppUI::reinitLCD()
 {
   _reinitLCD = true;
 }
+
+const String& theAppUI::getLCDText()
+{
+  return _ninjaMenu.GetLCDBuffer();
+}

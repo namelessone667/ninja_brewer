@@ -658,6 +658,7 @@ public:
 
   void DrawUsrScreen(String buffer)
   {
+    m_lcd_buffer = buffer;
     unsigned int current_row = 0;
 
     while(current_row < m_rows)
@@ -666,6 +667,11 @@ public:
       PrintLineToLCD(current_row++, buffer.substring(0, eol == -1 ? buffer.length() : eol));
       buffer = buffer.substring(eol+1);
     }
+  }
+
+  const String& GetLCDBuffer()
+  {
+    return m_lcd_buffer;
   }
 
   void SaveChanges()
@@ -704,6 +710,7 @@ private:
   LiquidCrystal_I2C* m_lcd;
   unsigned int m_cols;
   unsigned int m_rows;
+  String m_lcd_buffer;
 };
 
 class INinjaCommand

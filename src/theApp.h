@@ -36,6 +36,7 @@ class theApp : public CEventReceiver
         void reinitLCD();
         void saveState();
         void switchSensors();
+        const String& getLCDText();
 #ifdef TEMP_PROFILES
         TemperatureProfile& getTemperatureProfile();
 #endif

@@ -20,6 +20,7 @@ class theAppUI : public INinjaMenuNavigationHandler
       void reinitLCD();
       NinjaMenuNavigation ScanNavigationButtons();
       void ExitMenu();
+      const String& getLCDText();
   private:
       void buildMenu();
       void saveAndExitMenu();
