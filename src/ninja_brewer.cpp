@@ -16,7 +16,7 @@ SYSTEM_MODE(SEMI_AUTOMATIC);
 #ifdef USE_PAPERTAIL
 PapertrailLogHandler papertailHandler(PAPERTAIL_SERVER, PAPERTAIL_PORT, "ninja_brewer_2", System.deviceID(), LOG_LEVEL);
 #endif
-SerialLogHandler logHandler1;
+//SerialLogHandler logHandler1;
 
 void wd_reboot()
 {
