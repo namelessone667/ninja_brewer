@@ -14,9 +14,9 @@ void ParticlePublisher::init(const NinjaModel &model)
     Particle.variable("setpoint", model.SetPoint.Get());
     Particle.variable("output", model.Output.Get());
     Particle.variable("heatOutput", model.HeatOutput.Get());
-    Particle.variable("pidKp", model.PID_Kp.Get());
-    Particle.variable("pidKi", model.PID_Ki.Get());
-    Particle.variable("pidKd", model.PID_Kd.Get());
+    //Particle.variable("pidKp", model.PID_Kp.Get());
+    //Particle.variable("pidKi", model.PID_Ki.Get());
+    //Particle.variable("pidKd", model.PID_Kd.Get());
     Particle.variable("heatPidKp", model.HeatPID_Kp.Get());
     Particle.variable("heatPidKi", model.HeatPID_Ki.Get());
     Particle.variable("heatPidKd", model.HeatPID_Kd.Get());
@@ -26,6 +26,9 @@ void ParticlePublisher::init(const NinjaModel &model)
 #ifdef TEMP_PROFILES
     Particle.variable("profileTemp", model.TempProfileTemperature.Get());
 #endif
+    IPAddress localIP = WiFi.localIP();
+    sprintf(localIPstr, "%u.%u.%u.%u", localIP[0], localIP[1], localIP[2], localIP[3]);
+    Particle.variable("localIP", localIPstr, STRING);
 
     Particle.function("setSetPoint", setNewSetPoint);
     Particle.function("setPIDAuto", setPIDModeAuto);

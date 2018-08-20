@@ -7,6 +7,7 @@ class ParticlePublisher : public BasePublisher
 {
   private:
     bool registeredToCloud = false;
+    char localIPstr[16];
   public:
     void init(const NinjaModel&);
     void publish(const NinjaModel&);

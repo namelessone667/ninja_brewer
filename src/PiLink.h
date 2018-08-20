@@ -7,6 +7,7 @@
 #include "theApp.h"
 #include "JSONKeys.h"
 
+//#define PILINK_SERIAL
 
 #define VERSION_STRING "0.2.4"
 #define BUILD_NUMBER 0
@@ -33,8 +34,9 @@
 #define MODE_OFF 'o'
 #define MODE_TEST 't'
 
-
+#ifdef PILINK_SERIAL
 #define piStream Serial
+#endif
 /*enum states{
 	IDLE,						// 0
 	STATE_OFF,					// 1
@@ -55,32 +57,81 @@ public:
   // There can only be one PiLink object, so functions are static
 	static void init(void)
   {
+#ifdef PILINK_SERIAL
     piStream.begin(57600);
+#else
+		server.begin();
+		Serial.println("TCPServer running on port 23");
+#endif
   };
 
   static int read()
   {
-	   return piStream.read();
+#ifdef PILINK_SERIAL
+	  return piStream.read();
+#else
+		if(piStream.connected() && piStream.available())
+		{
+			return piStream.read();
+		}
+		else return 0;
+#endif
   };
+
+	static bool available()
+	{
+#ifndef PILINK_SERIAL
+		if(piStream.connected() == false)
+		{
+			piStream = server.available();
+		}
+
+		if(piStream.connected())
+			return piStream.available();
+		else
+			return false;
+#endif
+		return (piStream.available() > 0);
+	};
 
 	static void receive(void)
   {
-      while (piStream.available() > 0)
+		/*if (piStream.connected()) {
+				// A TCP client has connected to the server.
+				while (piStream.available()) {
+				int c = piStream.read();
+
+				// By the way, the actual telnet program will sent a bunch of telnet escape sequences
+				// which appears as random garbage characters in serial. This isn't really a bug,
+				// it's just that in the interest of clarity this isn't really a telnet server.
+				piStream.write(c);
+				Serial.write(c);
+			}
+		}
+			else {
+				// Check for an incoming connection. This is called repeatedly until a connection is made.
+				piStream = server.available();
+			}
+
+		return;*/
+		const Logger& logger = theApp::getInstance().getLogger();
+      while (available())
       {
         char inByte = read();
+				logger.info(String::format("PiLink received: %c", inByte));
 		      switch(inByte)
           {
             case ' ':
         		case '\n':
         		case '\r':
-        		/*case 1:
+        		case 1:
         		case 3:
         		case 29:
         		case 31:
         		case '\'':
         		case 251:
         		case 253:
-        		case 255:*/
+        		case 255:
 							break;
 						case 's': // Control settings requested
 							sendControlSettings();
@@ -116,6 +167,7 @@ public:
    			      openListResponse('L');
          			char stringBuffer[21];
               String buffer = theApp::getInstance().getLCDText();
+							buffer.replace(2, ' ');
          			for(uint8_t i=0;i<4;i++)
               {
                 int eol = buffer.indexOf('\n');
@@ -388,6 +440,10 @@ public:
 private:
   static bool firstPair;
   static char printfBuff[PRINTF_BUFFER_SIZE];
+#ifndef PILINK_SERIAL
+	static TCPServer server;
+	static TCPClient piStream;
+#endif
 };
 
 #endif
