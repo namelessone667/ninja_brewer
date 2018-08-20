@@ -5,6 +5,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include "theApp.h"
+#include "JSONKeys.h"
 
 
 #define VERSION_STRING "0.2.4"
@@ -25,6 +26,12 @@
 #define JSON_STATE		"State"
 #define JSON_TIME		"Time"
 #define JSON_ROOM_TEMP  "RoomTemp"
+
+#define	MODE_FRIDGE_CONSTANT 'f'
+#define MODE_BEER_CONSTANT 'b'
+#define MODE_BEER_PROFILE 'p'
+#define MODE_OFF 'o'
+#define MODE_TEST 't'
 
 
 #define piStream Serial
@@ -74,6 +81,15 @@ public:
         		case 251:
         		case 253:
         		case 255:*/
+							break;
+						case 's': // Control settings requested
+							sendControlSettings();
+							break;
+						case 'c': // Control constants requested
+							sendControlConstants();
+							break;
+						case 'v': // Control variables requested
+							sendControlVariables();
         			break;
             case 'n':
         			// v version
@@ -103,7 +119,6 @@ public:
          			for(uint8_t i=0;i<4;i++)
               {
                 int eol = buffer.indexOf('\n');
-                unsigned int current_row = 0;
                 buffer.substring(0, eol == -1 ? buffer.length() : eol).toCharArray(stringBuffer, 20);
                 print("\"%s\"", stringBuffer);
                 char close = (i<3) ? ',':']';
@@ -136,6 +151,103 @@ public:
   {
 		piStream.println();
 	};
+
+	// Send settings as JSON string
+	static void sendControlSettings(void)
+	{
+		NinjaModel model = theApp::getInstance().getModel();
+		char tempString[12], mode;
+		if(model.StandBy)
+			mode = MODE_OFF;
+		else if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile())
+			mode = MODE_BEER_PROFILE;
+		else if(model.PIDMode == PID_MANUAL)
+			mode = MODE_FRIDGE_CONSTANT;
+		else
+			mode = MODE_BEER_CONSTANT;
+
+		printResponse('S');
+		sendJsonPair(JSONKEY_mode, mode);
+		sendJsonPair(JSONKEY_beerSetting, fixedPointToString(tempString, model.SetPoint, 2, 12));
+		sendJsonPair(JSONKEY_fridgeSetting, fixedPointToString(tempString, model.Output, 2, 12));
+		sendJsonPair(JSONKEY_heatEstimator, fixedPointToString(tempString, 0, 3, 12));
+		sendJsonPair(JSONKEY_coolEstimator, fixedPointToString(tempString, model.PeakEstimator, 3, 12));
+		sendJsonClose();
+	};
+
+	static void sendControlConstants(void)
+	{
+		NinjaModel model = theApp::getInstance().getModel();
+		//jsonOutputBase = (uint8_t*)&tempControl.cc;
+		//sendJsonValues('C', jsonOutputCCMap, sizeof(jsonOutputCCMap)/sizeof(jsonOutputCCMap[0]));
+		printResponse('C');
+
+		sendJsonPair(JSONKEY_tempFormat, 'C');
+		sendJsonPair(JSONKEY_tempSettingMin, model.MinTemperature.Get());
+		sendJsonPair(JSONKEY_tempSettingMax, model.MaxTemperature.Get());
+		sendJsonPair(JSONKEY_pidMax, (double)0); //not used for now, the max diff between StePoint and Output
+
+		sendJsonPair(JSONKEY_Kp, model.PID_Kp.Get());
+		sendJsonPair(JSONKEY_Ki, model.PID_Ki.Get());
+		sendJsonPair(JSONKEY_Kd, model.PID_Kd.Get());
+
+		sendJsonPair(JSONKEY_iMaxError, (double)0); //not used for now, the max error to consider when updating PID integrator
+		sendJsonPair(JSONKEY_idleRangeHigh, model.IdleDiff.Get());
+		sendJsonPair(JSONKEY_idleRangeLow, model.IdleDiff.Get());
+		sendJsonPair(JSONKEY_heatingTargetUpper, (double)0); //not used, heating estimator peak error
+		sendJsonPair(JSONKEY_heatingTargetLower, (double)0);//not used, heating estimator peak error
+		sendJsonPair(JSONKEY_coolingTargetUpper, model.PeakDiff.Get());
+		sendJsonPair(JSONKEY_coolingTargetLower, model.PeakDiff.Get()*-1);
+		sendJsonPair(JSONKEY_maxHeatTimeForEstimate, (uint16_t)0); //not used, heat estimator max time
+		sendJsonPair(JSONKEY_maxCoolTimeForEstimate, model.PeakMaxTime.Get());
+
+		sendJsonPair(JSONKEY_minCoolTime, model.CoolMinOn.Get());
+		sendJsonPair(JSONKEY_minCoolIdleTime, model.CoolMinOff.Get());
+		sendJsonPair(JSONKEY_minHeatTime, (uint16_t)0); //minimum heat time not defined
+		sendJsonPair(JSONKEY_minHeatIdleTime, model.HeatMinOff.Get());
+		sendJsonPair(JSONKEY_mutexDeadTime, model.MinIdleTime.Get());
+
+		sendJsonPair(JSONKEY_fridgeFastFilter, (uint8_t)0); //not used
+		sendJsonPair(JSONKEY_fridgeSlowFilter, (uint8_t)0); //not used
+		sendJsonPair(JSONKEY_fridgeSlopeFilter, (uint8_t)0); //not used
+		sendJsonPair(JSONKEY_beerFastFilter, (uint8_t)0); //not used
+		sendJsonPair(JSONKEY_beerSlowFilter, (uint8_t)0); //not used
+		sendJsonPair(JSONKEY_beerSlopeFilter, (uint8_t)0); //not used
+
+		sendJsonPair(JSONKEY_lightAsHeater, (uint8_t)0); //not used
+		sendJsonPair(JSONKEY_rotaryHalfSteps, (uint8_t)0); //not used
+
+		sendJsonClose();
+	};
+
+	static void sendControlVariables(void)
+	{
+		//jsonOutputBase = (uint8_t*)&tempControl.cv;
+		//sendJsonValues('V', jsonOutputCVMap, sizeof(jsonOutputCVMap)/sizeof(jsonOutputCVMap[0]));
+		NinjaModel model = theApp::getInstance().getModel();
+		printResponse('V');
+
+		double error = model.SetPoint.Get() - model.BeerTemp.Get();
+
+		sendJsonPair(JSONKEY_beerDiff, error);
+		sendJsonPair(JSONKEY_diffIntegral, error);
+		sendJsonPair(JSONKEY_beerSlope, 0);
+		sendJsonPair(JSONKEY_p, theApp::getInstance().GetPIDPTerm());
+		sendJsonPair(JSONKEY_i, theApp::getInstance().GetPIDITerm());
+		sendJsonPair(JSONKEY_d, theApp::getInstance().GetPIDDTerm());
+		sendJsonPair(JSONKEY_estimatedPeak, 0); //not used
+		sendJsonPair(JSONKEY_negPeakEstimate, 0); //not used
+		sendJsonPair(JSONKEY_posPeakEstimate, 0); //not used
+		sendJsonPair(JSONKEY_negPeak, 0); //not used
+		sendJsonPair(JSONKEY_posPeak, 0); //not used
+
+		sendJsonClose();
+	};
+
+	static char * fixedPointToString(char * s, double value, uint8_t numDecimals, uint8_t maxLength){
+		snprintf(s, maxLength, "%.*f", numDecimals, value);
+		return s;
+	}
 
   static void printTemperatures(void)
   {
@@ -208,6 +320,12 @@ public:
   	print(tempString);
   };
 
+	static void sendJsonPair(const char * name, double val)
+  {
+	   printJsonName(name);
+	   print("%f",val);
+  };
+
   static void sendJsonPair(const char * name, const char * val)
   {
 	   printJsonName(name);
@@ -227,6 +345,12 @@ public:
   {
 	   printJsonName(name);
 	   print("%u", val);
+  };
+
+	static void sendJsonPair(const char * name, int val)
+  {
+	   printJsonName(name);
+	   print("%d", val);
   };
 
   static void sendJsonPair(const char * name, uint8_t val)

@@ -37,6 +37,9 @@ class theApp : public CEventReceiver
         void saveState();
         void switchSensors();
         const String& getLCDText();
+        double GetPIDPTerm() { return _mainPID.GetPTerm(); };
+        double GetPIDITerm() { return _mainPID.GetITerm(); };
+        double GetPIDDTerm() { return _mainPID.GetDTerm(); };
 #ifdef TEMP_PROFILES
         TemperatureProfile& getTemperatureProfile();
 #endif
