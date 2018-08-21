@@ -209,10 +209,19 @@ public:
   			       printTemperatures();
   			       break;
 						case 'd': // list devices in eeprom order
+							if(read() == '{')
+								while(read() != '}');
 	 						openListResponse('d');
 	 						listDevices();
 	 						closeListResponse();
 	 						break;
+						case 'h':
+							if(read() == '{')
+								while(read() != '}');
+							openListResponse('h');
+							//listDevices();
+							closeListResponse();
+							break;
             case 'l': // Display content requested
    			      openListResponse('L');
          			char stringBuffer[21];
@@ -237,9 +246,9 @@ public:
 		//NinjaModel& model = theApp::getInstance().getModel();
 		int id = 0;
 
-		printDevice(id++, DEVICE_TYPE_SENSOR, 1, 0, DEVICE_CHAMBER_TEMP, DEVICE_HARDWARE_ONEWIRE_TEMP, 0, ONE_WIRE_BUS_PIN, "0000000000000000", true);
+		printDevice(id++, DEVICE_TYPE_SENSOR, 1, 0, DEVICE_CHAMBER_TEMP, DEVICE_HARDWARE_ONEWIRE_TEMP, 0, ONE_WIRE_BUS_PIN, "\"0000000000000000\"", true);
 		print(',');
-		printDevice(id++, DEVICE_TYPE_SENSOR, 0, 1, DEVICE_BEER_TEMP, DEVICE_HARDWARE_ONEWIRE_TEMP, 0, ONE_WIRE_BUS_PIN, "0000000000000001");
+		printDevice(id++, DEVICE_TYPE_SENSOR, 0, 1, DEVICE_BEER_TEMP, DEVICE_HARDWARE_ONEWIRE_TEMP, 0, ONE_WIRE_BUS_PIN, "\"0000000000000001\"");
 		print(',');
 		printDevice(id++, DEVICE_TYPE_ACTUATOR, 1, 0, DEVICE_CHAMBER_HEAT, DEVICE_HARDWARE_PIN, 0, HEATER_SSR_PIN, NULL);
 		print(',');
@@ -259,7 +268,7 @@ public:
 		sendJsonPair(DEVICE_ATTRIB_PIN, pin);
 		if(address != NULL)
 			sendJsonPair(DEVICE_ATTRIB_ADDRESS, address);
-		sendJsonClose();
+		sendJsonClose(false);
 	};
 
   // create a printf like interface to the Arduino Serial function. Format string stored in RAM
@@ -503,10 +512,11 @@ public:
 	   firstPair = false;
   };
 
-  static void sendJsonClose()
+  static void sendJsonClose(bool newline = true)
   {
 	   print("}");
-	   printNewLine();
+		 if(newline)
+	   	printNewLine();
   };
 
   static void sendJsonAnnotation(const char* name, const char* annotation)
