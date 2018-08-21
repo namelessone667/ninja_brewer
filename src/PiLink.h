@@ -34,6 +34,23 @@
 #define MODE_OFF 'o'
 #define MODE_TEST 't'
 
+#define DEVICE_ATTRIB_INDEX "i"
+#define DEVICE_ATTRIB_CHAMBER "c"
+#define DEVICE_ATTRIB_BEER "b"
+#define DEVICE_ATTRIB_FUNCTION "f"
+#define DEVICE_ATTRIB_HARDWARE "h"
+#define DEVICE_ATTRIB_PIN "p"
+#define DEVICE_ATTRIB_INVERT "x"
+#define DEVICE_ATTRIB_DEACTIVATED "d"
+#define DEVICE_ATTRIB_ADDRESS "a"
+#define DEVICE_ATTRIB_CALIBRATEADJUST "j"	// value to add to temp sensors to bring to correct temperature
+#define DEVICE_ATTRIB_VALUE "v"		// print current values
+#define DEVICE_ATTRIB_WRITE "w"		// write value to device
+#define DEVICE_ATTRIB_TYPE "t"
+#define DEVICE_TYPE_SENSOR 1
+#define DEVICE_TYPE_ACTUATOR 3
+
+
 #ifdef PILINK_SERIAL
 #define piStream Serial
 #endif
@@ -50,6 +67,34 @@
 	HEATING_MIN_TIME,			// 9
 	NUM_STATES
 };*/
+
+enum DeviceFunction {
+	DEVICE_NONE = 0,			// used as a sentry to mark end of list
+	// chamber devices
+	DEVICE_CHAMBER_DOOR = 1,	// switch sensor
+	DEVICE_CHAMBER_HEAT = 2,
+	DEVICE_CHAMBER_COOL = 3,
+	DEVICE_CHAMBER_LIGHT = 4,		// actuator
+	DEVICE_CHAMBER_TEMP = 5,
+	DEVICE_CHAMBER_ROOM_TEMP = 6,	// temp sensors
+	DEVICE_CHAMBER_FAN = 7,			// a fan in the chamber
+	DEVICE_CHAMBER_RESERVED1 = 8,	// reserved for future use
+	// carboy devices
+	DEVICE_BEER_FIRST = 9,
+	DEVICE_BEER_TEMP = DEVICE_BEER_FIRST,									// primary beer temp sensor
+	DEVICE_BEER_TEMP2 = 10,								// secondary beer temp sensor
+	DEVICE_BEER_HEAT = 11, DEVICE_BEER_COOL = 12,				// individual actuators
+	DEVICE_BEER_SG = 13,									// SG sensor
+	DEVICE_BEER_CAPPER = 14,
+	DEVICE_PTC_COOL = 15,	// reserved
+	DEVICE_MAX = 16
+};
+
+enum DeviceHardware {
+	DEVICE_HARDWARE_NONE = 0,
+	DEVICE_HARDWARE_PIN = 1,			// a digital pin, either input or output
+	DEVICE_HARDWARE_ONEWIRE_TEMP = 2,	// a onewire temperature sensor
+};
 
 class PiLink
 {
@@ -163,6 +208,11 @@ public:
             case 't': // temperatures requested
   			       printTemperatures();
   			       break;
+						case 'd': // list devices in eeprom order
+	 						openListResponse('d');
+	 						listDevices();
+	 						closeListResponse();
+	 						break;
             case 'l': // Display content requested
    			      openListResponse('L');
          			char stringBuffer[21];
@@ -182,6 +232,35 @@ public:
           }
       }
   };
+	static void listDevices()
+	{
+		//NinjaModel& model = theApp::getInstance().getModel();
+		int id = 0;
+
+		printDevice(id++, DEVICE_TYPE_SENSOR, 1, 0, DEVICE_CHAMBER_TEMP, DEVICE_HARDWARE_ONEWIRE_TEMP, 0, ONE_WIRE_BUS_PIN, "0000000000000000", true);
+		print(',');
+		printDevice(id++, DEVICE_TYPE_SENSOR, 0, 1, DEVICE_BEER_TEMP, DEVICE_HARDWARE_ONEWIRE_TEMP, 0, ONE_WIRE_BUS_PIN, "0000000000000001");
+		print(',');
+		printDevice(id++, DEVICE_TYPE_ACTUATOR, 1, 0, DEVICE_CHAMBER_HEAT, DEVICE_HARDWARE_PIN, 0, HEATER_SSR_PIN, NULL);
+		print(',');
+		printDevice(id++, DEVICE_TYPE_ACTUATOR, 1, 0, DEVICE_CHAMBER_COOL, DEVICE_HARDWARE_PIN, 0, COOLER_SSR_PIN, NULL);
+	};
+
+	static void printDevice(int id, int type, int chamber, int beer, int function, int hw, int deact, int pin, const char* address, bool first=false)
+	{
+		firstPair = true;
+		sendJsonPair(DEVICE_ATTRIB_INDEX, id);
+		sendJsonPair(DEVICE_ATTRIB_TYPE, type);
+		sendJsonPair(DEVICE_ATTRIB_CHAMBER, chamber);
+		sendJsonPair(DEVICE_ATTRIB_BEER, beer);
+		sendJsonPair(DEVICE_ATTRIB_FUNCTION, function);
+		sendJsonPair(DEVICE_ATTRIB_HARDWARE, hw);
+		sendJsonPair(DEVICE_ATTRIB_DEACTIVATED, deact);
+		sendJsonPair(DEVICE_ATTRIB_PIN, pin);
+		if(address != NULL)
+			sendJsonPair(DEVICE_ATTRIB_ADDRESS, address);
+		sendJsonClose();
+	};
 
   // create a printf like interface to the Arduino Serial function. Format string stored in RAM
   static void print(const char *fmt, ... )
