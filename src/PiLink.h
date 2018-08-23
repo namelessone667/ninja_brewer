@@ -67,6 +67,7 @@
 	HEATING_MIN_TIME,			// 9
 	NUM_STATES
 };*/
+typedef void (*ParseJsonCallback)(const char* key, const char* val, void* data);
 
 enum DeviceFunction {
 	DEVICE_NONE = 0,			// used as a sentry to mark end of list
@@ -110,16 +111,23 @@ public:
 #endif
   };
 
-  static int read()
+  static int read(int retries = 0)
   {
 #ifdef PILINK_SERIAL
 	  return piStream.read();
 #else
-		if(piStream.connected() && piStream.available())
+		int i = 0;
+		if(piStream.connected())
 		{
+			while(piStream.available() == 0)
+			{
+				if(i++ >= retries)
+					return -1;
+				delay(100);
+			}
 			return piStream.read();
 		}
-		else return 0;
+		else return -1;
 #endif
   };
 
@@ -159,11 +167,11 @@ public:
 			}
 
 		return;*/
-		const Logger& logger = theApp::getInstance().getLogger();
+		//const Logger& logger = theApp::getInstance().getLogger();
       while (available())
       {
         char inByte = read();
-				logger.info(String::format("PiLink received: %c", inByte));
+				logger().info(String::format("PiLink received: %c", inByte));
 		      switch(inByte)
           {
             case ' ':
@@ -222,6 +230,9 @@ public:
 							//listDevices();
 							closeListResponse();
 							break;
+							case 'j': // Receive settings as json
+								receiveJson();
+								break;
             case 'l': // Display content requested
    			      openListResponse('L');
          			char stringBuffer[21];
@@ -241,6 +252,141 @@ public:
           }
       }
   };
+
+	static void receiveJson(void)
+	{
+		parseJson(&processJsonPair, NULL);
+		return;
+	};
+
+	static void parseJson(ParseJsonCallback fn, void* data)
+	{
+		char key[30];
+		char val[30];
+		*key = 0;
+		*val = 0;
+		bool next = true;
+		// read first open brace
+		int c = read(10);
+		if (c!='{')
+		{
+			logger().error("Json parsing error, expected '{' instead of '%c'", c);
+			return;
+		}
+		do {
+			next = parseJsonToken(key) && parseJsonToken(val);
+			if (val[0] && key[0])
+				fn(key, val, data);
+		} while (next);
+	};
+
+	static bool parseJsonToken(char* val)
+	{
+		uint8_t index = 0;
+		val[0] = 0;
+		bool result = true;
+		for(;;) // get value
+		{
+			int character = read(10);
+			if (index==29 || character == '}' || character==-1) {
+				result = false;
+				break;
+			}
+			if(character == ',' || character==':')  // end of value
+				break;
+			if(character == ' ' || character == '"'){
+				; // skip spaces and apostrophes
+			}
+			else
+				val[index++] = character;
+		}
+		val[index]=0; // null terminate string
+		return result;
+	};
+
+	static void processJsonPair(const char * key, const char * val, void* pv)
+	{
+		logger().info("Json received: %s = %s", key, val);
+
+		if(strcmp(key, JSONKEY_mode) == 0)
+		{
+			setMode(val[0]);
+		}
+		else if(strcmp(key, JSONKEY_beerSetting) == 0)
+		{
+			setBeerSetting(val);
+		}
+		else if(strcmp(key, JSONKEY_fridgeSetting) == 0)
+		{
+			setFridgeSetting(val);
+		}
+		else
+		{
+			logger().info("Processing of key %s skipped", key);
+		}
+	};
+
+	static void setMode(char mode)
+	{
+		switch(mode)
+		{
+			case MODE_OFF:
+				theApp::getInstance().DisableController();
+				break;
+			case MODE_FRIDGE_CONSTANT:
+			case MODE_BEER_PROFILE:
+				theApp::getInstance().getModel().PIDMode = PID_MANUAL;
+				if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile())
+					theApp::getInstance().getTemperatureProfile().DeactivateTemperatureProfile();
+				theApp::getInstance().ActivateController();
+				break;
+			case MODE_BEER_CONSTANT:
+				theApp::getInstance().getModel().PIDMode = PID_AUTOMATIC;
+				if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile())
+					theApp::getInstance().getTemperatureProfile().DeactivateTemperatureProfile();
+				theApp::getInstance().ActivateController();
+				break;
+			/*case MODE_BEER_PROFILE:
+				theApp::getInstance().getModel().PIDMode = PID_MANUAL;
+				if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile() == false)
+					theApp::getInstance().getTemperatureProfile().ActivateTemperatureProfile();
+				theApp::getInstance().ActivateController();
+				break;*/
+			default:
+				break;
+		}
+	};
+
+	static void setBeerSetting(const char* val)
+	{
+		double setpoint = strtod(val, NULL);
+		if(setpoint == 0.0)
+		{
+			logger().error("setBeerSettings: failed to convert input argument %s to double", val);
+			return;
+		}
+		logger().info("setBeerSettings: setting new SetPoint to %f", setpoint);
+		theApp::getInstance().setNewTargetTemp(setpoint);
+	};
+
+	static void setFridgeSetting(const char* val)
+	{
+		if(theApp::getInstance().getModel().PIDMode != PID_MANUAL)
+		{
+			logger().info("setFridgeSetting: Main PID in automatic mode, setting fridge temp skipped");
+			return;
+		}
+
+		double setpoint = strtod(val, NULL);
+		if(setpoint == 0.0)
+		{
+			logger().error("setFridgeSetting: failed to convert input argument %s to double", val);
+			return;
+		}
+		logger().info("setFridgeSetting: PID in manual mode, setting new Setpoint to %f", setpoint);
+		theApp::getInstance().setNewTargetTemp(setpoint);
+	};
+
 	static void listDevices()
 	{
 		//NinjaModel& model = theApp::getInstance().getModel();
@@ -299,8 +445,8 @@ public:
 		char tempString[12], mode;
 		if(model.StandBy)
 			mode = MODE_OFF;
-		else if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile())
-			mode = MODE_BEER_PROFILE;
+		//else if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile())
+			//mode = MODE_BEER_PROFILE;
 		else if(model.PIDMode == PID_MANUAL)
 			mode = MODE_FRIDGE_CONSTANT;
 		else
@@ -525,6 +671,11 @@ public:
 	   const char* fmtAnn = annotation ? "\"%s\"" : "null";
 	   print(fmtAnn, annotation);
   };
+
+	static const Logger& logger()
+	{
+		return theApp::getInstance().getLogger();
+	}
 
 private:
   static bool firstPair;
