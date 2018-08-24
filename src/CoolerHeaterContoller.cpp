@@ -223,3 +223,8 @@ opState CoolerHeaterContoller::GetState()
 {
   return (opState)controllerState[0];
 }
+
+double CoolerHeaterContoller::GetPeakEstimator()
+{
+  return peakEstimator;
+}

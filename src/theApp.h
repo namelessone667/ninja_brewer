@@ -49,6 +49,8 @@ class theApp : public CEventReceiver
 
         void handlePIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         void handleHeatPIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
+        void handleOutputLimitsChangedChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
+        void handleControllerSettingsChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         NinjaModel _model;
         theAppUI _view;
         OneWire _oneWire;

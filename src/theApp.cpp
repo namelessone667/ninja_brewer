@@ -124,6 +124,8 @@ void theApp::init()
   _mainPID.SetMode(_model.PIDMode);  // set man/auto
 
   _model.PIDMode.ValueChanged.Subscribe(this, &theApp::handlePIDModeChanged);
+  _model.MinTemperature.ValueChanged.Subscribe(this, &theApp::handleOutputLimitsChangedChanged);
+  _model.MaxTemperature.ValueChanged.Subscribe(this, &theApp::handleOutputLimitsChangedChanged);
 
   _model.Output.Bind(_mainPID.Output);
 
@@ -148,6 +150,20 @@ void theApp::init()
   _publisherProxy.init(_model);
 
   _controller.Configure(_model);
+
+  _model.ControllerMode.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
+  _model.IdleDiff.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
+  _model.PeakDiff.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
+  _model.CoolMinOff.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
+  _model.CoolMinOn.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
+  _model.CoolMaxOn.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
+  _model.PeakMaxTime.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
+  _model.PeakMaxWait.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
+  _model.HeatMinOff.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
+  _model.HeatWindow.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
+  _model.NoHeatBelow.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
+  _model.NoCoolAbove.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
+  
 #ifdef BREWPI_LINK
   PiLink::init();
 #endif
@@ -295,6 +311,11 @@ void theApp::run()
 
       _controller.Update(_model.FridgeTemp, _model.Output, _model.HeatOutput, _tempSensor1->PeakDetect());
       _model.ControllerState = _controller.GetState();
+      if(_model.PeakEstimator.Get() != _controller.GetPeakEstimator())
+      {
+        _model.PeakEstimator = _controller.GetPeakEstimator();
+        saveState();
+      }
 #ifdef DEBUG_HERMS
       _publisherProxy.publish(_model, _heatPID.GetPTerm(), _heatPID.GetITerm(), _heatPID.GetDTerm());
 #else
@@ -455,9 +476,19 @@ void theApp::handleTempProfileStepsChanged(const CEventSource* EvSrc,CEventHandl
   EEPROMNinjaModelSerializer serializer;
   serializer.SaveTempProfile(_tempProfile);
 }
+#endif
+
+void theApp::handleOutputLimitsChangedChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
+{
+  _mainPID.SetOutputLimits(_model.MinTemperature, _model.MaxTemperature);  // deg C
+}
 
 const String& theApp::getLCDText()
 {
   return _view.getLCDText();
 }
-#endif
+
+void theApp::handleControllerSettingsChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
+{
+  _controller.Configure(_model);
+}

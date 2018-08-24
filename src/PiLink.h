@@ -307,6 +307,8 @@ public:
 	static void processJsonPair(const char * key, const char * val, void* pv)
 	{
 		logger().info("Json received: %s = %s", key, val);
+		theApp& app = theApp::getInstance();
+		NinjaModel& model = app.getModel();
 
 		if(strcmp(key, JSONKEY_mode) == 0)
 		{
@@ -320,10 +322,89 @@ public:
 		{
 			setFridgeSetting(val);
 		}
+		else if(strcmp(key, JSONKEY_Kp) == 0)
+		{
+			setProperty<double>(model.PID_Kp, val);
+			app.saveState();
+		}
+		else if(strcmp(key, JSONKEY_Ki) == 0)
+		{
+			setProperty<double>(model.PID_Ki, val);
+			app.saveState();
+		}
+		else if(strcmp(key, JSONKEY_Kd) == 0)
+		{
+			setProperty<double>(model.PID_Kd, val);
+			app.saveState();
+		}
+		else if(strcmp(key, JSONKEY_tempSettingMin) == 0)
+		{
+			setProperty<double>(model.MinTemperature, val);
+			app.saveState();
+		}
+		else if(strcmp(key, JSONKEY_tempSettingMax) == 0)
+		{
+			setProperty<double>(model.MaxTemperature, val);
+			app.saveState();
+		}
+		else if(strcmp(key, JSONKEY_idleRangeHigh) == 0)
+		{
+			setProperty<double>(model.IdleDiff, val);
+			app.saveState();
+		}
+		else if(strcmp(key, JSONKEY_minCoolIdleTime) == 0)
+		{
+			setProperty<int>(model.CoolMinOff, val);
+			app.saveState();
+		}
+		else if(strcmp(key, JSONKEY_minHeatIdleTime) == 0)
+		{
+			setProperty<int>(model.HeatMinOff, val);
+			app.saveState();
+		}
+		else if(strcmp(key, JSONKEY_minCoolTime) == 0)
+		{
+			setProperty<int>(model.CoolMinOn, val);
+			app.saveState();
+		}
+		else if(strcmp(key, JSONKEY_mutexDeadTime) == 0)
+		{
+			setProperty<int>(model.MinIdleTime, val);
+			app.saveState();
+		}
+		else if(strcmp(key, JSONKEY_coolEstimator) == 0)
+		{
+			setProperty<double>(model.PeakEstimator, val);
+			app.saveState();
+		}
+		else if(strcmp(key, JSONKEY_coolingTargetUpper) == 0)
+		{
+			setProperty<double>(model.PeakDiff, val);
+			app.saveState();
+		}
+		else if(strcmp(key, JSONKEY_maxCoolTimeForEstimate) == 0)
+		{
+			setProperty<int>(model.PeakMaxTime, val);
+			app.saveState();
+		}
 		else
 		{
 			logger().info("Processing of key %s skipped", key);
 		}
+	};
+
+	template<typename T>
+	static void setProperty(Property<T>& property, const char* strVal)
+	{
+		T value;
+		if(convertCharToVal<T>(strVal, value))
+			property.Set(value);
+	};
+
+	template<typename T>
+	static bool convertCharToVal(const char* strVal, T& value)
+	{
+		return false;
 	};
 
 	static void setMode(char mode)
@@ -479,11 +560,11 @@ public:
 
 		sendJsonPair(JSONKEY_iMaxError, (double)0); //not used for now, the max error to consider when updating PID integrator
 		sendJsonPair(JSONKEY_idleRangeHigh, model.IdleDiff.Get());
-		sendJsonPair(JSONKEY_idleRangeLow, model.IdleDiff.Get());
+		sendJsonPair(JSONKEY_idleRangeLow, 0); //not used
 		sendJsonPair(JSONKEY_heatingTargetUpper, (double)0); //not used, heating estimator peak error
 		sendJsonPair(JSONKEY_heatingTargetLower, (double)0);//not used, heating estimator peak error
 		sendJsonPair(JSONKEY_coolingTargetUpper, model.PeakDiff.Get());
-		sendJsonPair(JSONKEY_coolingTargetLower, model.PeakDiff.Get()*-1);
+		sendJsonPair(JSONKEY_coolingTargetLower, 0); //not used
 		sendJsonPair(JSONKEY_maxHeatTimeForEstimate, (uint16_t)0); //not used, heat estimator max time
 		sendJsonPair(JSONKEY_maxCoolTimeForEstimate, model.PeakMaxTime.Get());
 
