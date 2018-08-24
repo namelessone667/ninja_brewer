@@ -473,9 +473,9 @@ public:
 		//NinjaModel& model = theApp::getInstance().getModel();
 		int id = 0;
 
-		printDevice(id++, DEVICE_TYPE_SENSOR, 1, 0, DEVICE_CHAMBER_TEMP, DEVICE_HARDWARE_ONEWIRE_TEMP, 0, ONE_WIRE_BUS_PIN, "\"0000000000000000\"", true);
+		printDevice(id++, DEVICE_TYPE_SENSOR, 1, 0, DEVICE_CHAMBER_TEMP, DEVICE_HARDWARE_ONEWIRE_TEMP, 0, ONE_WIRE_BUS_PIN, theApp::getInstance().GetSensor1Address(), true);
 		print(',');
-		printDevice(id++, DEVICE_TYPE_SENSOR, 0, 1, DEVICE_BEER_TEMP, DEVICE_HARDWARE_ONEWIRE_TEMP, 0, ONE_WIRE_BUS_PIN, "\"0000000000000001\"");
+		printDevice(id++, DEVICE_TYPE_SENSOR, 0, 1, DEVICE_BEER_TEMP, DEVICE_HARDWARE_ONEWIRE_TEMP, 0, ONE_WIRE_BUS_PIN, theApp::getInstance().GetSensor2Address());
 		print(',');
 		printDevice(id++, DEVICE_TYPE_ACTUATOR, 1, 0, DEVICE_CHAMBER_HEAT, DEVICE_HARDWARE_PIN, 0, HEATER_SSR_PIN, NULL);
 		print(',');

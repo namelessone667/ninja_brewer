@@ -163,7 +163,7 @@ void theApp::init()
   _model.HeatWindow.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
   _model.NoHeatBelow.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
   _model.NoCoolAbove.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
-  
+
 #ifdef BREWPI_LINK
   PiLink::init();
 #endif
@@ -491,4 +491,20 @@ const String& theApp::getLCDText()
 void theApp::handleControllerSettingsChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
 {
   _controller.Configure(_model);
+}
+
+String theApp::GetSensor1Address()
+{
+  if(_tempSensor1 == NULL)
+    return "";
+  else
+    return _tempSensor1->GetAddress().ToString();
+}
+
+String theApp::GetSensor2Address()
+{
+  if(_tempSensor2 == NULL)
+    return "";
+  else
+    return _tempSensor2->GetAddress().ToString();
 }

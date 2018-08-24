@@ -40,6 +40,8 @@ class theApp : public CEventReceiver
         double GetPIDPTerm() { return _mainPID.GetPTerm(); };
         double GetPIDITerm() { return _mainPID.GetITerm(); };
         double GetPIDDTerm() { return _mainPID.GetDTerm(); };
+        String GetSensor1Address();
+        String GetSensor2Address();
 #ifdef TEMP_PROFILES
         TemperatureProfile& getTemperatureProfile();
 #endif
