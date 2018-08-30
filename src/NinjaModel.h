@@ -47,6 +47,8 @@ public:
     Property<double> BeerTemp = -127.0; //also Input for mainPID
     Property<opState> ControllerState = IDLE;
     Property<ApplicationState> AppState = UNDEFINED;
+
+    Property<bool> ExternalProfileActive; // true if Fermentrack temperature profile is active
 #ifdef TEMP_PROFILES
     Property<double> TempProfileTemperature;
 #endif

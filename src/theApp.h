@@ -67,6 +67,7 @@ class theApp : public CEventReceiver
 #ifdef TEMP_PROFILES
         TemperatureProfile _tempProfile;
         void handleTempProfileStepsChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
+        void handleTempProfileStatusChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
 #endif
         long _pid_log_timestamp;
         long _sensorDataTimestamp;

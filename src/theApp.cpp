@@ -476,6 +476,15 @@ void theApp::handleTempProfileStepsChanged(const CEventSource* EvSrc,CEventHandl
   EEPROMNinjaModelSerializer serializer;
   serializer.SaveTempProfile(_tempProfile);
 }
+
+void theApp::handleTempProfileStatusChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
+{
+  if(((CTemperatureProfileStatusChangedEventArgs*)(EvArgs))->IsActive() && _model.ExternalProfileActive)
+  {
+      _model.ExternalProfileActive = false;
+      saveState();
+  }
+}
 #endif
 
 void theApp::handleOutputLimitsChangedChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)

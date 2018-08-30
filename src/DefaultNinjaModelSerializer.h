@@ -42,6 +42,8 @@ public:
     model.HeatMaxPercent = 25;
     model.HeatManualOutputPercent = 10;
 
+    model.ExternalProfileActive = false;
+
     //model.FridgeTemp = -127.0; //also input for heatPID
     //model.BeerTemp = -127.0; //also Input for mainPID
     //model.AppState = UNDEFINED;

@@ -57,6 +57,8 @@ public:
     address = EEPROMGetInternal(address, model.HeatMaxPercent);
     address = EEPROMGetInternal(address, model.HeatManualOutputPercent);
 
+    address = EEPROMGetInternal(address, model.ExternalProfileActive);
+
     if(model.HeatWindow == 0)
     {
       theApp::getInstance().getLogger().error("EEPROM data corrupted!");
@@ -112,6 +114,8 @@ public:
     address = EEPROMPutInternal(address, model.HeatMinPercent.Get());
     address = EEPROMPutInternal(address, model.HeatMaxPercent.Get());
     address = EEPROMPutInternal(address, model.HeatManualOutputPercent.Get());
+
+    address = EEPROMPutInternal(address, model.ExternalProfileActive.Get());
 
     return true;
   }

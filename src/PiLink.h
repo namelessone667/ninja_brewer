@@ -409,30 +409,33 @@ public:
 
 	static void setMode(char mode)
 	{
+		NinjaModel& model = theApp::getInstance().getModel();
 		switch(mode)
 		{
 			case MODE_OFF:
 				theApp::getInstance().DisableController();
 				break;
 			case MODE_FRIDGE_CONSTANT:
-			case MODE_BEER_PROFILE:
-				theApp::getInstance().getModel().PIDMode = PID_MANUAL;
+				model.PIDMode = PID_MANUAL;
 				if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile())
 					theApp::getInstance().getTemperatureProfile().DeactivateTemperatureProfile();
+				model.ExternalProfileActive = false;
 				theApp::getInstance().ActivateController();
 				break;
 			case MODE_BEER_CONSTANT:
-				theApp::getInstance().getModel().PIDMode = PID_AUTOMATIC;
+				model.PIDMode = PID_AUTOMATIC;
 				if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile())
 					theApp::getInstance().getTemperatureProfile().DeactivateTemperatureProfile();
+				model.ExternalProfileActive = false;
 				theApp::getInstance().ActivateController();
 				break;
-			/*case MODE_BEER_PROFILE:
-				theApp::getInstance().getModel().PIDMode = PID_MANUAL;
+			case MODE_BEER_PROFILE:
+				model.PIDMode = PID_AUTOMATIC;
 				if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile() == false)
 					theApp::getInstance().getTemperatureProfile().ActivateTemperatureProfile();
+				model.ExternalProfileActive = true;
 				theApp::getInstance().ActivateController();
-				break;*/
+				break;
 			default:
 				break;
 		}
@@ -526,8 +529,8 @@ public:
 		char tempString[12], mode;
 		if(model.StandBy)
 			mode = MODE_OFF;
-		//else if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile())
-			//mode = MODE_BEER_PROFILE;
+		else if(model.ExternalProfileActive)
+			mode = MODE_BEER_PROFILE;
 		else if(model.PIDMode == PID_MANUAL)
 			mode = MODE_FRIDGE_CONSTANT;
 		else
