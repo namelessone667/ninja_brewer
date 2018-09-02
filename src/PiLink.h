@@ -398,14 +398,22 @@ public:
 	{
 		T value;
 		if(convertCharToVal<T>(strVal, value))
+		{
+			logger().info("setProperty success (strVal = %s)", strVal);
 			property.Set(value);
+		}
+		else
+		{
+			logger().error("setProperty error (strVal = %s)", strVal);
+		}
 	};
 
 	template<typename T>
-	static bool convertCharToVal(const char* strVal, T& value)
-	{
+	static bool convertCharToVal(const char* strVal, T& value);
+	/*{
+		logger().error("error default convertCharToVal called");
 		return false;
-	};
+	};*/
 
 	static void setMode(char mode)
 	{

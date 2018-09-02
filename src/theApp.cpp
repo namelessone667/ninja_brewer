@@ -505,15 +505,15 @@ void theApp::handleControllerSettingsChanged(const CEventSource* EvSrc,CEventHan
 String theApp::GetSensor1Address()
 {
   if(_tempSensor1 == NULL)
-    return "";
+    return "\"\"";
   else
-    return _tempSensor1->GetAddress().ToString();
+    return String("\"") + _tempSensor1->GetAddress().ToString() + String("\"");
 }
 
 String theApp::GetSensor2Address()
 {
   if(_tempSensor2 == NULL)
-    return "";
+    return "\"\"";
   else
-    return _tempSensor2->GetAddress().ToString();
+    return String("\"") + _tempSensor2->GetAddress().ToString() + String("\"");
 }
