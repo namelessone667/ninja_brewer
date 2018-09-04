@@ -4,15 +4,20 @@
 /******** feaures section *****************/
 //#define HERMS_MODE
 //#define DEBUG_HERMS
-#define LCD20_4
+//#define LCD20_4
 #define TEMP_PROFILES
 #define USE_WIFI
 #define USE_PARTICLE
 //#define USE_UBIDOTS
 //#define USE_BLYNK
 #define USE_PAPERTAIL
+<<<<<<< HEAD
 #define BREWPI_LINK
 #define SIMULATE_TEMP_SENSORS
+=======
+#define BREWPI_LINK //TODO: implement BrewPiLink
+//#define SIMULATE_TEMP_SENSORS
+>>>>>>> 293fe87c8ee1f64536de1150f061b89c0963f743
 /******** feaures section end *****************/
 
 /******** Blynk Virtual PINS definition *******/
