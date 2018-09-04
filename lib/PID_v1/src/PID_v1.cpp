@@ -29,6 +29,9 @@ PID::PID(double* Input, double* Output, double* Setpoint, double Kp, double Ki, 
   PID::SetControllerDirection(ControllerDirection);
   PID::SetTunings(Kp, Ki, Kd);
   lastTime = millis()-SampleTime;
+
+  integratorErrorMultiplierPositive = 1;
+  integratorErrorMultiplierNegative = 1;
 }
 
 /* Compute() **********************************************************************
@@ -57,7 +60,7 @@ bool PID::Compute() {
 
     if(inAuto)
     {
-      ITerm += (ki * error);
+      ITerm += (ki * error * (error >= 0 ? integratorErrorMultiplierPositive : integratorErrorMultiplierNegative));
       if (ITerm > outMax) ITerm= outMax;
         else if (ITerm < outMin) ITerm= outMin;
 

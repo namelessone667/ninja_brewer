@@ -97,6 +97,8 @@ enum DeviceHardware {
 	DEVICE_HARDWARE_ONEWIRE_TEMP = 2,	// a onewire temperature sensor
 };
 
+//TODO: implement as Publisher
+//TODO: publish changes to CC and CV
 class PiLink
 {
 public:

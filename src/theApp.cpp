@@ -141,7 +141,9 @@ void theApp::init()
   _heatPID.setFilterConstant(10);
 
   _heatPID.SetMode(_model.HeatPIDMode);
-
+#ifdef HERMS_MODE
+  _heatPID.SetIntegratorErrorMultiplierNegative(4.0);
+#endif
   _model.HeatPIDMode.ValueChanged.Subscribe(this, &theApp::handleHeatPIDModeChanged);
 #ifdef TEMP_PROFILES
   _tempProfile.TemperatureProfileStepsChanged.Subscribe(this, &theApp::handleTempProfileStepsChanged);
