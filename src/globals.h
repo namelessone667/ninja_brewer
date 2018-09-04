@@ -11,7 +11,7 @@
 //#define USE_UBIDOTS
 //#define USE_BLYNK
 #define USE_PAPERTAIL
-#define BREWPI_LINK //TODO: implement BrewPiLink
+#define BREWPI_LINK
 #define SIMULATE_TEMP_SENSORS
 /******** feaures section end *****************/
 

@@ -7,6 +7,8 @@
 class PIDProxy : public PID, public CEventReceiver
 {
   //TODO: Bind PID Mode
+  //TODO: create 2 new control variables - integrator error multiplier positive / negative
+  //TODO: implement anti integrator windup - backcalculation
 
 public:
   PIDProxy (Property<double>& input, Property<double>& output, Property<double>& setpoint, Property<double>& Kp, Property<double>& Ki, Property<double>& Kd, int ControllerDirection)

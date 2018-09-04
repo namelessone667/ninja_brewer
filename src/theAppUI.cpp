@@ -206,7 +206,7 @@ void theAppUI::buildMenu()
     SubNinjaMenuItem* tempProfileSubMenu = new SubNinjaMenuItem(F("Temp profiles"));
 
     tempProfileSubMenu
-      ->AddSubMenu((new CustomNinjaMenuItem<int, ViewTempProfileNavigationBehaviour, DrawTempProfileBehaviour, SaveChangesOnItemValueChangedBehaviour>(F("View profile"), viewProfileVar))); // TODO new type of submenu - tempprofilesubmenu*/
+      ->AddSubMenu((new CustomNinjaMenuItem<int, ViewTempProfileNavigationBehaviour, DrawTempProfileBehaviour, SaveChangesOnItemValueChangedBehaviour>(F("View profile"), viewProfileVar)));
 
     SubNinjaMenuItem* addTempProfileStepSubMenu = new SubNinjaMenuItem(F("Add step"));
     addTempProfileStepSubMenu
