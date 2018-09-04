@@ -234,24 +234,72 @@ public:
 								receiveJson();
 								break;
             case 'l': // Display content requested
-   			      openListResponse('L');
-         			char stringBuffer[21];
-              String buffer = theApp::getInstance().getLCDText();
-							buffer.replace(2, ' ');
-         			for(uint8_t i=0;i<4;i++)
-              {
-                int eol = buffer.indexOf('\n');
-                buffer.substring(0, eol == -1 ? buffer.length() : eol).toCharArray(stringBuffer, 20);
-                print("\"%s\"", stringBuffer);
-                char close = (i<3) ? ',':']';
-         				print(close);
-                buffer = buffer.substring(eol+1);
-              }
-         			printNewLine();
+							printLCDtext();
          			break;
           }
       }
   };
+
+	static void printLCDtext()
+	{
+		openListResponse('L');
+
+		NinjaModel& model = theApp::getInstance().getModel();
+		bool heatingEnabled = (model.ControllerMode.Get() == HEATER_ONLY || model.ControllerMode.Get() == COOLER_HEATER);
+		// char stringBuffer[21];
+		// String buffer = theApp::getInstance().getLCDText();
+		// buffer.replace(2, ' ');
+		// for(uint8_t i=0;i<4;i++)
+		// {
+		// 	int eol = buffer.indexOf('\n');
+		// 	buffer.substring(0, eol == -1 ? buffer.length() : eol).toCharArray(stringBuffer, 20);
+		// 	print("\"%s\"", stringBuffer);
+		// 	char close = (i<3) ? ',':']';
+		// 	print(close);
+		// 	buffer = buffer.substring(eol+1);
+		// }
+		char stringBuffer[21];
+	  String::format("F:%4.1fC  SET:%4.1fC", model.FridgeTemp.Get(), model.SetPoint.Get()).toCharArray(stringBuffer, 20);
+		print("\"%s\",", stringBuffer);
+
+	  String::format("B:%4.1fC  PID:%4.1fC", model.BeerTemp.Get(), model.Output.Get()).toCharArray(stringBuffer, 20);
+	  print("\"%s\",", stringBuffer);
+
+		if(heatingEnabled)
+	  	String::format("PID:%s   HPID:%s", model.PIDMode == PID_MANUAL ? "MAN " : "AUTO", model.HeatPIDMode == PID_MANUAL ? "MAN " : "AUTO").toCharArray(stringBuffer, 20);
+		else
+			String::format("PID:%s", model.PIDMode == PID_MANUAL ? "MAN " : "AUTO").toCharArray(stringBuffer, 20);
+	  print("\"%s\",", stringBuffer);
+
+		String text;
+
+		if(heatingEnabled)
+	  	text = String::format("HEAT:%4.1f%%", model.HeatOutput.Get()).substring(0, 20);
+
+	  while(text.length() < 18)
+	    text.concat(' ');
+
+	  switch(model.ControllerState)
+	  {
+	    case IDLE:
+	      text.concat('I');
+	      break;
+	    case COOL:
+	      text.concat('C');
+	      break;
+	    case HEAT:
+	      text.concat('H');
+	      break;
+	    default:
+	      text.concat('X');
+	      break;
+	  }
+
+	  text.toCharArray(stringBuffer, 20);
+	  print("\"%s\"]", stringBuffer);
+
+		printNewLine();
+	};
 
 	static void receiveJson(void)
 	{
@@ -425,22 +473,28 @@ public:
 				break;
 			case MODE_FRIDGE_CONSTANT:
 				model.PIDMode = PID_MANUAL;
+#ifdef TEMP_PROFILES
 				if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile())
 					theApp::getInstance().getTemperatureProfile().DeactivateTemperatureProfile();
+#endif
 				model.ExternalProfileActive = false;
 				theApp::getInstance().ActivateController();
 				break;
 			case MODE_BEER_CONSTANT:
 				model.PIDMode = PID_AUTOMATIC;
+#ifdef TEMP_PROFILES
 				if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile())
 					theApp::getInstance().getTemperatureProfile().DeactivateTemperatureProfile();
+#endif
 				model.ExternalProfileActive = false;
 				theApp::getInstance().ActivateController();
 				break;
 			case MODE_BEER_PROFILE:
 				model.PIDMode = PID_AUTOMATIC;
+#ifdef TEMP_PROFILES
 				if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile() == false)
 					theApp::getInstance().getTemperatureProfile().ActivateTemperatureProfile();
+#endif
 				model.ExternalProfileActive = true;
 				theApp::getInstance().ActivateController();
 				break;
