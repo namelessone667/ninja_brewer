@@ -8,6 +8,9 @@
 #ifdef USE_BLYNK
 #include "BlynkPublisher.h"
 #endif
+#ifdef BREWPI_LINK
+#include "PiLinkPublisher.h"
+#endif
 
 void PublisherProxy::init(const NinjaModel &model)
 {
@@ -19,6 +22,9 @@ void PublisherProxy::init(const NinjaModel &model)
 #endif
 #ifdef USE_BLYNK
   _publishers.push_back(new BlynkPublisher());
+#endif
+#ifdef BREWPI_LINK
+  _publishers.push_back(new PiLinkPublisher());
 #endif
 
   for (BasePublisher *p : _publishers) {

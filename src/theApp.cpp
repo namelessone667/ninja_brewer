@@ -2,9 +2,7 @@
 #include "DefaultNinjaModelSerializer.h"
 #include "EEPROMNinjaModelSerializer.h"
 #include "VirtualTempSensor.h"
-#ifdef BREWPI_LINK
-#include "PiLink.h"
-#endif
+
 //TODO create structures to store onewire device addresses
 //TODO implement dynamic onewire device discovery and initialization
 //TODO implement capability to add new onewire devices throug menu
@@ -166,10 +164,6 @@ void theApp::init()
   _model.NoHeatBelow.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
   _model.NoCoolAbove.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
 
-#ifdef BREWPI_LINK
-  PiLink::init();
-#endif
-
   getLogger().info("initialization complete");
 }
 
@@ -324,9 +318,6 @@ void theApp::run()
       _publisherProxy.publish(_model);
 #endif
       _view.draw();
-#ifdef BREWPI_LINK
-      PiLink::receive();
-#endif
       break;
     case IN_ERROR:
       if(_error_timestamp < 0)
