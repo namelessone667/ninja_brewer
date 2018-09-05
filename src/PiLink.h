@@ -234,6 +234,8 @@ public:
 							break;
 							case 'j': // Receive settings as json
 								receiveJson();
+								sendControlSettings();	// update script with new settings
+								sendControlConstants();
 								break;
             case 'l': // Display content requested
 							printLCDtext();
