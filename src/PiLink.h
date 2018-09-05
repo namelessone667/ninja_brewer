@@ -275,7 +275,7 @@ public:
 
 		String text;
 
-		if(heatingEnabled)
+		/*if(heatingEnabled)
 	  	text = String::format("HEAT:%4.1f%%", model.HeatOutput.Get()).substring(0, 20);
 
 	  while(text.length() < 18)
@@ -297,7 +297,29 @@ public:
 	      break;
 	  }
 
-	  text.toCharArray(stringBuffer, 20);
+	  text.toCharArray(stringBuffer, 20);*/
+		if(model.StandBy.Get())
+		{
+					String::format("Stand By").toCharArray(stringBuffer, 20);
+		}
+		else
+		{
+			switch(model.ControllerState)
+		  {
+		    case IDLE:
+		      String::format("Idle...").toCharArray(stringBuffer, 20);
+		      break;
+		    case COOL:
+		      String::format("Cooling...").toCharArray(stringBuffer, 20);
+		      break;
+		    case HEAT:
+		      String::format("Heating... %4.1f%%", model.HeatOutput.Get()).toCharArray(stringBuffer, 20);
+		      break;
+		    default:
+		      String::format("unknown state").toCharArray(stringBuffer, 20);
+		      break;
+		  }
+		}
 	  print("\"%s\"]", stringBuffer);
 
 		printNewLine();
