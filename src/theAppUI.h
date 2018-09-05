@@ -10,6 +10,8 @@
 
 class theApp;
 
+//TODO: implement each view as a virtual class with method render, each view will be implemented bz a separate child class, views will be handled by viewmanager
+
 class theAppUI : public INinjaMenuNavigationHandler
 {
   public:

@@ -7,6 +7,9 @@
 #include "enum.h"
 #include "globals.h"
 
+//TODO: refactor model to more structural format
+//TODO: implement a serializable (or similar) interface to alow more easy serialization/deserialization (to eeprom, file, etc)
+
 class NinjaModel
 {
 public:

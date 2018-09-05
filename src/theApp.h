@@ -15,6 +15,9 @@
 #include "TemperatureProfile.h"
 #endif
 
+//TODO: rename theApp class to ninjaBrewer
+//TODO: implement behavior in different states by separate classes 
+
 class theApp : public CEventReceiver
 {
     public:
