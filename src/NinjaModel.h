@@ -9,6 +9,8 @@
 
 //TODO: refactor model to more structural format
 //TODO: implement a serializable (or similar) interface to alow more easy serialization/deserialization (to eeprom, file, etc)
+//TODO: or implement a model observer that will trigger events when a property of model is changed or value is needed - handle these event to save data to eeprom/file/etc
+
 
 class NinjaModel
 {

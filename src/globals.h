@@ -5,7 +5,7 @@
 //#define HERMS_MODE
 //#define DEBUG_HERMS
 //#define LCD20_4
-//#define TEMP_PROFILES
+#define TEMP_PROFILES
 #define USE_WIFI
 #define USE_PARTICLE
 //#define USE_UBIDOTS

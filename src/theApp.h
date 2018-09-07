@@ -16,7 +16,9 @@
 #endif
 
 //TODO: rename theApp class to ninjaBrewer
-//TODO: implement behavior in different states by separate classes 
+//TODO: implement behavior in different states by separate classes
+//TODO: device manager, hwmanager
+//TODO: configuration_profiles - herms, fermenter, lager
 
 class theApp : public CEventReceiver
 {

@@ -367,7 +367,7 @@
 	  print("\"%s\",", stringBuffer);
 
 		if(heatingEnabled)
-	  	String::format("PID:%s   HPID:%s", model.PIDMode == PID_MANUAL ? "MAN " : "AUTO", model.HeatPIDMode == PID_MANUAL ? "MAN " : "AUTO").toCharArray(stringBuffer, 20);
+	  	String::format("PID:%s  HPID:%s", model.PIDMode == PID_MANUAL ? "MAN " : "AUTO", model.HeatPIDMode == PID_MANUAL ? "MAN " : "AUTO").toCharArray(stringBuffer, 20);
 		else
 			String::format("PID:%s", model.PIDMode == PID_MANUAL ? "MAN " : "AUTO").toCharArray(stringBuffer, 20);
 	  print("\"%s\",", stringBuffer);
