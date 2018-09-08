@@ -8,6 +8,10 @@
 #include "TemperatureProfile.h"
 #endif
 
+//TODO: refactor
+// define a starting eeprom address for profile
+// create a map of property keys - eeprom address (offset)
+
 class EEPROMNinjaModelSerializer : INinjaModelSerializer
 {
 public:

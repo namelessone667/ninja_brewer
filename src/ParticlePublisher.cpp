@@ -23,9 +23,6 @@ void ParticlePublisher::init(const NinjaModel &model)
     Particle.variable("pidMode", model.PIDMode.Get());
     Particle.variable("heatPidMode", model.HeatPIDMode.Get());
     Particle.variable("standBy", model.StandBy.Get());
-#ifdef TEMP_PROFILES
-    Particle.variable("profileTemp", model.TempProfileTemperature.Get());
-#endif
     IPAddress localIP = WiFi.localIP();
     sprintf(localIPstr, "%u.%u.%u.%u", localIP[0], localIP[1], localIP[2], localIP[3]);
     Particle.variable("localIP", localIPstr, STRING);

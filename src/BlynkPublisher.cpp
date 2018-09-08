@@ -76,7 +76,6 @@ void BlynkPublisher::publish(const NinjaModel &model)
     Blynk.virtualWrite(PIN_BTN_ON_OFF, model.StandBy ? 0 : 1);
     synchStatusLED(model);
 #ifdef TEMP_PROFILES
-    Blynk.virtualWrite(PIN_TEMP_PROFILE, model.TempProfileTemperature);
 
     if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile())
     {

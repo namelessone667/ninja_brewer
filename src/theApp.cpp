@@ -266,7 +266,6 @@ void theApp::run()
         double temp;
         if(_tempProfile.GetCurrentTargetTemperature(temp))
         {
-          _model.TempProfileTemperature = temp;
           _model.SetPoint = temp;
         }
       }
