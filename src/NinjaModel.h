@@ -57,40 +57,55 @@ template<typename T>
 class NinjaModelProperty : public Property<T>
 {
 public:
-  NinjaModelProperty(NinjaModelPropertyKey key) : Property<T>(), _key(key)  {  };
 
-  NinjaModelProperty(NinjaModelPropertyKey key, const T value) : Property<T>(value), _key(key) { };
+  NinjaModelProperty(NinjaModelPropertyKey key) : Property<T>(), _key(key)
+  {
+  };
 
-  NinjaModelProperty(NinjaModelPropertyKey key, const Property<T>& value) : Property<T>(value.Get()), _key(key) { };
+  NinjaModelProperty(NinjaModelPropertyKey key, const T value) : Property<T>(value), _key(key)
+  {
+  };
 
-  NinjaModelProperty(const NinjaModelProperty& value) : Property<T>(value.Get()), _key(value.getKey()) { };
+  NinjaModelProperty(NinjaModelPropertyKey key, const Property<T>& value) : Property<T>(value.Get()), _key(key)
+  {
+  };
 
-  NinjaModelPropertyKey getKey() const { return _key; };
+  NinjaModelProperty(const NinjaModelProperty& value) : Property<T>(value.Get()), _key(value.getKey())
+  {
+  };
 
-  NinjaModelProperty& operator=(const T& other)
+  NinjaModelPropertyKey getKey() const
+  {
+    return _key;
+  };
+
+
+  NinjaModelProperty<T>& operator=(const T& other)
   {
     Property<T>::operator= (other);
     return *this;
-  }
+  };
 
-  NinjaModelProperty& operator=(const Property<T>& other)
+  NinjaModelProperty<T>& operator=(const Property<T>& other)
   {
     Property<T>::operator= (other);
     return *this;
-  }
+  };
+
 private:
   NinjaModelPropertyKey _key;
 };
 
 class NinjaModel
 {
-   typedef nonstd::variant< NinjaModelProperty<double>,
-                         NinjaModelProperty<int>,
-                         NinjaModelProperty<bool>,
-                         NinjaModelProperty<opMode>,
-                         NinjaModelProperty<opState>,
-                         NinjaModelProperty<ApplicationState>> NinjaModelPropertyVariant;
+  //  typedef nonstd::variant< NinjaModelProperty<double>*,
+  //                        NinjaModelProperty<int>*,
+  //                        NinjaModelProperty<bool>*,
+  //                        NinjaModelProperty<opMode>*,
+  //                        NinjaModelProperty<opState>*,
+  //                        NinjaModelProperty<ApplicationState>*> NinjaModelPropertyVariant;
 public:
+    NinjaModel();
     NinjaModelProperty<double> SetPoint; // target beer temp
     NinjaModelProperty<double> Output; // main PID output temperature, also setpoint for heatPID
     NinjaModelProperty<double> PeakEstimator;
@@ -124,10 +139,10 @@ public:
     NinjaModelProperty<double> HeatMaxPercent;
     NinjaModelProperty<double> HeatManualOutputPercent;
 
-    NinjaModelProperty<double> FridgeTemp = -127.0; //also input for heatPID
-    NinjaModelProperty<double> BeerTemp = -127.0; //also Input for mainPID
-    NinjaModelProperty<opState> ControllerState = IDLE;
-    NinjaModelProperty<ApplicationState> AppState = UNDEFINED;
+    NinjaModelProperty<double> FridgeTemp;// = -127.0; //also input for heatPID
+    NinjaModelProperty<double> BeerTemp;// = -127.0; //also Input for mainPID
+    NinjaModelProperty<opState> ControllerState;// = IDLE;
+    NinjaModelProperty<ApplicationState> AppState;// = UNDEFINED;
 
     NinjaModelProperty<bool> ExternalProfileActive; // true if Fermentrack temperature profile is active
 

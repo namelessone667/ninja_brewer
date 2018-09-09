@@ -297,6 +297,15 @@ protected:
     return idx + sizeof(T);
   }
 
+  template <typename T> int EEPROMGetInternal( int idx, NinjaModelProperty<T> &t )
+  {
+    T value;
+    EEPROM.get(idx, value);
+    t = value;
+    theApp::getInstance().getLogger().info("EEPROMGetInternal address:" + String(idx) + ", " + String(sizeof(T)) + " bytes loaded, value: " + String(value));
+    return idx + sizeof(T);
+  }
+
   template <typename T> int EEPROMGetInternal( int idx, T &value )
   {
     EEPROM.get(idx, value);
