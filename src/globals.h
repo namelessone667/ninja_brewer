@@ -6,6 +6,8 @@
 //#define DEBUG_HERMS
 //#define LCD20_4
 //#define TEMP_PROFILES
+#define LOG_PID
+//#define LOG_HEAT_PID
 #define USE_WIFI
 #define USE_PARTICLE
 //#define USE_UBIDOTS

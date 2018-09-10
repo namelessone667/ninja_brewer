@@ -296,13 +296,14 @@ void theApp::run()
         else
           _model.HeatOutput = _model.HeatManualOutputPercent;
       }
-
-      /*if(millis() - _pid_log_timestamp > 60000)
+#ifdef LOG_PID
+      if(millis() - _pid_log_timestamp > 60000)
       {
         _pid_log_timestamp = millis();
         getLogger().info(String::format("PID p-term: %.4f, PID i-term: %.4f, PID output: %.4f", _mainPID.GetPTerm(), _mainPID.GetITerm(), _mainPID.Output.Get()));
-        getLogger().info(String::format("Heat PID p-term: %.4f, Heat PID i-term: %.4f", _heatPID.GetPTerm(), _heatPID.GetITerm()));
-      }*/
+        getLogger().info(String::format("Heat PID p-term: %.4f, Heat PID i-term: %.4f, Heat PID output: %.4f", _heatPID.GetPTerm(), _heatPID.GetITerm(), _heatPID.Output.Get()));
+      }
+#endif
 
       _controller.Update(_model.FridgeTemp, _model.Output, _model.HeatOutput, _tempSensor1->PeakDetect());
       _model.ControllerState = _controller.GetState();
