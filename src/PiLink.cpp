@@ -108,29 +108,29 @@
   	vsnprintf(printfBuff, PRINTF_BUFFER_SIZE, fmt, args);
   	va_end (args);
 
-  	//piStream.print(printfBuff);
+  	piStream.print(printfBuff);
 
-    if(piStream.status())
-      piStream.write((const uint8_t *)printfBuff, strlen(printfBuff), TCP_TIMEOUT);
+    /*if(piStream.status())
+      piStream.write((const uint8_t *)printfBuff, strlen(printfBuff), TCP_TIMEOUT);*/
   }
 
   void PiLink::print(char c)
   {
-    //piStream.print(c);
+    piStream.print(c);
 
-    if(piStream.status())
-      piStream.write(c, TCP_TIMEOUT);
+    /*if(piStream.status())
+      piStream.write(c, TCP_TIMEOUT);*/
   }
 
   void PiLink::printNewLine()
   {
-    
-    if(piStream.status())
+
+    /*if(piStream.status())
     {
       piStream.write('\r', TCP_TIMEOUT);
       piStream.write('\n', TCP_TIMEOUT);
-    }
-    //piStream.println();
+    }*/
+    piStream.println();
 	}
 
 	// Send settings as JSON string
