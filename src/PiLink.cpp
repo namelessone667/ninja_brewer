@@ -2,8 +2,10 @@
 
   PiLink::PiLink() :
     model(theApp::getInstance().getModel()),
-    loggerref(theApp::getInstance().getLogger()),
-    server(23)
+    loggerref(theApp::getInstance().getLogger())
+#ifndef PILINK_SERIAL
+    ,server(23)
+#endif
   {
 
   }

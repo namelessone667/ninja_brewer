@@ -6,14 +6,14 @@
 //#define DEBUG_HERMS
 //#define LCD20_4
 //#define TEMP_PROFILES
-//#define LOG_PID
+#define LOG_PID
 //#define LOG_HEAT_PID
 #define USE_WIFI
 #define USE_PARTICLE
 //#define USE_UBIDOTS
 //#define USE_BLYNK
 #define USE_PAPERTAIL
-//#define BREWPI_LINK
+#define BREWPI_LINK
 //#define SIMULATE_TEMP_SENSORS
 /******** feaures section end *****************/
 
