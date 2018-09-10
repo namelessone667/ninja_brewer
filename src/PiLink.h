@@ -50,6 +50,8 @@
 #define DEVICE_TYPE_SENSOR 1
 #define DEVICE_TYPE_ACTUATOR 3
 
+#define TCP_TIMEOUT 5000
+
 
 #ifdef PILINK_SERIAL
 #define piStream Serial

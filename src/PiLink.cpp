@@ -108,17 +108,21 @@
   	vsnprintf(printfBuff, PRINTF_BUFFER_SIZE, fmt, args);
   	va_end (args);
 
-  	piStream.print(printfBuff);
+  	//piStream.print(printfBuff);
+    piStream.write((const uint8_t *)printfBuff, strlen(printfBuff), TCP_TIMEOUT);
   }
 
   void PiLink::print(char c)
   {
-    piStream.print(c);
+    //piStream.print(c);
+    piStream.write(c, TCP_TIMEOUT);
   }
 
   void PiLink::printNewLine()
   {
-		piStream.println();
+    piStream.write('\r', TCP_TIMEOUT);
+    piStream.write('\n', TCP_TIMEOUT);
+    //piStream.println();
 	}
 
 	// Send settings as JSON string
@@ -287,7 +291,7 @@
   void PiLink::sendJsonPair(const char * name, const char * val)
   {
 	   printJsonName(name);
-	   piStream.print(val);
+	   print(val);
   }
 
   void PiLink::sendJsonPair(const char * name, char val)
