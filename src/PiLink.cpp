@@ -109,17 +109,20 @@
   	va_end (args);
 
   	//piStream.print(printfBuff);
+    //TODO: check connection status before write
     piStream.write((const uint8_t *)printfBuff, strlen(printfBuff), TCP_TIMEOUT);
   }
 
   void PiLink::print(char c)
   {
     //piStream.print(c);
+    //TODO: check connection status before write
     piStream.write(c, TCP_TIMEOUT);
   }
 
   void PiLink::printNewLine()
   {
+    //TODO: check connection status before write
     piStream.write('\r', TCP_TIMEOUT);
     piStream.write('\n', TCP_TIMEOUT);
     //piStream.println();
