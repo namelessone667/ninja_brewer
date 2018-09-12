@@ -55,8 +55,11 @@ class theApp : public CEventReceiver
         int initSensors();
 
         void handlePIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
+        void handlePIDIntegratorClampingChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
+        void handleHeatPIDIntegratorClampingChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         void handleHeatPIDModeChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         void handleOutputLimitsChangedChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
+        void handleHeatOutputLimitsChangedChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         void handleControllerSettingsChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         NinjaModel _model;
         theAppUI _view;

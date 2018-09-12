@@ -22,6 +22,7 @@ PID::PID(double* Input, double* Output, double* Setpoint, double Kp, double Ki, 
   inAuto = false;
   isRaw = true;
   integratorClamping = false;
+  integratorClampingError = 0;
 
   PID::SetOutputLimits(0, 255);	 //default output limit corresponds to
 				 //the arduino pwm limits

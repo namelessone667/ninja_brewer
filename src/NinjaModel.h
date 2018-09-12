@@ -21,11 +21,13 @@ enum NinjaModelPropertyKey
   KEY_PIDKP,
   KEY_PIDKI,
   KEY_PIDKD,
+  KEY_PIDINTEGRCLAMPERR,
   KEY_PIDMODE,
   KEY_HEATOUTPUT,
   KEY_HEATPIDKP,
   KEY_HEATPIDKI,
   KEY_HEATPIDKD,
+  KEY_HEATPIDINTEGRCLAMPERR,
   KEY_HEATPIDMODE,
   KEY_STANDBY,
   KEY_IDLEDIFF,
@@ -112,11 +114,13 @@ public:
     NinjaModelProperty<double> PID_Kp;
     NinjaModelProperty<double> PID_Ki;
     NinjaModelProperty<double> PID_Kd;
+    NinjaModelProperty<double> PID_IntegratorClampingError;
     NinjaModelProperty<int> PIDMode;
     NinjaModelProperty<double> HeatOutput;
     NinjaModelProperty<double> HeatPID_Kp;
     NinjaModelProperty<double> HeatPID_Ki;
     NinjaModelProperty<double> HeatPID_Kd;
+    NinjaModelProperty<double> HeatPID_IntegratorClampingError;
     NinjaModelProperty<int> HeatPIDMode;
     NinjaModelProperty<bool> StandBy;
 

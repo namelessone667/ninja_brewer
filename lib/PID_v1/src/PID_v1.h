@@ -56,6 +56,7 @@ class PID {
     unsigned long GetSampleTime();
     void SetIntegratorErrorMultiplierPositive(double multiplier) { integratorErrorMultiplierPositive = multiplier;};
     void SetIntegratorErrorMultiplierNegative(double multiplier) { integratorErrorMultiplierNegative = multiplier;};
+    void SetIntegratorClampingError(double intClampingErr) { integratorClampingError = intClampingErr; };
 
   private:
     void Initialize();
@@ -79,6 +80,7 @@ class PID {
     unsigned long SampleTime, lastTime;  // time between sample/compute (ms), time of last sample (ms)
     double outMin, outMax;     // output constraints
     bool inAuto, isRaw, integratorClamping;        // state flags
+    double integratorClampingError;
     double integratorErrorMultiplierPositive, integratorErrorMultiplierNegative;
 };
 #endif

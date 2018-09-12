@@ -33,11 +33,13 @@ public:
     address = EEPROMGetInternal(address, model.PID_Kp);
     address = EEPROMGetInternal(address, model.PID_Ki);
     address = EEPROMGetInternal(address, model.PID_Kd);
+    address = EEPROMGetInternal(address, model.PID_IntegratorClampingError);
     address = EEPROMGetInternal(address, model.PIDMode);
     address = EEPROMGetInternal(address, model.HeatOutput);
     address = EEPROMGetInternal(address, model.HeatPID_Kp);
     address = EEPROMGetInternal(address, model.HeatPID_Ki);
     address = EEPROMGetInternal(address, model.HeatPID_Kd);
+    address = EEPROMGetInternal(address, model.HeatPID_IntegratorClampingError);
     address = EEPROMGetInternal(address, model.HeatPIDMode);
     address = EEPROMGetInternal(address, model.StandBy);
 
@@ -91,11 +93,13 @@ public:
     address = EEPROMPutInternal(address, model.PID_Kp.Get());
     address = EEPROMPutInternal(address, model.PID_Ki.Get());
     address = EEPROMPutInternal(address, model.PID_Kd.Get());
+    address = EEPROMPutInternal(address, model.PID_IntegratorClampingError.Get());
     address = EEPROMPutInternal(address, model.PIDMode.Get());
     address = EEPROMPutInternal(address, model.HeatOutput.Get());
     address = EEPROMPutInternal(address, model.HeatPID_Kp.Get());
     address = EEPROMPutInternal(address, model.HeatPID_Ki.Get());
     address = EEPROMPutInternal(address, model.HeatPID_Kd.Get());
+    address = EEPROMPutInternal(address, model.HeatPID_IntegratorClampingError.Get());
     address = EEPROMPutInternal(address, model.HeatPIDMode.Get());
     address = EEPROMPutInternal(address, model.StandBy.Get());
 

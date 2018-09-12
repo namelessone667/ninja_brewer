@@ -114,6 +114,7 @@ void theApp::init()
   _mainPID.SetOutputLimits(_model.MinTemperature, _model.MaxTemperature);  // deg C (~32.5 - ~100 deg F)
 
   _mainPID.SetIntegratorClamping(true);
+  _mainPID.SetIntegratorClampingError( _model.PID_IntegratorClampingError);
 
   _mainPID.setOutputType(PID_FILTERED);
 
@@ -124,6 +125,7 @@ void theApp::init()
   _model.PIDMode.ValueChanged.Subscribe(this, &theApp::handlePIDModeChanged);
   _model.MinTemperature.ValueChanged.Subscribe(this, &theApp::handleOutputLimitsChangedChanged);
   _model.MaxTemperature.ValueChanged.Subscribe(this, &theApp::handleOutputLimitsChangedChanged);
+  _model.PID_IntegratorClampingError.ValueChanged.Subscribe(this, &theApp::handlePIDIntegratorClampingChanged);
 
   _model.Output.Bind(_mainPID.Output);
 
@@ -133,6 +135,7 @@ void theApp::init()
   _heatPID.SetOutputLimits(_model.HeatMinPercent, _model.HeatMaxPercent);  // _heatPID output = duty time per window
 
   _heatPID.SetIntegratorClamping(true);
+  _heatPID.SetIntegratorClampingError( _model.HeatPID_IntegratorClampingError);
 
   _heatPID.setOutputType(PID_FILTERED);
 
@@ -143,6 +146,9 @@ void theApp::init()
   _heatPID.SetIntegratorErrorMultiplierNegative(4.0);
 #endif
   _model.HeatPIDMode.ValueChanged.Subscribe(this, &theApp::handleHeatPIDModeChanged);
+  _model.HeatMinPercent.ValueChanged.Subscribe(this, &theApp::handleHeatOutputLimitsChangedChanged);
+  _model.HeatMaxPercent.ValueChanged.Subscribe(this, &theApp::handleHeatOutputLimitsChangedChanged);
+  _model.HeatPID_IntegratorClampingError.ValueChanged.Subscribe(this, &theApp::handleHeatPIDIntegratorClampingChanged);
 #ifdef TEMP_PROFILES
   _tempProfile.TemperatureProfileStepsChanged.Subscribe(this, &theApp::handleTempProfileStepsChanged);
   eepromSerializer.ClearTempProfileRuntimeParameters();
@@ -485,6 +491,11 @@ void theApp::handleOutputLimitsChangedChanged(const CEventSource* EvSrc,CEventHa
   _mainPID.SetOutputLimits(_model.MinTemperature, _model.MaxTemperature);  // deg C
 }
 
+void theApp::handleHeatOutputLimitsChangedChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
+{
+  _heatPID.SetOutputLimits(_model.HeatMinPercent, _model.HeatMaxPercent);  // %
+}
+
 const String& theApp::getLCDText()
 {
   return _view.getLCDText();
@@ -509,4 +520,14 @@ String theApp::GetSensor2Address()
     return "\"\"";
   else
     return String("\"") + _tempSensor2->GetAddress().ToString() + String("\"");
+}
+
+void theApp::handlePIDIntegratorClampingChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
+{
+  _mainPID.SetIntegratorClampingError(_model.PID_IntegratorClampingError);
+}
+
+void theApp::handleHeatPIDIntegratorClampingChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
+{
+  _heatPID.SetIntegratorClampingError(_model.HeatPID_IntegratorClampingError);
 }

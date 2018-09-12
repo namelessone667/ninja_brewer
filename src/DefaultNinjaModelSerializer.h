@@ -14,11 +14,13 @@ public:
     model.PID_Kp = 3.0;
     model.PID_Ki = 5.0E-4;
     model.PID_Kd = 0.0;
+    model.PID_IntegratorClampingError = 3; // dont modify integrator term when error is higher than +- 3C
     model.PIDMode = PID_MANUAL;
     model.HeatOutput = 0.0;
     model.HeatPID_Kp = 3.0;
     model.HeatPID_Ki = 0.0025;
     model.HeatPID_Kd = 0.0;
+    model.HeatPID_IntegratorClampingError = 2; // dont modify heat integrator term when error is higher than +- 3C
     model.HeatPIDMode = PID_MANUAL;
     model.StandBy = true;
 
