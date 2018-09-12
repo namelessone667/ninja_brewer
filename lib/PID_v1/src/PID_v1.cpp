@@ -55,26 +55,30 @@ bool PID::Compute() {
     }
     double input = *myInput;
     double error = *mySetpoint - input;
-    double lastITerm = ITerm;
+    //double lastITerm = ITerm;
 
     double output = *myOutput;
 
     if(inAuto)
     {
-      ITerm += (ki * error * (error >= 0 ? integratorErrorMultiplierPositive : integratorErrorMultiplierNegative));
-      if (ITerm > outMax) ITerm= outMax;
-        else if (ITerm < outMin) ITerm= outMin;
+      if(!integratorClamping || abs(error) <= integratorClampingError )
+      {
+        ITerm += (ki * error * (error >= 0 ? integratorErrorMultiplierPositive : integratorErrorMultiplierNegative));
+
+        if (ITerm > outMax) ITerm = outMax;
+          else if (ITerm < outMin) ITerm = outMin;
+      }
 
       double dInput = (History[0] - History[29]) / (60);
       PTerm = kp * error;
       DTerm = -kd * dInput;
 
-      if(integratorClamping &&
+      /*if(integratorClamping &&
         ((PTerm + ITerm + DTerm) > outMax || (PTerm + ITerm + DTerm) < outMin))
       {
         //dont update integrator term when the output is saturated
         ITerm = lastITerm;
-      }
+      }*/
 
       output = PTerm + ITerm + DTerm;  // Compute PID Output
 
