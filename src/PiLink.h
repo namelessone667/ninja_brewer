@@ -7,7 +7,7 @@
 #include "theApp.h"
 #include "JSONKeys.h"
 
-//#define PILINK_SERIAL
+#define PILINK_SERIAL
 
 #define VERSION_STRING "0.2.4"
 #define BUILD_NUMBER 0
