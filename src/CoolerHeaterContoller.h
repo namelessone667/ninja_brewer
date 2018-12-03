@@ -19,6 +19,7 @@ class CoolerHeaterContoller
     void Activate();
     void Disable();
     opState GetState();
+    opState GetStateBefore();
     void Configure(const NinjaModel&);
     double GetPeakEstimator();
   private:

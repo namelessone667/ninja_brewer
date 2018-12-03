@@ -310,9 +310,13 @@ void theApp::run()
         getLogger().info(String::format("Heat PID p-term: %.4f, Heat PID i-term: %.4f, Heat PID output: %.4f", _heatPID.GetPTerm(), _heatPID.GetITerm(), _heatPID.Output.Get()));
       }
 #endif
-
+      opState controllerStateBefore = _controller.GetState(); //TODO: refactor to ControllerStateChangedEvent
       _controller.Update(_model.FridgeTemp, _model.Output, _model.HeatOutput, _tempSensor1->PeakDetect());
       _model.ControllerState = _controller.GetState();
+      if(_controller.GetState() == HEAT && controllerStateBefore == IDLE)
+      {
+        _heatPID.SetITerm(0);
+      }
       if(_model.PeakEstimator.Get() != _controller.GetPeakEstimator())
       {
         _model.PeakEstimator = _controller.GetPeakEstimator();
