@@ -34,13 +34,6 @@ void theApp::init()
 #endif
   getLogger().info("initializing...");
 
-#ifdef USE_PARTICLE
-  if(WiFi.ready())
-  {
-    getLogger().info("connecting to Cloud");
-    Particle.connect();
-  }
-#endif
   getLogger().info("loading configuration from EEPROM");
   EEPROMNinjaModelSerializer eepromSerializer;
   DefaultNinjaModelSerializer defaultSerializer;
@@ -76,6 +69,14 @@ void theApp::init()
     }
   }
 #endif
+
+  _model.ConnectToCloud.ValueChanged.Subscribe(this, &theApp::handleConnectToCloudChanged);
+  if(_model.ConnectToCloud == true)
+  {
+    getLogger().info("connecting to Cloud");
+    Particle.connect();
+  }
+
   _model.AppState = INIT;
   getLogger().info("initializing UI");
   _view.init();
@@ -310,12 +311,14 @@ void theApp::run()
         getLogger().info(String::format("Heat PID p-term: %.4f, Heat PID i-term: %.4f, Heat PID output: %.4f", _heatPID.GetPTerm(), _heatPID.GetITerm(), _heatPID.Output.Get()));
       }
 #endif
-      opState controllerStateBefore = _controller.GetState(); //TODO: refactor to ControllerStateChangedEvent
-      _controller.Update(_model.FridgeTemp, _model.Output, _model.HeatOutput, _tempSensor1->PeakDetect());
-      _model.ControllerState = _controller.GetState();
-      if(_controller.GetState() == HEAT && controllerStateBefore == IDLE)
       {
-        _heatPID.SetITerm(0);
+        opState controllerStateBefore = _controller.GetState(); //TODO: refactor to ControllerStateChangedEvent
+        _controller.Update(_model.FridgeTemp, _model.Output, _model.HeatOutput, _tempSensor1->PeakDetect());
+        _model.ControllerState = _controller.GetState();
+        if(_controller.GetState() == HEAT && controllerStateBefore == IDLE)
+        {
+          _heatPID.SetITerm(0);
+        }
       }
       if(_model.PeakEstimator.Get() != _controller.GetPeakEstimator())
       {
@@ -534,4 +537,17 @@ void theApp::handlePIDIntegratorClampingChanged(const CEventSource* EvSrc,CEvent
 void theApp::handleHeatPIDIntegratorClampingChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
 {
   _heatPID.SetIntegratorClampingError(_model.HeatPID_IntegratorClampingError);
+}
+
+void theApp::handleConnectToCloudChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
+{
+  if(_model.ConnectToCloud == true)
+  {
+    Particle.connect();
+  }
+  else
+  {
+    Particle.disconnect();
+    WiFi.off();
+  }
 }

@@ -52,7 +52,8 @@ enum NinjaModelPropertyKey
   KEY_BEERTEMP,
   KEY_CONTROLLERSTATE,
   KEY_APPSTATE,
-  KEY_EXTERNALTEMPPROFILEACTIVE
+  KEY_EXTERNALTEMPPROFILEACTIVE,
+  KEY_CONNECTTOCLOUD
 };
 
 template<typename T>
@@ -149,6 +150,7 @@ public:
     NinjaModelProperty<ApplicationState> AppState;// = UNDEFINED;
 
     NinjaModelProperty<bool> ExternalProfileActive; // true if Fermentrack temperature profile is active
+    NinjaModelProperty<bool> ConnectToCloud; // when set to True we try to connect to Particle cloud, otherwise wifi and particle is disconnected
 
 private:
     //TODO: include boost library or implement a ligthweigth version of boost:variant type

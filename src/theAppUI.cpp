@@ -292,6 +292,7 @@ void theAppUI::buildMenu()
       )
     );
     rootMenuItem->AddSubMenu((new SubNinjaMenuItem(F("Controller param")))
+      ->AddSubMenu(new BindedPropertyNinjaMenuItem<bool, SaveChangesOnConfirmBehaviour>(F("Conn. to cloud"), _controller->getModel().ConnectToCloud))
       ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("Idle Diff"), _controller->getModel().IdleDiff, 0,5,0.1,1))
       ->AddSubMenu(new BindedPropertyNinjaMenuItem<double, SaveChangesOnConfirmBehaviour>(F("Peak Diff"), _controller->getModel().PeakDiff, 0,1,0.01,2))
       ->AddSubMenu(new BindedPropertyNinjaMenuItem<int, SaveChangesOnConfirmBehaviour>(F("Cool Min ON"), _controller->getModel().CoolMinOn, 120,600,10,0))

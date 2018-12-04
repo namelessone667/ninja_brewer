@@ -64,6 +64,7 @@ public:
     address = EEPROMGetInternal(address, model.HeatManualOutputPercent);
 
     address = EEPROMGetInternal(address, model.ExternalProfileActive);
+    address = EEPROMGetInternal(address, model.ConnectToCloud);
 
     if(model.HeatWindow == 0)
     {
@@ -124,6 +125,7 @@ public:
     address = EEPROMPutInternal(address, model.HeatManualOutputPercent.Get());
 
     address = EEPROMPutInternal(address, model.ExternalProfileActive.Get());
+    address = EEPROMPutInternal(address, model.ConnectToCloud.Get());
 
     return true;
   }

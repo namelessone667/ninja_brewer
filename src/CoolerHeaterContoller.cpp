@@ -83,13 +83,25 @@ void CoolerHeaterContoller::Update(double currentTemp, double setTemp, double he
       }
       else if (controllerState[1] == COOL) {  // do peak detect if waiting on COOL
         if (peakDetected) {        // negative peak detected...
+#ifdef BREWPI_LINK
+          double oldestimator = peakEstimator;
+#endif
           peakEstimator = tuneEstimator(peakEstimator, peakEstimate - currentTemp);  // (error = estimate - actual) positive error requires larger estimator; negative:smaller
+#ifdef BREWPI_LINK
+          PiLink::getInstance().debugMessage("Tunning peak estimator, peak estimate: %fC, current temp: %fC, old estimator: %f, new estimator: %f", peakEstimate, currentTemp, oldestimator, peakEstimator);
+#endif
           controllerState[1] = IDLE;          // stop peak detection until next COOL cycle completes
         }
         else {                                                               // no peak detected
           double offTime = (long)(millis() - stopTime) / 1000;      // IDLE time in seconds
-          if (offTime < peakMaxWait) break;                                  // keep waiting for filter confirmed peak if too soon
+          if (offTime < peakMaxWait) break;    // keep waiting for filter confirmed peak if too soon
+#ifdef BREWPI_LINK
+          double oldestimator = peakEstimator;
+#endif
           peakEstimator = tuneEstimator(peakEstimator, peakEstimate - currentTemp);  // temp is drifting in the right direction, but too slowly; update estimator
+#ifdef BREWPI_LINK
+          PiLink::getInstance().debugMessage("Peak max wait reached, tunning peak estimator, peak estimate: %fC, current temp: %fC, old estimator: %f, new estimator: %f", peakEstimate, currentTemp, oldestimator, peakEstimator);
+#endif
           controllerState[1] = IDLE;                                             // stop peak detection
         }
       }
@@ -102,6 +114,9 @@ void CoolerHeaterContoller::Update(double currentTemp, double setTemp, double he
         updatecontrollerState(IDLE, IDLE);    // go IDLE, ignore peaks
         digitalWrite(_cool_pin, /*HIGH*/LOW);       // open relay 1; power down fridge compressor
         //digitalWrite(LED_BUILTIN, LOW);
+#ifdef BREWPI_LINK
+      PiLink::getInstance().debugMessage("Switching fridge off, temp already below output - idle diff. Current temp: %fC, Estimated temp: %fC", currentTemp, currentTemp -(min(runTime, peakMaxTime) / 3600) * peakEstimator);
+#endif
         stopTime = millis();              // record idle start
         break;
       }

@@ -45,6 +45,11 @@ public:
     model.HeatManualOutputPercent = 10;
 
     model.ExternalProfileActive = false;
+#ifdef USE_PARTICLE
+    model.ConnectToCloud = true;
+#else
+    model.ConnectToCloud = false;
+#endif
 
     //model.FridgeTemp = -127.0; //also input for heatPID
     //model.BeerTemp = -127.0; //also Input for mainPID

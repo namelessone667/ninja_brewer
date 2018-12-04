@@ -16,7 +16,7 @@
 #define BREWPI_SIMULATE 0
 #define BREWPI_BOARD '?' //unknown, use 's' for standard
 #define BREWPI_LOG_MESSAGES_VERSION 1
-#define PRINTF_BUFFER_SIZE 128
+#define PRINTF_BUFFER_SIZE 256
 
 #define JSON_BEER_TEMP  "BeerTemp"
 #define JSON_BEER_SET	"BeerSet"
@@ -116,6 +116,7 @@ public:
 	void sendControlConstants(void);
 	void sendControlVariables(void);
   void printTemperatures(void);
+	void debugMessage(const char * message, ...);
 
 private:
 	PiLink();

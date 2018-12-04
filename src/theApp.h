@@ -61,6 +61,7 @@ class theApp : public CEventReceiver
         void handleOutputLimitsChangedChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         void handleHeatOutputLimitsChangedChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         void handleControllerSettingsChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
+        void handleConnectToCloudChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         NinjaModel _model;
         theAppUI _view;
         OneWire _oneWire;

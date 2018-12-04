@@ -38,7 +38,8 @@ NinjaModel::NinjaModel() :
   BeerTemp(KEY_BEERTEMP, -127.0),
   ControllerState(KEY_CONTROLLERSTATE, IDLE),
   AppState(KEY_APPSTATE, UNDEFINED),
-  ExternalProfileActive(KEY_EXTERNALTEMPPROFILEACTIVE)
+  ExternalProfileActive(KEY_EXTERNALTEMPPROFILEACTIVE),
+  ConnectToCloud(KEY_CONNECTTOCLOUD)
 {
   //NinjaModelPropertyVariant v1 = &SetPoint;
   //_properties[KEY_SETPOINT, v1];
