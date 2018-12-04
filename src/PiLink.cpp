@@ -611,8 +611,8 @@
 				theApp::getInstance().ActivateController();
 				break;
 			case MODE_BEER_PROFILE:
-				//model.PIDMode = PID_AUTOMATIC;
-        model.PIDMode = PID_MANUAL; //for now control only the fridge temp when in temp. profile mode
+				model.PIDMode = PID_AUTOMATIC;
+        //model.PIDMode = PID_MANUAL; //for now control only the fridge temp when in temp. profile mode
 #ifdef TEMP_PROFILES
 				if(theApp::getInstance().getTemperatureProfile().IsActiveTemperatureProfile() == false)
 					theApp::getInstance().getTemperatureProfile().ActivateTemperatureProfile();
