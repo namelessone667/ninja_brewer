@@ -429,6 +429,7 @@ public:
 
   void DiscardChanges()
   {
+    m_value = m_bindedProperty.Get();
     m_tempValue = m_value;
   }
 
