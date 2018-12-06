@@ -1,6 +1,7 @@
 #include "CoolerHeaterContoller.h"
 
 CoolerHeaterContoller::CoolerHeaterContoller(int cooling_ssr_pin, int heating_ssr_pin)
+ : peakEstimator(_peakEstimator)
 {
   _cool_pin = cooling_ssr_pin;
   _heat_pin = heating_ssr_pin;
@@ -10,7 +11,7 @@ CoolerHeaterContoller::CoolerHeaterContoller(int cooling_ssr_pin, int heating_ss
   startTime = 0;
   stopTime = 0;
 
-  peakEstimator = 30;    // to predict COOL overshoot; units of deg C per hour (always positive)
+  _peakEstimator = 30;    // to predict COOL overshoot; units of deg C per hour (always positive)
   peakEstimate = 0;
 
   isActive = false;
@@ -39,7 +40,7 @@ void CoolerHeaterContoller::Configure(const NinjaModel& config)
   minIdleTime = config.MinIdleTime; // minimum idle time between cool -> heat or heat -> cool
   no_heat_below = config.NoHeatBelow;
   no_cool_above = config.NoCoolAbove;
-  peakEstimator = config.PeakEstimator;
+  _peakEstimator = config.PeakEstimator;
 
   isConfigured = true;
 }
@@ -83,25 +84,13 @@ void CoolerHeaterContoller::Update(double currentTemp, double setTemp, double he
       }
       else if (controllerState[1] == COOL) {  // do peak detect if waiting on COOL
         if (peakDetected) {        // negative peak detected...
-#ifdef BREWPI_LINK
-          double oldestimator = peakEstimator;
-#endif
-          peakEstimator = tuneEstimator(peakEstimator, peakEstimate - currentTemp);  // (error = estimate - actual) positive error requires larger estimator; negative:smaller
-#ifdef BREWPI_LINK
-          PiLink::getInstance().debugMessage("Tunning peak estimator, peak estimate: %fC, current temp: %fC, old estimator: %f, new estimator: %f", peakEstimate, currentTemp, oldestimator, peakEstimator);
-#endif
+          _peakEstimator = tuneEstimator(_peakEstimator, peakEstimate - currentTemp);  // (error = estimate - actual) positive error requires larger estimator; negative:smaller
           controllerState[1] = IDLE;          // stop peak detection until next COOL cycle completes
         }
         else {                                                               // no peak detected
           double offTime = (long)(millis() - stopTime) / 1000;      // IDLE time in seconds
           if (offTime < peakMaxWait) break;    // keep waiting for filter confirmed peak if too soon
-#ifdef BREWPI_LINK
-          double oldestimator = peakEstimator;
-#endif
-          peakEstimator = tuneEstimator(peakEstimator, peakEstimate - currentTemp);  // temp is drifting in the right direction, but too slowly; update estimator
-#ifdef BREWPI_LINK
-          PiLink::getInstance().debugMessage("Peak max wait reached, tunning peak estimator, peak estimate: %fC, current temp: %fC, old estimator: %f, new estimator: %f", peakEstimate, currentTemp, oldestimator, peakEstimator);
-#endif
+          _peakEstimator = tuneEstimator(_peakEstimator, peakEstimate - currentTemp);  // temp is drifting in the right direction, but too slowly; update estimator
           controllerState[1] = IDLE;                                             // stop peak detection
         }
       }
@@ -114,14 +103,11 @@ void CoolerHeaterContoller::Update(double currentTemp, double setTemp, double he
         updatecontrollerState(IDLE, IDLE);    // go IDLE, ignore peaks
         digitalWrite(_cool_pin, /*HIGH*/LOW);       // open relay 1; power down fridge compressor
         //digitalWrite(LED_BUILTIN, LOW);
-#ifdef BREWPI_LINK
-      PiLink::getInstance().debugMessage("Switching fridge off, temp already below output - idle diff. Current temp: %fC, Estimated temp: %fC", currentTemp, currentTemp -(min(runTime, peakMaxTime) / 3600) * peakEstimator);
-#endif
         stopTime = millis();              // record idle start
         break;
       }
-      if ((currentTemp - (min(runTime, peakMaxTime) / 3600) * peakEstimator) < setTemp - idleDiff) {  // if estimated peak exceeds setTemp - differential, set IDLE and wait for actual peak
-        peakEstimate = currentTemp - (min(runTime, peakMaxTime) / 3600) * peakEstimator;   // record estimated peak prediction
+      if ((currentTemp - (min(runTime, peakMaxTime) / 3600) * _peakEstimator) < setTemp - idleDiff) {  // if estimated peak exceeds setTemp - differential, set IDLE and wait for actual peak
+        peakEstimate = currentTemp - (min(runTime, peakMaxTime) / 3600) * _peakEstimator;   // record estimated peak prediction
         updatecontrollerState(IDLE);     // go IDLE, wait for peak
         digitalWrite(_cool_pin, /*HIGH*/LOW);
         //digitalWrite(LED_BUILTIN, LOW);
@@ -242,9 +228,4 @@ opState CoolerHeaterContoller::GetState()
 opState CoolerHeaterContoller::GetStateBefore()
 {
   return (opState)controllerState[1];
-}
-
-double CoolerHeaterContoller::GetPeakEstimator()
-{
-  return peakEstimator;
 }

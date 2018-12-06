@@ -116,7 +116,7 @@ public:
 	void sendControlConstants(void);
 	void sendControlVariables(void);
   void printTemperatures(void);
-	void debugMessage(const char * message, ...);
+	//void debugMessage(const char * message, ...);
 
 private:
 	PiLink();

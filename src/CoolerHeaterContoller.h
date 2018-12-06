@@ -4,15 +4,17 @@
 #include "application.h"
 #include "NinjaModel.h"
 #include "enum.h"
+#include "ReadOnlyProperty.h"
 
 //TODO: refactor peakDetect to separate function that will be called from app when a peak is detected
 //TODO: create separate classes for SSR actuators
-//TODO: set heat PID I-term to 0 when goig to IDLE from HEAT
-//TODO: notify the app somehow when controllerState changes
-//TODO: save peakestimator to eeprom when state changes from IDLE, COOL -> IDLE, IDLE
+
+//TODO: notify the app somehow when controllerState changes - make a new Event CEvent ControllerStateChanged
 
 class CoolerHeaterContoller
 {
+  private:
+    Property<double> _peakEstimator;
   public:
     CoolerHeaterContoller(int, int);
     void Update(double currentTemp, double setTemp, double heatOutput, bool peakDetected);
@@ -21,7 +23,7 @@ class CoolerHeaterContoller
     opState GetState();
     opState GetStateBefore();
     void Configure(const NinjaModel&);
-    double GetPeakEstimator();
+    ReadOnlyProperty<double> peakEstimator;
   private:
     int _cool_pin;
     int _heat_pin;
@@ -39,7 +41,6 @@ class CoolerHeaterContoller
     double no_heat_below;
     double no_cool_above;
 
-    double peakEstimator;
     double peakEstimate;      // to determine prediction error = (estimate - actual)
 
     byte controllerState[2];

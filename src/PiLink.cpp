@@ -116,21 +116,21 @@
       piStream.write((const uint8_t *)printfBuff, strlen(printfBuff), TCP_TIMEOUT);*/
   }
 
-  void PiLink::debugMessage(const char * message, ...)
-  {
-  	va_list args;
-  	//print 'D:' as prefix
-  	printResponse('D');
-
-  	// Using print_P for the Annotation fails. Arguments are not passed correctly. Use Serial directly as a work around.
-  	va_start (args, message );
-  	vsnprintf(printfBuff, PRINTF_BUFFER_SIZE, message, args);
-  	va_end (args);
-
-  	piStream.print(printfBuff);
-
-  	printNewLine();
-  }
+  // void PiLink::debugMessage(const char * message, ...)
+  // {
+  // 	va_list args;
+  // 	//print 'D:' as prefix
+  // 	printResponse('D');
+  //
+  // 	// Using print_P for the Annotation fails. Arguments are not passed correctly. Use Serial directly as a work around.
+  // 	va_start (args, message );
+  // 	vsnprintf(printfBuff, PRINTF_BUFFER_SIZE, message, args);
+  // 	va_end (args);
+  //
+  // 	piStream.print(printfBuff);
+  //
+  // 	printNewLine();
+  // }
 
   void PiLink::print(char c)
   {

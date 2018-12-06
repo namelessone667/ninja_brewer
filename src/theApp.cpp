@@ -170,6 +170,7 @@ void theApp::init()
   _model.HeatWindow.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
   _model.NoHeatBelow.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
   _model.NoCoolAbove.ValueChanged.Subscribe(this, &theApp::handleControllerSettingsChanged);
+  _controller.peakEstimator.ValueChanged().Subscribe(this, &theApp::handlePeakEstimatorChanged);
 
   getLogger().info("initialization complete");
 }
@@ -319,11 +320,6 @@ void theApp::run()
         {
           _heatPID.SetITerm(0);
         }
-      }
-      if(_model.PeakEstimator.Get() != _controller.GetPeakEstimator())
-      {
-        _model.PeakEstimator = _controller.GetPeakEstimator();
-        saveState();
       }
 #ifdef DEBUG_HERMS
       _publisherProxy.publish(_model, _heatPID.GetPTerm(), _heatPID.GetITerm(), _heatPID.GetDTerm());
@@ -550,4 +546,10 @@ void theApp::handleConnectToCloudChanged(const CEventSource* EvSrc,CEventHandler
     Particle.disconnect();
     WiFi.off();
   }
+}
+
+void theApp::handlePeakEstimatorChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs)
+{
+  _model.PeakEstimator.Set(_controller.peakEstimator.Get());
+  saveState();
 }
