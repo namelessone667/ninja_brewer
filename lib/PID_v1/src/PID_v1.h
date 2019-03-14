@@ -11,6 +11,7 @@ class PID {
     #define PID_RAW 0
     #define PID_FILTERED 1
     #define LAST_OUTPUT_DEFAULT -999
+    #define PID_MAX_DIFF_FROM_SETPOINT 2
 
 //commonly used functions **************************************************************************
     PID(double*, double*, double*,         // * constructor.  links the PID to the Input, Output, and

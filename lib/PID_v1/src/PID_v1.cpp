@@ -59,14 +59,22 @@ bool PID::Compute() {
 
     double output = *myOutput;
 
+    double lowerBoundTemp = max(outMin, *mySetpoint - PID_MAX_DIFF_FROM_SETPOINT);
+    double upperBoundTemp = min(outMax, *mySetpoint + PID_MAX_DIFF_FROM_SETPOINT);
+
     if(inAuto)
     {
-      if(!integratorClamping || abs(error) <= integratorClampingError )
+      //TODO: update integrator only when fridgeTemp is near FridgeSettings
+      //TODO: dont update integrator when the output is saturated
+      //only apply clamping if sign of error is not tha same as sign of (ITerm-setpoint)
+      bool applyClamping = error < 0 ? (*mySetpoint - ITerm) >= 0 : (*mySetpoint - ITerm) < 0;
+
+      if(!integratorClamping || (applyClamping && abs(error) <= integratorClampingError))
       {
         ITerm += (ki * error * (error >= 0 ? integratorErrorMultiplierPositive : integratorErrorMultiplierNegative));
 
-        if (ITerm > outMax) ITerm = outMax;
-          else if (ITerm < outMin) ITerm = outMin;
+        if (ITerm > upperBoundTemp) ITerm = upperBoundTemp;
+          else if (ITerm < lowerBoundTemp) ITerm = lowerBoundTemp;
       }
 
       double dInput = (History[0] - History[29]) / (60);
@@ -82,10 +90,10 @@ bool PID::Compute() {
 
       output = PTerm + ITerm + DTerm;  // Compute PID Output
 
-      if(output > outMax) output = outMax;
-        else if(output < outMin) output = outMin;
+      if(output > upperBoundTemp) output = upperBoundTemp;
+        else if(output < lowerBoundTemp) output = lowerBoundTemp;
 
-      if(lastOutput == LAST_OUTPUT_DEFAULT)
+      if(lastOutput == LAST_OUTPUT_DEFAULT || lastOutput < lowerBoundTemp || lastOutput > upperBoundTemp)
         lastOutput = output;
       if (!isRaw) output = lastOutput + ((SampleTime / 1000) / FilterConstant) * (output - lastOutput);
       *myOutput = output;
