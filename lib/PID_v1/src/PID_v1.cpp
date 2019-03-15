@@ -69,7 +69,7 @@ bool PID::Compute() {
       //only apply clamping if sign of error is not tha same as sign of (ITerm-setpoint)
       bool applyClamping = error < 0 ? (*mySetpoint - ITerm) >= 0 : (*mySetpoint - ITerm) < 0;
 
-      if(!integratorClamping || (applyClamping && abs(error) <= integratorClampingError))
+      if(!integratorClamping || !applyClamping || abs(error) <= integratorClampingError)
       {
         ITerm += (ki * error * (error >= 0 ? integratorErrorMultiplierPositive : integratorErrorMultiplierNegative));
 
