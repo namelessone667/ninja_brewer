@@ -21,8 +21,10 @@ PID::PID(double* Input, double* Output, double* Setpoint, double Kp, double Ki, 
 
   inAuto = false;
   isRaw = true;
+  limitPIDOutputFromSetpoint = false;
   integratorClamping = false;
   integratorClampingError = 0;
+  maxPIDOutputDiffFromSetpoint = PID_MAX_DIFF_FROM_SETPOINT;
 
   PID::SetOutputLimits(0, 255);	 //default output limit corresponds to
 				 //the arduino pwm limits
@@ -59,8 +61,8 @@ bool PID::Compute() {
 
     double output = *myOutput;
 
-    double lowerBoundTemp = max(outMin, *mySetpoint - PID_MAX_DIFF_FROM_SETPOINT);
-    double upperBoundTemp = min(outMax, *mySetpoint + PID_MAX_DIFF_FROM_SETPOINT);
+    double lowerBoundTemp = limitPIDOutputFromSetpoint ? max(outMin, *mySetpoint - maxPIDOutputDiffFromSetpoint) : outMin;
+    double upperBoundTemp = limitPIDOutputFromSetpoint ? min(outMax, *mySetpoint + maxPIDOutputDiffFromSetpoint) : outMax;
 
     if(inAuto)
     {

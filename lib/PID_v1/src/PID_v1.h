@@ -58,6 +58,7 @@ class PID {
     void SetIntegratorErrorMultiplierPositive(double multiplier) { integratorErrorMultiplierPositive = multiplier;};
     void SetIntegratorErrorMultiplierNegative(double multiplier) { integratorErrorMultiplierNegative = multiplier;};
     void SetIntegratorClampingError(double intClampingErr) { integratorClampingError = intClampingErr; };
+    void SetLimitPIDOutputFromSetpoint( bool limitPIDOutputFromSetpoint, double integratorClampingError) {this->limitPIDOutputFromSetpoint = limitPIDOutputFromSetpoint; this->integratorClampingError = integratorClampingError; };
 
   private:
     void Initialize();
@@ -80,7 +81,8 @@ class PID {
     double History[30];                  // for calculating broad PV slope for derivative term
     unsigned long SampleTime, lastTime;  // time between sample/compute (ms), time of last sample (ms)
     double outMin, outMax;     // output constraints
-    bool inAuto, isRaw, integratorClamping;        // state flags
+    bool inAuto, isRaw, integratorClamping, limitPIDOutputFromSetpoint;        // state flags
+    double maxPIDOutputDiffFromSetpoint;
     double integratorClampingError;
     double integratorErrorMultiplierPositive, integratorErrorMultiplierNegative;
 };

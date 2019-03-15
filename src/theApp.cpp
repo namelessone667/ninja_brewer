@@ -122,6 +122,7 @@ void theApp::init()
   _mainPID.setFilterConstant(1000);
 
   _mainPID.SetMode(_model.PIDMode);  // set man/auto
+  _mainPID.SetLimitPIDOutputFromSetpoint(true, 2.0);
 
   _model.PIDMode.ValueChanged.Subscribe(this, &theApp::handlePIDModeChanged);
   _model.MinTemperature.ValueChanged.Subscribe(this, &theApp::handleOutputLimitsChangedChanged);
@@ -143,6 +144,7 @@ void theApp::init()
   _heatPID.setFilterConstant(10);
 
   _heatPID.SetMode(_model.HeatPIDMode);
+  _heatPID.SetLimitPIDOutputFromSetpoint(false, 0.0);
 #ifdef HERMS_MODE
   _heatPID.SetIntegratorErrorMultiplierNegative(4.0);
 #endif
