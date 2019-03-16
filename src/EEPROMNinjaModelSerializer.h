@@ -1,26 +1,27 @@
 #ifndef EEPROMNinjaModelSerializer_h
 #define EEPROMNinjaModelSerializer_h
 
-#include "INinjaModelSerializer.h"
 #include "EEPROM_MAP.h"
 #include "DS18B20Sensor.h"
+//#include "theApp.h"
 #ifdef TEMP_PROFILES
 #include "TemperatureProfile.h"
 #endif
 
+extern Logger logger;
 //TODO: refactor
 // define a starting eeprom address for profile
 // create a map of property keys - eeprom address (offset)
 
-class EEPROMNinjaModelSerializer : INinjaModelSerializer
+class EEPROMNinjaModelSerializer
 {
 public:
-  inline bool Load(NinjaModel& model)
+  static bool Load(NinjaModel& model)
   {
     byte eeprom_ver = -1;
     EEPROM.get(APP_VERSION_ADDR, eeprom_ver);
 
-    theApp::getInstance().getLogger().info("EEPROM version: " + String(eeprom_ver));
+    logger.info("EEPROM version: " + String(eeprom_ver));
 
     if(eeprom_ver != EEPROM_MAP_VER)
       return false;
@@ -68,18 +69,18 @@ public:
 
     if(model.HeatWindow == 0)
     {
-      theApp::getInstance().getLogger().error("EEPROM data corrupted!");
+      logger.error("EEPROM data corrupted!");
       return false;
     }
 
     return true;
   }
 
-  inline bool Save(const NinjaModel& model)
+  static bool Save(const NinjaModel& model)
   {
     if(model.HeatWindow == 0)
     {
-      theApp::getInstance().getLogger().error("Model data invalid, save to EEPROM not executed!");
+      logger.error("Model data invalid, save to EEPROM not executed!");
       return false;
     }
 
@@ -134,7 +135,7 @@ public:
   {
     for(int i = 0; i < 8; i++)
     {
-      theApp::getInstance().getLogger().info("SaveSensorAddress to EEPROM, address:" + String(eeprom_address) + ", " + String(sizeof(sensorAddress.address[i])) + " bytes written, value: " + String(sensorAddress.address[i]));
+      logger.info("SaveSensorAddress to EEPROM, address:" + String(eeprom_address) + ", " + String(sizeof(sensorAddress.address[i])) + " bytes written, value: " + String(sensorAddress.address[i]));
       EEPROM.put(eeprom_address, sensorAddress.address[i]);
       eeprom_address += sizeof(sensorAddress.address[i]);
     }
@@ -147,21 +148,21 @@ public:
     for(int i = 0; i < 8; i++)
     {
       EEPROM.get(eeprom_address, sensorAddress.address[i]);
-      theApp::getInstance().getLogger().info("LoadSensorAddress from EEPROM, address:" + String(eeprom_address) + ", " + String(sizeof(sensorAddress.address[i])) + " bytes loaded, value: " + String(sensorAddress.address[i]));
+      logger.info("LoadSensorAddress from EEPROM, address:" + String(eeprom_address) + ", " + String(sizeof(sensorAddress.address[i])) + " bytes loaded, value: " + String(sensorAddress.address[i]));
       eeprom_address += sizeof(sensorAddress.address[i]);
     }
     return sensorAddress;
   }
 #ifdef TEMP_PROFILES
-  bool LoadTempProfile(TemperatureProfile& tempProfile)
+  static bool LoadTempProfile(TemperatureProfile& tempProfile)
   {
-    theApp::getInstance().getLogger().info("Loading temperature profile from eeprom");
+    logger.info("Loading temperature profile from eeprom");
     byte eeprom_ver = -1;
     EEPROM.get(APP_VERSION_ADDR, eeprom_ver);
 
     if(eeprom_ver != EEPROM_MAP_VER)
     {
-      theApp::getInstance().getLogger().info("Failed to load temperature profile, eeprom version mismatch");
+      logger.info("Failed to load temperature profile, eeprom version mismatch");
       return false;
     }
 
@@ -176,7 +177,7 @@ public:
 
     address = EEPROMGetInternal(address, stepsCount);
 
-    theApp::getInstance().getLogger().info("Number of temperature profile steps: " + String(stepsCount));
+    logger.info("Number of temperature profile steps: " + String(stepsCount));
 
     tempProfile.ClearProfile();
     address = TEMP_PROFILE_ADDR + 100;
@@ -200,7 +201,7 @@ public:
           tempProfile.AddProfileStep<LinearTemperatureProfileStepType>(targetTemp, duration, durationUnit);
           break;
         default:
-          theApp::getInstance().getLogger().info("Invalid temperature profile step type");
+          logger.info("Invalid temperature profile step type");
           break;
       }
     }
@@ -208,15 +209,15 @@ public:
     return true;
   }
 
-  bool SaveTempProfile(const TemperatureProfile& tempProfile)
+  static bool SaveTempProfile(const TemperatureProfile& tempProfile)
   {
-    theApp::getInstance().getLogger().info("Saving temperature profile to eeprom");
+    logger.info("Saving temperature profile to eeprom");
     byte eeprom_ver = -1;
     EEPROM.get(APP_VERSION_ADDR, eeprom_ver);
 
     if(eeprom_ver != EEPROM_MAP_VER)
     {
-      theApp::getInstance().getLogger().info("Failed to save temperature profile, eeprom version mismatch");
+      logger.info("Failed to save temperature profile, eeprom version mismatch");
       return false;
     }
 
@@ -242,7 +243,7 @@ public:
       address = EEPROMPutInternal(address, (int)(*it)->GetDurationUnit());
       address = EEPROMPutInternal(address, (int)(*it)->GetTemperatureProfileStepType());
 
-      theApp::getInstance().getLogger().info("Saved step " + String((*it)->GetTargetTemperature()));
+      logger.info("Saved step " + String((*it)->GetTargetTemperature()));
     }
 
     return true;
@@ -263,7 +264,7 @@ public:
 
     if(eeprom_ver != EEPROM_MAP_VER)
     {
-      theApp::getInstance().getLogger().info("Failed to load temperature profile runtime parameters, eeprom version mismatch");
+      logger.info("Failed to load temperature profile runtime parameters, eeprom version mismatch");
       return false;
     }
 
@@ -287,35 +288,35 @@ public:
   }
 #endif
 protected:
-  template <typename T> int EEPROMPutInternal( int idx, const T &t )
+  template <typename T> static int EEPROMPutInternal( int idx, const T &t )
   {
-    theApp::getInstance().getLogger().info("EEPROMPutInternal address:" + String(idx) + ", " + String(sizeof(T)) + " bytes written, value: " + String(t));
+    logger.info("EEPROMPutInternal address:" + String(idx) + ", " + String(sizeof(T)) + " bytes written, value: " + String(t));
     EEPROM.put(idx, t);
     return idx + sizeof(T);
   }
 
-  template <typename T> int EEPROMGetInternal( int idx, Property<T> &t )
+  template <typename T> static int EEPROMGetInternal( int idx, Property<T> &t )
   {
     T value;
     EEPROM.get(idx, value);
     t = value;
-    theApp::getInstance().getLogger().info("EEPROMGetInternal address:" + String(idx) + ", " + String(sizeof(T)) + " bytes loaded, value: " + String(value));
+    logger.info("EEPROMGetInternal address:" + String(idx) + ", " + String(sizeof(T)) + " bytes loaded, value: " + String(value));
     return idx + sizeof(T);
   }
 
-  template <typename T> int EEPROMGetInternal( int idx, NinjaModelProperty<T> &t )
+  template <typename T> static int EEPROMGetInternal( int idx, NinjaModelProperty<T> &t )
   {
     T value;
     EEPROM.get(idx, value);
     t = value;
-    theApp::getInstance().getLogger().info("EEPROMGetInternal address:" + String(idx) + ", " + String(sizeof(T)) + " bytes loaded, value: " + String(value));
+    logger.info("EEPROMGetInternal address:" + String(idx) + ", " + String(sizeof(T)) + " bytes loaded, value: " + String(value));
     return idx + sizeof(T);
   }
 
-  template <typename T> int EEPROMGetInternal( int idx, T &value )
+  template <typename T> static int EEPROMGetInternal( int idx, T &value )
   {
     EEPROM.get(idx, value);
-    theApp::getInstance().getLogger().info("EEPROMGetInternal address:" + String(idx) + ", " + String(sizeof(T)) + " bytes loaded, value: " + String(value));
+    logger.info("EEPROMGetInternal address:" + String(idx) + ", " + String(sizeof(T)) + " bytes loaded, value: " + String(value));
     return idx + sizeof(T);
   }
 };

@@ -13,6 +13,7 @@
 SYSTEM_THREAD(ENABLED);
 SYSTEM_MODE(SEMI_AUTOMATIC);
 //STARTUP(WiFi.selectAntenna(ANT_AUTO));
+Logger logger("ninja_brewer");
 #ifdef USE_PAPERTAIL
 PapertrailLogHandler papertailHandler(PAPERTAIL_SERVER, PAPERTAIL_PORT, "ninja_brewer_2", System.deviceID(), LOG_LEVEL);
 #endif

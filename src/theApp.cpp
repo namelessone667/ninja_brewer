@@ -12,7 +12,6 @@ theApp::theApp()
     _model(),
     _view(this),
     _oneWire(ONE_WIRE_BUS_PIN),
-    _log("ninja_brewer"),
     _controller(COOLER_SSR_PIN, HEATER_SSR_PIN),
     _mainPID(_model.BeerTemp, _model.Output, _model.SetPoint, _model.PID_Kp, _model.PID_Ki, _model.PID_Kd, PID_DIRECT),
     _heatPID(_model.FridgeTemp, _model.HeatOutput, _model.Output, _model.HeatPID_Kp, _model.HeatPID_Ki, _model.HeatPID_Kd, PID_DIRECT),
@@ -35,13 +34,11 @@ void theApp::init()
   getLogger().info("initializing...");
 
   getLogger().info("loading configuration from EEPROM");
-  EEPROMNinjaModelSerializer eepromSerializer;
-  DefaultNinjaModelSerializer defaultSerializer;
 
-  if(eepromSerializer.Load(_model) == false)
+  if(_model.Load() == false)
   {
     getLogger().info("loading configuration from EEPROM failed, loading default configuration");
-    defaultSerializer.Load(_model);
+    _model.ResetToDefaults();
 #ifdef TEMP_PROFILES
     _tempProfile.ClearProfile();
 #endif
@@ -49,7 +46,7 @@ void theApp::init()
 #ifdef TEMP_PROFILES
   else
   {
-    if(eepromSerializer.LoadTempProfile(_tempProfile) == false)
+    if(EEPROMNinjaModelSerializer::LoadTempProfile(_tempProfile) == false)
       _tempProfile.ClearProfile();
     else
     {
@@ -62,7 +59,7 @@ void theApp::init()
     bool isActive;
     int stepIndex;
     long timestamp;
-    eepromSerializer.LoadTempProfileRuntimeParameters(isActive, stepIndex, timestamp);
+    EEPROMNinjaModelSerializer::LoadTempProfileRuntimeParameters(isActive, stepIndex, timestamp);
     if(isActive)
     {
       _tempProfile.ActivateAtStep(stepIndex, millis() - timestamp);
@@ -377,7 +374,7 @@ NinjaModel& theApp::getModel()
 
 const Logger& theApp::getLogger()
 {
-  return _log;
+  return logger;;
 }
 
 void theApp::setErrorState(String error_message)
@@ -441,10 +438,10 @@ void theApp::reinitLCD()
 void theApp::saveState()
 {
   getLogger().info("Saving state to EEPROM");
-  EEPROMNinjaModelSerializer serializer;
-  serializer.Save(_model);
+
+  _model.Save();
 #ifdef TEMP_PROFILES
-  serializer.SaveTempProfile(_tempProfile);
+  EEPROMNinjaModelSerializer::SaveTempProfile(_tempProfile);
 #endif
   getLogger().info("Save state to EEPROM - done");
 }

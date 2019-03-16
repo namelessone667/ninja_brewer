@@ -41,41 +41,51 @@ NinjaModel::NinjaModel() :
   ExternalProfileActive(KEY_EXTERNALTEMPPROFILEACTIVE),
   ConnectToCloud(KEY_CONNECTTOCLOUD)
 {
-  //NinjaModelPropertyVariant v1 = &SetPoint;
-  //_properties[KEY_SETPOINT, v1];
-  /*_properties[SetPoint.getKey(), SetPoint];
-  _properties[Output.getKey(), Output];
-  _properties[PeakEstimator.getKey(), PeakEstimator];
-  _properties[PID_Kp.getKey(), PID_Kp];
-  _properties[PID_Ki.getKey(), PID_Ki];
-  _properties[PID_Kd.getKey(), PID_Kd];
-  _properties[PIDMode.getKey(), PIDMode];
-  _properties[HeatOutput.getKey(), HeatOutput];
-  _properties[HeatPID_Kp.getKey(), HeatPID_Kp];
-  _properties[HeatPID_Ki.getKey(), HeatPID_Ki];
-  _properties[HeatPID_Kd.getKey(), HeatPID_Kd];
-  _properties[HeatPIDMode.getKey(), HeatPIDMode];
-  _properties[StandBy.getKey(), StandBy];
-  _properties[IdleDiff.getKey(), IdleDiff];
-  _properties[PeakDiff.getKey(), PeakDiff];
-  _properties[CoolMinOff.getKey(), CoolMinOff];
-  _properties[CoolMinOn.getKey(), CoolMinOn];
-  _properties[CoolMaxOn.getKey(), CoolMaxOn];
-  _properties[PeakMaxTime.getKey(), PeakMaxTime];
-  _properties[PeakMaxWait.getKey(), PeakMaxWait];
-  _properties[HeatMinOff.getKey(), HeatMinOff];
-  _properties[HeatWindow.getKey(), HeatWindow];
-  _properties[MinIdleTime.getKey(), MinIdleTime];
-  _properties[NoHeatBelow.getKey(), NoHeatBelow];
-  _properties[NoCoolAbove.getKey(), NoCoolAbove];
-  _properties[ControllerMode.getKey(), ControllerMode];
-  _properties[MaxTemperature.getKey(), MaxTemperature];
-  _properties[HeatMinPercent.getKey(), HeatMinPercent];
-  _properties[HeatMaxPercent.getKey(), HeatMaxPercent];
-  _properties[HeatManualOutputPercent.getKey(), HeatManualOutputPercent];
-  _properties[FridgeTemp.getKey(), FridgeTemp];
-  _properties[BeerTemp.getKey(), BeerTemp];
-  _properties[ControllerState.getKey(), ControllerState];
-  _properties[AppState.getKey(), AppState];
-  _properties[ExternalProfileActive.getKey(), ExternalProfileActive];*/
+
+}
+
+void NinjaModel::ResetToDefaults()
+{
+  SetPoint = 18.0; // target beer temp
+  Output = 18.0; // main PID output temperature, also setpoint for heatPID
+  PeakEstimator = 30.0;
+  PID_Kp = 3.0;
+  PID_Ki = 5.0E-4;
+  PID_Kd = 0.0;
+  PID_IntegratorClampingError = 2; // dont modify integrator term when error is higher than +- 3C
+  PIDMode = PID_MANUAL;
+  HeatOutput = 0.0;
+  HeatPID_Kp = 10.0;
+  HeatPID_Ki = 0.001;
+  HeatPID_Kd = 0.0;
+  HeatPID_IntegratorClampingError = 5; // dont modify heat integrator term when error is higher than +- 3C
+  HeatPIDMode = PID_MANUAL;
+  StandBy = true;
+
+  IdleDiff = 0.5;     // constrain fridge temperature to +/- 0.5 deg C (0.9 deg F) differential
+  PeakDiff = 0.25;      // constrain allowed peak error to +/- 0.25 deg C (0.45 deg F) differential
+  CoolMinOff = 600;     // minimum compressor off time, seconds (5 min)
+  CoolMinOn = 120;  // minimum compressor on time, seconds (1.5 min)
+  CoolMaxOn = 2700;     // maximum compressor on time, seconds (45 min)
+  PeakMaxTime = 1200;   // maximum runTime to consider for peak estimation, seconds (20 min)
+  PeakMaxWait = 1800;   // maximum wait on peak, seconds (30 min)
+  HeatMinOff = 600;     // minimum HEAT off time, seconds (5 min)
+  HeatWindow = 60;  // window size for HEAT time proportioning, ms (5 min)
+  MinIdleTime = 120; // minimum idle time between cool -> heat or heat -> cool
+  NoHeatBelow = 10;
+  NoCoolAbove = 25;
+  ControllerMode = COOLER_HEATER;
+
+  MinTemperature = 0;
+  MaxTemperature = 35;
+  HeatMinPercent = 0;
+  HeatMaxPercent = 50;
+  HeatManualOutputPercent = 10;
+
+  ExternalProfileActive = false;
+#ifdef USE_PARTICLE
+  ConnectToCloud = true;
+#else
+  ConnectToCloud = false;
+#endif
 }

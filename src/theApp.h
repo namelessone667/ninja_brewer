@@ -11,6 +11,7 @@
 #include "PIDProxy.h"
 #include "NinjaModel.h"
 #include "DS18B20Sensor.h"
+#include "EEPROMNinjaModelSerializer.h"
 #ifdef TEMP_PROFILES
 #include "TemperatureProfile.h"
 #endif
@@ -19,6 +20,7 @@
 //TODO: implement behavior in different states by separate classes
 //TODO: device manager, hwmanager
 //TODO: configuration_profiles - herms, fermenter, lager
+extern Logger logger;
 
 class theApp : public CEventReceiver
 {
@@ -31,7 +33,7 @@ class theApp : public CEventReceiver
         NinjaModel& getModel();
         void setErrorState(String error_message);
         String getErrorMessage();
-        const Logger& getLogger();
+        static const Logger& getLogger();
         void ActivateController();
         void DisableController();
         void setPID(int, double);
@@ -63,12 +65,11 @@ class theApp : public CEventReceiver
         void handleControllerSettingsChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         void handleConnectToCloudChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
         void handlePeakEstimatorChanged(const CEventSource* EvSrc,CEventHandlerArgs* EvArgs);
-        NinjaModel _model;
+        SerializedNinjaModel<EEPROMNinjaModelSerializer> _model;
         theAppUI _view;
         OneWire _oneWire;
         PublisherProxy _publisherProxy;
         String _error;
-        Logger _log;
         CoolerHeaterContoller _controller;
         PIDProxy _mainPID;
         PIDProxy _heatPID;

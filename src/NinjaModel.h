@@ -109,6 +109,7 @@ class NinjaModel
   //                        NinjaModelProperty<ApplicationState>*> NinjaModelPropertyVariant;
 public:
     NinjaModel();
+    void ResetToDefaults();
     NinjaModelProperty<double> SetPoint; // target beer temp
     NinjaModelProperty<double> Output; // main PID output temperature, also setpoint for heatPID
     NinjaModelProperty<double> PeakEstimator;
@@ -155,6 +156,14 @@ public:
 private:
     //TODO: include boost library or implement a ligthweigth version of boost:variant type
     //std::map<NinjaModelPropertyKey, NinjaModelPropertyVariant> _properties;
+};
+
+template<typename T>
+class SerializedNinjaModel : public NinjaModel
+{
+  public:
+    bool Load() {return T::Save(*this);};
+    bool Save() {return T::Load(*this);};
 };
 
 #endif
